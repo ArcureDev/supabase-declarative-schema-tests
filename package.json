@@ -1,0 +1,14 @@
+{
+  "name": "supabase-declarative-schema-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:declarative-schema": "node --experimental-strip-types declarative-schema/run.mts"
+  },
+  "devDependencies": {
+    "supabase": "https://pkg.pr.new/supabase/cli/supabase@f9bd2890b73b6084ac64753accabd34d97454eb3"
+  },
+  "engines": {
+    "node": ">=22.6.0"
+  }
+}
