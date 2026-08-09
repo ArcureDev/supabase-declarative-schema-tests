@@ -506,9 +506,9 @@ function versionRowSeverity(
   legacyStatus: DisplayedVersionStatus,
 ): number {
   const statuses = [nextStatus, legacyStatus];
-  if (statuses.includes("ERROR")) return 0;
-  if (statuses.includes("WARNING")) return 1;
-  if (statuses.includes("OK")) return 2;
+  if (statuses.every((status) => status === "—")) return 0;
+  if (statuses.includes("ERROR")) return 1;
+  if (statuses.includes("WARNING")) return 2;
   return 3;
 }
 
@@ -597,6 +597,33 @@ function existingVersionSnapshots(
     if (row[4] !== "—") snapshot.results.set(`legacy:${row[2]}`, row[4] as VersionResultStatus);
     snapshots.set(row[1], snapshot);
   }
+
+  const reportCandidates = readdirSync(reportsDirectory)
+    .filter((reportName) => /^report-.*\.md$/.test(reportName))
+    .sort()
+    .reverse()
+    .map((reportName) => {
+      const report = readFileSync(join(reportsDirectory, reportName), "utf8");
+      return {
+        reportName,
+        checksum: /^- Checksum: `([0-9a-f]{7})`$/im.exec(report)?.[1],
+        caseNames: new Set(
+          [...report.matchAll(/^## (.+)$/gm)].map((heading) =>
+            heading[1].trimEnd().replace(/^Case: /, ""),
+          ),
+        ),
+      };
+    })
+    .filter((report) => report.checksum === undefined || report.checksum === checksum);
+  for (const [caseName, snapshot] of snapshots) {
+    const linkedReport = reportCandidates.find(
+      (report) => report.reportName === snapshot.reportName,
+    );
+    if (linkedReport?.caseNames.has(caseName)) continue;
+
+    const replacementReport = reportCandidates.find((report) => report.caseNames.has(caseName));
+    if (replacementReport) snapshot.reportName = replacementReport.reportName;
+  }
   return snapshots;
 }
 
@@ -636,8 +663,9 @@ export function updateVersionReportsFromReports(): void {
     }
     const versionDateTime = versionTimestamp
       .toISOString()
-      .replaceAll(":", "-")
-      .replaceAll(".", "-");
+      .replaceAll("-", "")
+      .replaceAll(":", "")
+      .replace(/\.\d{3}Z$/, "Z");
     const commandOrder: DeclarativeCommand[] = ["generate", "sync", "sync-verification"];
     const sourceReportCount = new Set(
       [...latestCaseSnapshots.values()].map((snapshot) => snapshot.reportName),
@@ -665,10 +693,24 @@ export function updateVersionReportsFromReports(): void {
       (count, row) => count + Number(row.nextStatus !== "—") + Number(row.legacyStatus !== "—"),
       0,
     );
-    const resultLines = resultRows.map(
-      (row) =>
-        `| \`${row.caseName}\` | ${row.command} | **${row.nextStatus}** | **${row.legacyStatus}** | [\`${row.reportName}\`](../reports/${row.reportName}#${caseAnchor(row.caseName)}) |`,
-    );
+    const resultSections = [
+      { heading: "Commands not run", severity: 0 },
+      { heading: "Errors", severity: 1 },
+      { heading: "Warnings", severity: 2 },
+      { heading: "OK", severity: 3 },
+    ].flatMap(({ heading, severity }) => [
+      `## ${heading}`,
+      "",
+      "| Case | Command | Next | Legacy | Latest report for case |",
+      "| --- | --- | --- | --- | --- |",
+      ...resultRows
+        .filter((row) => versionRowSeverity(row.nextStatus, row.legacyStatus) === severity)
+        .map(
+          (row) =>
+            `| \`${row.caseName}\` | ${row.command} | **${row.nextStatus}** | **${row.legacyStatus}** | [\`${row.reportName}\`](../reports/${row.reportName}#${caseAnchor(row.caseName)}) |`,
+        ),
+      "",
+    ]);
     const lines = [
       `# Supabase CLI version ${checksum}`,
       "",
@@ -679,14 +721,8 @@ export function updateVersionReportsFromReports(): void {
       `- Cases: ${latestCaseSnapshots.size}`,
       `- Recorded command results: ${recordedResults}`,
       "- A dash means that command was not run. Skipped commands are recorded as `ERROR`.",
-      "- Results are ordered by worst status: `ERROR`, `WARNING`, `OK`, then commands that were not run.",
       "",
-      "## Command results",
-      "",
-      "| Case | Command | Next | Legacy | Latest report for case |",
-      "| --- | --- | --- | --- | --- |",
-      ...resultLines,
-      "",
+      ...resultSections,
     ];
     writeFileSync(
       join(versionsDirectory, `version-${versionDateTime}-${checksum}.md`),
@@ -750,7 +786,7 @@ function writeReport(
   ];
 
   for (const result of results) {
-    lines.push(`<a id="${caseAnchor(result.name)}"></a>`, "", `## ${result.name}`, "");
+    lines.push(`## Case: ${result.name}`, "");
     const hasIssue = [
       result.reset,
       result.generate,

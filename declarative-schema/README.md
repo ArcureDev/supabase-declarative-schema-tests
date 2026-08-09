@@ -48,7 +48,8 @@ need a fallback; otherwise it is `OK`, `WARNING`, or `FAILED`.
 
 After each run, reports that contain command-result metadata are aggregated by
 the seven-character Supabase checksum into
-`versions/version-<datetime>-<checksum>.md`.
+`versions/version-<ISO-8601-datetime>-<checksum>.md`, for example
+`versions/version-20260809T080000Z-f9bd289.md`.
 Each version file keeps the newest complete snapshot for every case, so a
 targeted run updates its selected cases without removing the other cases. Its
 matrix contains `generate`, `sync`, and `sync-verification` results for pg-delta
