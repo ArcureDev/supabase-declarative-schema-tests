@@ -289,8 +289,9 @@ Edge Functions, seed/data fixtures, and behavioral assertions outside pg-delta.
 
 Every transition case should perform this lifecycle:
 
-1. Write declarative baseline state A and run `sync --apply`, retaining the
-   CLI-generated migration as the history baseline.
+1. Copy its self-contained Supabase project with declarative baseline state A
+   and run `sync --apply`, retaining the CLI-generated migration as the history
+   baseline.
 2. Insert representative data and capture object identities where relevant.
 3. Edit or replace the declarative input with desired state B.
 4. Generate the migration without applying it.

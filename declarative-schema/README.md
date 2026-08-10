@@ -1,11 +1,11 @@
 # Supabase declarative schema CLI matrix
 
-This suite contains exactly one checked-in Supabase project under `runtime/`.
+This suite contains a shared Supabase project template under `runtime/`.
 Each SQL file under `migrations/` is an independent snapshot case. Transition
-cases under `transitions/` contain baseline state A, desired state B, and
-post-generation verification SQL. The runner tests pg-delta next entirely
-through the Supabase CLI while reusing the runtime project's local PostgreSQL
-container.
+cases under `transitions/` contain a self-contained Supabase project with
+declarative baseline state A, desired state B, and post-generation verification
+SQL. The runner tests pg-delta next entirely through the Supabase CLI while
+reusing the runtime project's local PostgreSQL container.
 
 The implemented fixture inventory and the broader transition-testing roadmap
 are tracked in [`TEST-MATRIX.md`](./TEST-MATRIX.md).
@@ -34,13 +34,13 @@ For snapshot cases, the runner:
 8. Stops and removes the shared local database once with
    `npx supabase stop --no-backup`. Cleanup failures are included in the report.
 
-For a transition case, the runner writes declarative state A and runs
-`sync --apply`, allowing the CLI to generate and apply its own baseline
-migration. It inserts representative data, captures catalog identity, replaces
-the same declarative file with state B, and runs `sync --no-apply`. The
-rename-ambiguity fixture passes only when the planner explicitly warns or
-refuses without inferring a native rename. Catalog identity and data are queried
-again to prove that planning left state A unchanged.
+For a transition case, the runner copies its checked-in project and runs
+`sync --apply` against declarative state A, allowing the CLI to generate and
+apply its own baseline migration. It inserts representative data, captures
+catalog identity, replaces the same declarative file with state B, and runs
+`sync --no-apply`. The rename-ambiguity fixture passes only when the planner
+explicitly warns or refuses without inferring a native rename. Catalog identity
+and data are queried again to prove that planning left state A unchanged.
 
 A command that exits with code 0 but emits `code=unmodeled_kind` is recorded as
 a warning rather than an error. Because pg-delta explicitly omitted an
@@ -108,24 +108,26 @@ Docker must be running. From the repository root, run:
 npm run declarative-schema
 ```
 
-Progress is always shown for every phase, including its status and duration:
+Progress is rendered with `listr2`. Interactive terminals show a live spinner;
+redirected and CI output automatically falls back to persistent log lines.
+Every completed phase includes its status and duration:
 
 ```text
-Testing 01-basic-table...
-  - generate declarative schema from migrations
-    result: OK (31.2s, exit 0)
-  - remove migration SQL from working copy
-    result: OK (1 file(s) removed)
-  - sync migration from declarative schema
-    result: OK (27.8s, exit 0)
-Testing 02-enum-type...
-  - reset shared database from current fixture migrations
-    result: OK (4.2s, exit 0)
-  - generate declarative schema from migrations
-    result: OK (1.3s, exit 0)
+Case 01-basic-table
+✔ Generate a declarative schema from the migration (31.2s)
+✔ Remove migration SQL from the working copy (1 file(s) removed, 0.0s)
+✔ Generate a migration from the declarative schema (pg-delta next) (27.8s)
+
+Case 02-enum-type
+✔ Reset the database from this case's migration (4.2s)
+✔ Generate a declarative schema from the migration (1.3s)
 ```
 
-To additionally print each exact CLI command immediately before it runs:
+When a runner assertion fails after its CLI command exits successfully, the
+progress output states both outcomes explicitly and prints the assertion
+reason. Full commands and captured output remain in the timestamped report.
+
+To additionally include each exact CLI command in the task output:
 
 ```powershell
 npm run declarative-schema -- --verbose

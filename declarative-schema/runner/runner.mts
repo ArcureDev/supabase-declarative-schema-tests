@@ -1,6 +1,6 @@
 import { cpSync, existsSync, mkdirSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
-import { logCommandResult, logStage, runSupabase } from "./commands.mts";
+import { runCommandTask, runSupabase } from "./commands.mts";
 import { discoverCases, requirePathInside } from "./files.mts";
 import { createReportPath, writeReport } from "./reporting.mts";
 import {
@@ -68,7 +68,10 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
   return selectedCases;
 }
 
-export function runDeclarativeSchema(config: RunnerConfig, args: string[]): number {
+export async function runDeclarativeSchema(
+  config: RunnerConfig,
+  args: string[],
+): Promise<number> {
   if (!existsSync(config.runtimeTemplateDirectory)) {
     throw new Error(`Runtime template does not exist: ${config.runtimeTemplateDirectory}`);
   }
@@ -90,9 +93,12 @@ export function runDeclarativeSchema(config: RunnerConfig, args: string[]): numb
   });
   const results: ProjectResult[] = [];
 
-  logStage("remove stale shared Supabase runtime");
-  const startupCleanup = runSupabase(config, controlProject, ["supabase", "stop", "--no-backup"]);
-  logCommandResult(startupCleanup);
+  process.stdout.write("Preparing test runtime\n");
+  const startupCleanup = await runCommandTask(
+    config,
+    "Stop any leftover local Supabase runtime",
+    () => runSupabase(config, controlProject, ["supabase", "stop", "--no-backup"]),
+  );
   if (startupCleanup.status !== "OK") {
     throw new Error(`Unable to clean the shared runtime:\n${startupCleanup.output}`);
   }
@@ -100,19 +106,20 @@ export function runDeclarativeSchema(config: RunnerConfig, args: string[]): numb
   let finalCleanup: CommandResult | undefined;
   try {
     for (const [caseIndex, testCase] of selectedCases.entries()) {
-      process.stdout.write(`Testing ${testCase.name}...\n`);
+      process.stdout.write(`\nCase ${testCase.name}\n`);
       const context = { config, runDirectory, caseIndex };
       const result =
         testCase.kind === "rename-ambiguity-transition"
-          ? runRenameAmbiguityTransition(testCase, context)
-          : runSnapshotCase(testCase, context);
+          ? await runRenameAmbiguityTransition(testCase, context)
+          : await runSnapshotCase(testCase, context);
       results.push(result);
       writeReport(config, reportPath, results, runDirectory);
     }
   } finally {
-    logStage("stop shared Supabase runtime");
-    finalCleanup = runSupabase(config, controlProject, ["supabase", "stop", "--no-backup"]);
-    logCommandResult(finalCleanup);
+    process.stdout.write("\nCleaning up test runtime\n");
+    finalCleanup = await runCommandTask(config, "Stop local Supabase", () =>
+      runSupabase(config, controlProject, ["supabase", "stop", "--no-backup"]),
+    );
     writeReport(
       config,
       reportPath,

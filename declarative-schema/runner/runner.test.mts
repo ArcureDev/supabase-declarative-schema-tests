@@ -5,10 +5,13 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { describeCommandFailure } from "./commands.mts";
+import { discoverCases } from "./files.mts";
 import { writeReport } from "./reporting.mts";
 import type {
   CommandResult,
@@ -49,6 +52,68 @@ function testConfig(root: string): RunnerConfig {
     verbose: false,
   };
 }
+
+test("describes runner checks separately from successful command exits", () => {
+  const result = command("ERROR", "Missing destructive-change warning.");
+  result.exitCode = 0;
+
+  assert.equal(
+    describeCommandFailure(result),
+    "The command exited successfully, but the runner check failed.",
+  );
+});
+
+test("discovers a transition from its self-contained Supabase project", () => {
+  const root = mkdtempSync(join(tmpdir(), "ds-runner-transition-"));
+  const config = testConfig(root);
+  const caseDirectory = join(config.transitionsDirectory, "181-rename-ambiguity");
+  const projectDirectory = join(caseDirectory, "project");
+  const databaseDirectory = join(projectDirectory, "supabase", "database");
+  const desiredDirectory = join(caseDirectory, "desired");
+  mkdirSync(config.migrationsDirectory, { recursive: true });
+  mkdirSync(databaseDirectory, { recursive: true });
+  mkdirSync(desiredDirectory, { recursive: true });
+
+  try {
+    writeFileSync(
+      join(caseDirectory, "transition.json"),
+      JSON.stringify({
+        expectation: "rename-ambiguity-warning-or-refusal",
+        sourceIdentifier: "public.rename_ambiguity_source",
+      }),
+    );
+    writeFileSync(join(projectDirectory, "supabase", "config.toml"), 'project_id = "test"\n');
+    writeFileSync(
+      join(databaseDirectory, "rename-ambiguity.sql"),
+      "create table public.rename_ambiguity_source(id bigint primary key);\n",
+    );
+    writeFileSync(
+      join(desiredDirectory, "rename-ambiguity.sql"),
+      "create table public.rename_ambiguity_target(id bigint primary key);\n",
+    );
+    writeFileSync(join(caseDirectory, "setup.sql"), "select 1;\n");
+    writeFileSync(join(caseDirectory, "verify.sql"), "select 1;\n");
+
+    const cases = discoverCases(config);
+    assert.equal(cases.length, 1);
+    const transition = cases[0];
+    assert.equal(transition?.kind, "rename-ambiguity-transition");
+    if (transition?.kind !== "rename-ambiguity-transition") {
+      assert.fail("Expected a rename-ambiguity transition.");
+    }
+    assert.equal(transition.projectDirectory, projectDirectory);
+    assert.equal(
+      transition.baselinePath,
+      join(databaseDirectory, "rename-ambiguity.sql"),
+    );
+    assert.equal(
+      transition.desiredPath,
+      join(desiredDirectory, "rename-ambiguity.sql"),
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("writes compatible report and version files while preserving targeted history", () => {
   const root = mkdtempSync(join(tmpdir(), "ds-runner-artifacts-"));

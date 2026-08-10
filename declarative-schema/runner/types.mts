@@ -13,9 +13,9 @@ export type RenameAmbiguityTransition = {
   kind: "rename-ambiguity-transition";
   name: string;
   directory: string;
+  projectDirectory: string;
   baselinePath: string;
   desiredPath: string;
-  extensionsPath: string;
   dataSetupPath: string;
   verificationPath: string;
   sourceIdentifier: string;

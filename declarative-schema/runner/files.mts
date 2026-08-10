@@ -144,16 +144,32 @@ function discoverTransitionCases(config: RunnerConfig): RenameAmbiguityTransitio
     .map((entry): RenameAmbiguityTransition => {
       const directory = join(config.transitionsDirectory, entry.name);
       const manifestPath = join(directory, "transition.json");
-      const baselinePath = join(directory, "schema-a.sql");
-      const desiredPath = join(directory, "schema-b.sql");
-      const extensionsPath = join(directory, "extensions.sql");
+      const projectDirectory = join(directory, "project");
+      const projectConfigPath = join(projectDirectory, "supabase", "config.toml");
+      const baselinePath = join(
+        projectDirectory,
+        "supabase",
+        "database",
+        "rename-ambiguity.sql",
+      );
+      const desiredPath = join(directory, "desired", "rename-ambiguity.sql");
       const dataSetupPath = join(directory, "setup.sql");
       const verificationPath = join(directory, "verify.sql");
+      requirePathInside(directory, projectDirectory);
+      requirePathInside(projectDirectory, projectConfigPath);
+      requirePathInside(projectDirectory, baselinePath);
+      const projectMetadata = existsSync(projectDirectory)
+        ? lstatSync(projectDirectory)
+        : undefined;
+      if (!projectMetadata?.isDirectory() || projectMetadata.isSymbolicLink()) {
+        throw new Error(`Transition fixture is missing a safe project: ${projectDirectory}`);
+      }
+      inspectDirectoryTree(projectDirectory);
       for (const requiredPath of [
         manifestPath,
+        projectConfigPath,
         baselinePath,
         desiredPath,
-        extensionsPath,
         dataSetupPath,
         verificationPath,
       ]) {
@@ -181,9 +197,9 @@ function discoverTransitionCases(config: RunnerConfig): RenameAmbiguityTransitio
         kind: "rename-ambiguity-transition",
         name: entry.name,
         directory,
+        projectDirectory,
         baselinePath,
         desiredPath,
-        extensionsPath,
         dataSetupPath,
         verificationPath,
         sourceIdentifier: manifest.sourceIdentifier,

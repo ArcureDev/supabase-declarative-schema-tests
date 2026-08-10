@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "listr2": "^9.0.5",
     "supabase": "https://pkg.pr.new/supabase/cli/supabase@f9bd2890b73b6084ac64753accabd34d97454eb3",
     "typescript": "^7.0.2"
   },

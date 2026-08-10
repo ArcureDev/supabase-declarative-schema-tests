@@ -1,4 +1,5 @@
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
+import { Listr } from "listr2";
 import type {
   CommandResult,
   PgDeltaEngine,
@@ -21,56 +22,43 @@ export function runSupabase(
   workProject: string,
   args: string[],
   pgDeltaEngine: PgDeltaEngine = "next",
-): CommandResult {
+): Promise<CommandResult> {
   const command = `npx ${args.join(" ")}`;
-  if (config.verbose) {
-    process.stdout.write(`    env: SUPABASE_USE_PG_DELTA_NEXT=${pgDeltaEngine === "next"}\n`);
-    process.stdout.write(`    command: ${command}\n`);
-  }
   const cliArguments = args[0] === "supabase" ? args.slice(1) : args;
-  const startedAt = performance.now();
-  const result = spawnSync(process.execPath, [config.supabaseCliEntry, ...cliArguments], {
-    cwd: workProject,
-    encoding: "utf8",
-    env: {
-      ...process.env,
-      SUPABASE_USE_PG_DELTA_NEXT: pgDeltaEngine === "next" ? "true" : "false",
-    },
-    timeout: config.commandTimeoutMilliseconds,
-  });
-  const durationMilliseconds = performance.now() - startedAt;
-  const commandOutput = normalizedOutput(result.stdout, result.stderr);
-
-  if (result.error) {
-    return {
+  return runProcess(
+    process.execPath,
+    [config.supabaseCliEntry, ...cliArguments],
+    {
       command,
-      durationMilliseconds,
-      exitCode: result.status,
-      output: [commandOutput, result.error.message].filter(Boolean).join("\n"),
-      status: "ERROR",
-    };
-  }
-
-  const hasUnmodeledKind = /\bcode=unmodeled_kind\b/.test(commandOutput);
-  return {
-    command,
-    durationMilliseconds,
-    exitCode: result.status,
-    output: hasUnmodeledKind
-      ? [
-          "Warning: the CLI exited successfully but reported an unmodeled object kind; the exported declarative schema is incomplete.",
-          commandOutput,
-        ].join("\n")
-      : commandOutput,
-    status: result.status !== 0 ? "ERROR" : hasUnmodeledKind ? "WARNING" : "OK",
-  };
+      cwd: workProject,
+      env: {
+        ...process.env,
+        SUPABASE_USE_PG_DELTA_NEXT: pgDeltaEngine === "next" ? "true" : "false",
+      },
+      timeoutMilliseconds: config.commandTimeoutMilliseconds,
+    },
+    (result) => {
+      const hasUnmodeledKind = /\bcode=unmodeled_kind\b/.test(result.output);
+      return {
+        ...result,
+        output: hasUnmodeledKind
+          ? [
+              "Warning: the CLI exited successfully but reported an unmodeled object kind; the exported declarative schema is incomplete.",
+              result.output,
+            ].join("\n")
+          : result.output,
+        status:
+          result.exitCode !== 0 ? "ERROR" : hasUnmodeledKind ? "WARNING" : "OK",
+      };
+    },
+  );
 }
 
 export function runDatabaseQuery(
   config: RunnerConfig,
   workProject: string,
   sql: string,
-): CommandResult {
+): Promise<CommandResult> {
   const dockerArguments = [
     "exec",
     "--interactive",
@@ -89,34 +77,66 @@ export function runDatabaseQuery(
     "-",
   ];
   const command = `docker ${dockerArguments.join(" ")}`;
-  if (config.verbose) {
-    process.stdout.write(`    command: ${command}\n`);
-  }
-  const startedAt = performance.now();
-  const result = spawnSync("docker", dockerArguments, {
-    cwd: workProject,
-    encoding: "utf8",
-    input: sql,
-    timeout: config.commandTimeoutMilliseconds,
-  });
-  const durationMilliseconds = performance.now() - startedAt;
-  const commandOutput = normalizedOutput(result.stdout, result.stderr);
-  if (result.error) {
-    return {
+  return runProcess(
+    "docker",
+    dockerArguments,
+    {
       command,
-      durationMilliseconds,
-      exitCode: result.status,
-      output: [commandOutput, result.error.message].filter(Boolean).join("\n"),
-      status: "ERROR",
-    };
-  }
-  return {
-    command,
-    durationMilliseconds,
-    exitCode: result.status,
-    output: commandOutput,
-    status: result.status === 0 ? "OK" : "ERROR",
-  };
+      cwd: workProject,
+      input: sql,
+      timeoutMilliseconds: config.commandTimeoutMilliseconds,
+    },
+    (result) => ({
+      ...result,
+      status: result.exitCode === 0 ? "OK" : "ERROR",
+    }),
+  );
+}
+
+type ProcessOptions = {
+  command: string;
+  cwd: string;
+  env?: NodeJS.ProcessEnv;
+  input?: string;
+  timeoutMilliseconds: number;
+};
+
+function runProcess(
+  executable: string,
+  args: string[],
+  options: ProcessOptions,
+  finalize: (result: Omit<CommandResult, "status">) => CommandResult,
+): Promise<CommandResult> {
+  return new Promise((resolve) => {
+    const startedAt = performance.now();
+    const stdout: Buffer[] = [];
+    const stderr: Buffer[] = [];
+    const child = spawn(executable, args, {
+      cwd: options.cwd,
+      env: options.env,
+      stdio: "pipe",
+      timeout: options.timeoutMilliseconds,
+    });
+    let spawnError: Error | undefined;
+
+    child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk));
+    child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk));
+    child.on("error", (error) => {
+      spawnError = error;
+    });
+    child.on("close", (exitCode) => {
+      const commandOutput = normalizedOutput(Buffer.concat(stdout), Buffer.concat(stderr));
+      resolve(
+        finalize({
+          command: options.command,
+          durationMilliseconds: performance.now() - startedAt,
+          exitCode,
+          output: [commandOutput, spawnError?.message].filter(Boolean).join("\n"),
+        }),
+      );
+    });
+    child.stdin.end(options.input);
+  });
 }
 
 export function skippedCommand(command: string, reason: string): CommandResult {
@@ -129,12 +149,107 @@ export function skippedCommand(command: string, reason: string): CommandResult {
   };
 }
 
-export function logStage(name: string): void {
-  process.stdout.write(`  - ${name}\n`);
+export async function runCommandTask(
+  config: RunnerConfig,
+  title: string,
+  command: () => Promise<CommandResult> | CommandResult,
+  failureDetail?: (result: CommandResult) => string | undefined,
+): Promise<CommandResult> {
+  let result: CommandResult | undefined;
+  const list = new Listr(
+    [
+      {
+        title,
+        task: async (_context, task) => {
+          result = await command();
+          if (result.status !== "SKIPPED") {
+            task.title = `${title} (${formatDuration(result.durationMilliseconds)})`;
+          }
+          if (config.verbose) {
+            task.output = result.command;
+          }
+          if (result.status === "SKIPPED") {
+            task.skip(result.output);
+          } else if (result.status === "WARNING") {
+            task.title = `${title} (${formatDuration(result.durationMilliseconds)}) — warning`;
+            task.output = result.output.split("\n")[0] ?? "The command completed with a warning.";
+          } else if (result.status === "ERROR") {
+            const detail = failureDetail?.(result) ?? describeCommandFailure(result);
+            throw new Error(detail);
+          }
+        },
+      },
+    ],
+    {
+      exitOnError: false,
+      rendererOptions: {
+        collapseErrors: false,
+      },
+    },
+  );
+  await list.run();
+  if (!result) {
+    throw new Error(`Task did not produce a result: ${title}`);
+  }
+  return result;
 }
 
-export function logCommandResult(result: CommandResult): void {
-  const durationSeconds = (result.durationMilliseconds / 1000).toFixed(1);
-  const exitCode = result.exitCode === null ? "" : `, exit ${result.exitCode}`;
-  process.stdout.write(`    result: ${result.status} (${durationSeconds}s${exitCode})\n`);
+export function describeCommandFailure(result: CommandResult): string {
+  if (result.exitCode === 0) {
+    return "The command exited successfully, but the runner check failed.";
+  }
+  return result.exitCode === null
+    ? "The command could not be started or was terminated."
+    : `The command exited with code ${result.exitCode}.`;
+}
+
+function formatDuration(durationMilliseconds: number): string {
+  return `${(durationMilliseconds / 1000).toFixed(1)}s`;
+}
+
+export type ActionResult<T> =
+  | { status: "OK"; value: T }
+  | { status: "ERROR"; error: string };
+
+export async function runActionTask<T>(
+  title: string,
+  action: () => T,
+  successDetail?: (value: T) => string,
+): Promise<ActionResult<T>> {
+  let result: ActionResult<T> | undefined;
+  const list = new Listr(
+    [
+      {
+        title,
+        task: (_context, task) => {
+          const startedAt = performance.now();
+          try {
+            const value = action();
+            result = { status: "OK", value };
+            const detail = successDetail?.(value);
+            const suffix = [detail, formatDuration(performance.now() - startedAt)]
+              .filter(Boolean)
+              .join(", ");
+            task.title = `${title} (${suffix})`;
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            result = { status: "ERROR", error: message };
+            task.title = `${title} (${formatDuration(performance.now() - startedAt)})`;
+            throw error;
+          }
+        },
+      },
+    ],
+    {
+      exitOnError: false,
+      rendererOptions: {
+        collapseErrors: false,
+      },
+    },
+  );
+  await list.run();
+  if (!result) {
+    throw new Error(`Task did not produce a result: ${title}`);
+  }
+  return result;
 }
