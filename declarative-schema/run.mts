@@ -86,6 +86,8 @@ type RenameAmbiguityTransition = {
   directory: string;
   baselinePath: string;
   desiredPath: string;
+  extensionsPath: string;
+  dataSetupPath: string;
   verificationPath: string;
   sourceIdentifier: string;
 };
@@ -244,10 +246,13 @@ type ProjectResult = {
   name: string;
   migrationSql: string;
   desiredSql?: string;
+  dataSetupSql?: string;
+  runtimeStart?: CommandResult;
   reset?: CommandResult;
-  baselineReset?: CommandResult;
+  baselineSync?: CommandResult;
+  dataSetup?: CommandResult;
   baselineState?: CommandResult;
-  generate: CommandResult;
+  generate?: CommandResult;
   nextGeneratedFiles?: GeneratedFile[];
   legacyGenerate?: CommandResult;
   legacyGeneratedFiles?: GeneratedFile[];
@@ -257,6 +262,7 @@ type ProjectResult = {
   legacySyncVerification?: CommandResult;
   transitionRawSyncStatus?: CommandResult["status"];
   transitionSafetySummary?: string;
+  transitionBaselineMigrationFiles?: GeneratedFile[];
   transitionMigrationFiles?: GeneratedFile[];
 };
 
@@ -279,8 +285,10 @@ function commandResultsStatus(commandResults: CommandResult[]): ProjectStatus {
 function projectStatus(result: ProjectResult): ProjectStatus {
   return commandResultsStatus(
     [
+      result.runtimeStart,
       result.reset,
-      result.baselineReset,
+      result.baselineSync,
+      result.dataSetup,
       result.baselineState,
       result.generate,
       result.sync,
@@ -934,10 +942,12 @@ function writeReport(
   cleanupError?: CommandResult,
 ): void {
   const projectCommands = results.flatMap((result) => [
+    ...(result.runtimeStart ? [result.runtimeStart] : []),
     ...(result.reset ? [result.reset] : []),
-    ...(result.baselineReset ? [result.baselineReset] : []),
+    ...(result.baselineSync ? [result.baselineSync] : []),
+    ...(result.dataSetup ? [result.dataSetup] : []),
     ...(result.baselineState ? [result.baselineState] : []),
-    result.generate,
+    ...(result.generate ? [result.generate] : []),
     ...(result.legacyGenerate ? [result.legacyGenerate] : []),
     result.sync,
     ...(result.syncVerification ? [result.syncVerification] : []),
@@ -956,8 +966,8 @@ function writeReport(
     `- Supabase CLI version: \`${supabaseCliVersion}\``,
     `- Checksum: \`${supabaseChecksum}\``,
     "- Primary engine: pg-delta next (`SUPABASE_USE_PG_DELTA_NEXT=true`)",
-    "- Fallback: failed declarative commands are retried with legacy (`SUPABASE_USE_PG_DELTA_NEXT=false`)",
-    `- Migration cases: ${results.length}`,
+    "- Snapshot fallback: failed declarative commands are retried with legacy (`SUPABASE_USE_PG_DELTA_NEXT=false`)",
+    `- Cases: ${results.length}`,
     `- Commands OK: ${okCommands}`,
     `- Commands with warnings: ${warningCommands}`,
     `- Commands failed: ${failedCommands}`,
@@ -986,8 +996,10 @@ function writeReport(
   for (const result of results) {
     lines.push(`## Case: ${result.name}`, "");
     const hasIssue = [
+      result.runtimeStart,
       result.reset,
-      result.baselineReset,
+      result.baselineSync,
+      result.dataSetup,
       result.baselineState,
       result.generate,
       result.legacyGenerate,
@@ -1010,6 +1022,16 @@ function writeReport(
         result.desiredSql ?? "",
         "```",
         "",
+        "### Representative data setup",
+        "",
+        "```sql",
+        result.dataSetupSql ?? "",
+        "```",
+        "",
+        "### CLI-generated baseline migration files",
+        "",
+        ...markdownForGeneratedFiles(result.transitionBaselineMigrationFiles ?? []),
+        "",
         "### Rename-ambiguity safety assertion",
         "",
         `- Raw sync result: **${result.transitionRawSyncStatus ?? "SKIPPED"}**`,
@@ -1024,21 +1046,30 @@ function writeReport(
     } else if (hasIssue) {
       lines.push("### Fixture migration SQL", "", "```sql", result.migrationSql, "```", "");
     }
-    if (requiresFallback(result.generate)) {
+    if (result.generate && requiresFallback(result.generate)) {
       lines.push("### Generated declarative files (pg-delta next)", "");
       lines.push(...markdownForGeneratedFiles(result.nextGeneratedFiles ?? []), "");
       lines.push("### Generated declarative files (legacy)", "");
       lines.push(...markdownForGeneratedFiles(result.legacyGeneratedFiles ?? []), "");
     }
+    if (result.runtimeStart) {
+      lines.push("### Start local runtime", "");
+      lines.push(...markdownForCommand(result.runtimeStart), "");
+    }
     if (result.reset) {
-      lines.push("### Reset", "");
+      lines.push(
+        result.kind === "transition" ? "### Clear local runtime before baseline" : "### Reset",
+        "",
+      );
       lines.push(...markdownForCommand(result.reset), "");
     }
-    lines.push("### Generate (pg-delta next)", "");
-    lines.push(
-      ...markdownForCommand(result.generate),
-      commandResultMarker(result.name, "next", "generate", result.generate),
-    );
+    if (result.generate) {
+      lines.push("### Generate (pg-delta next)", "");
+      lines.push(
+        ...markdownForCommand(result.generate),
+        commandResultMarker(result.name, "next", "generate", result.generate),
+      );
+    }
     if (result.legacyGenerate) {
       lines.push("", "### Generate fallback (legacy)", "");
       lines.push(
@@ -1046,9 +1077,13 @@ function writeReport(
         commandResultMarker(result.name, "legacy", "generate", result.legacyGenerate),
       );
     }
-    if (result.baselineReset) {
-      lines.push("", "### Baseline reset", "");
-      lines.push(...markdownForCommand(result.baselineReset), "");
+    if (result.baselineSync) {
+      lines.push("", "### Establish baseline with declarative sync --apply", "");
+      lines.push(...markdownForCommand(result.baselineSync), "");
+    }
+    if (result.dataSetup) {
+      lines.push("### Insert representative data", "");
+      lines.push(...markdownForCommand(result.dataSetup), "");
     }
     if (result.baselineState) {
       lines.push("### Baseline state capture", "");
@@ -1109,13 +1144,17 @@ function discoverTransitionCases(): RenameAmbiguityTransition[] {
     .map((entry): RenameAmbiguityTransition => {
       const directory = join(transitionsDirectory, entry.name);
       const manifestPath = join(directory, "transition.json");
-      const baselinePath = join(directory, "baseline.sql");
-      const desiredPath = join(directory, "desired.sql");
+      const baselinePath = join(directory, "schema-a.sql");
+      const desiredPath = join(directory, "schema-b.sql");
+      const extensionsPath = join(directory, "extensions.sql");
+      const dataSetupPath = join(directory, "setup.sql");
       const verificationPath = join(directory, "verify.sql");
       for (const requiredPath of [
         manifestPath,
         baselinePath,
         desiredPath,
+        extensionsPath,
+        dataSetupPath,
         verificationPath,
       ]) {
         requirePathInside(directory, requiredPath);
@@ -1148,6 +1187,8 @@ function discoverTransitionCases(): RenameAmbiguityTransition[] {
         directory,
         baselinePath,
         desiredPath,
+        extensionsPath,
+        dataSetupPath,
         verificationPath,
         sourceIdentifier: manifest.sourceIdentifier,
       };
@@ -1252,53 +1293,79 @@ function main(): void {
       if (testCase.kind === "rename-ambiguity-transition") {
         const workProject = join(runDirectory, basename(testCase.name));
         const workMigrations = join(workProject, "supabase", "migrations");
-        const desiredMigrationName = "20260101000000_desired.sql";
-        const baselineMigrationName = "20260101000000_baseline.sql";
+        const workDatabase = join(workProject, "supabase", "database");
+        const workDeclaration = join(workDatabase, "rename-ambiguity.sql");
         requirePathInside(runDirectory, workProject);
         requirePathInside(workProject, workMigrations);
+        requirePathInside(workProject, workDatabase);
+        requirePathInside(workDatabase, workDeclaration);
         const baselineSql = readFileSync(testCase.baselinePath, "utf8").trim();
         const desiredSql = readFileSync(testCase.desiredPath, "utf8").trim();
+        const dataSetupSql = readFileSync(testCase.dataSetupPath, "utf8").trim();
         const verificationSql = readFileSync(testCase.verificationPath, "utf8").trim();
         cpSync(runtimeTemplateDirectory, workProject, { recursive: true, errorOnExist: true });
         mkdirSync(workMigrations);
-        copyFileSync(testCase.desiredPath, join(workMigrations, desiredMigrationName));
+        mkdirSync(workDatabase);
+        copyFileSync(testCase.baselinePath, workDeclaration);
+        copyFileSync(testCase.extensionsPath, join(workDatabase, "extensions.sql"));
 
-        let reset: CommandResult | undefined;
-        if (caseIndex > 0) {
-          logStage("reset shared database to desired state B");
-          reset = runSupabase(workProject, [
-            "supabase",
-            "db",
-            "reset",
-            "--local",
-            "--no-seed",
-            "--debug",
-          ]);
-          logCommandResult(reset);
-        }
+        logStage("start shared local runtime");
+        const runtimeStart = runSupabase(workProject, ["supabase", "start", "--debug"]);
+        logCommandResult(runtimeStart);
 
-        logStage("generate desired declarative schema B");
-        const generateCommand = [
+        logStage("clear local database before declarative baseline");
+        const reset =
+          runtimeStart.status === "OK"
+            ? runSupabase(workProject, [
+                "supabase",
+                "db",
+                "reset",
+                "--local",
+                "--no-seed",
+                "--debug",
+              ])
+            : skippedCommand(
+                "npx supabase db reset --local --no-seed --debug",
+                "The local runtime failed to start, so the baseline reset was skipped.",
+              );
+        logCommandResult(reset);
+
+        const baselineSyncCommand = [
           "supabase",
           "db",
           "schema",
           "declarative",
-          "generate",
-          "--local",
-          ...(caseIndex === 0 ? ["--reset"] : []),
-          "--overwrite",
+          "sync",
+          "--apply",
+          "--name",
+          "rename_ambiguity_baseline",
           "--debug",
         ];
-        const generate =
-          reset?.status === "ERROR"
-            ? skippedCommand(
-                `npx ${generateCommand.join(" ")}`,
-                "Database reset failed, so desired declarative generation was skipped.",
-              )
-            : runSupabase(workProject, generateCommand);
-        logCommandResult(generate);
+        logStage("establish state A through declarative sync --apply");
+        const baselineSync =
+          reset.status === "OK"
+            ? runSupabase(workProject, baselineSyncCommand)
+            : skippedCommand(
+                `npx ${baselineSyncCommand.join(" ")}`,
+                "The baseline reset failed, so the initial declarative sync was skipped.",
+              );
+        let transitionBaselineMigrationFiles =
+          baselineSync.status === "OK" ? captureMigrationFiles(workProject) : [];
+        if (
+          baselineSync.status === "OK" &&
+          transitionBaselineMigrationFiles.length === 0
+        ) {
+          baselineSync.output = [
+            "The initial declarative sync did not generate a baseline migration.",
+            baselineSync.output,
+          ]
+            .filter(Boolean)
+            .join("\n");
+          baselineSync.status = "ERROR";
+        }
+        logCommandResult(baselineSync);
 
-        let baselineReset: CommandResult | undefined;
+        let dataSetup: CommandResult | undefined;
         let baselineState: CommandResult | undefined;
         let transitionMigrationFiles: GeneratedFile[] = [];
         let transitionRawSyncStatus: CommandResult["status"] | undefined;
@@ -1314,51 +1381,32 @@ function main(): void {
         ];
         let sync = skippedCommand(
           `npx ${syncCommand.join(" ")}`,
-          "Desired declarative generation failed, so the transition was skipped.",
+          "The declarative baseline failed, so the rename transition was skipped.",
         );
         let syncVerification: CommandResult | undefined;
 
-        if (generate.status === "OK") {
-          let transitionPreparationError: string | undefined;
-          logStage("replace desired migration with baseline state A");
-          try {
-            removeMigrationSqlFiles(workProject);
-            copyFileSync(testCase.baselinePath, join(workMigrations, baselineMigrationName));
-            process.stdout.write("    result: OK\n");
-          } catch (error) {
-            transitionPreparationError = error instanceof Error ? error.message : String(error);
-            process.stdout.write(`    result: ERROR (${transitionPreparationError})\n`);
-          }
+        if (baselineSync.status === "OK") {
+          logStage("insert representative baseline data");
+          dataSetup = runDatabaseQuery(workProject, dataSetupSql);
+          logCommandResult(dataSetup);
 
-          logStage("reset shared database to populated baseline state A");
-          baselineReset = transitionPreparationError
-            ? skippedCommand(
-                "npx supabase db reset --local --no-seed --debug",
-                `Transition preparation failed: ${transitionPreparationError}`,
-              )
-            : runSupabase(workProject, [
-                "supabase",
-                "db",
-                "reset",
-                "--local",
-                "--no-seed",
-                "--debug",
-              ]);
-          logCommandResult(baselineReset);
-
-          if (baselineReset.status === "OK") {
+          if (dataSetup.status === "OK") {
             logStage("capture baseline object identity and data");
             baselineState = runDatabaseQuery(workProject, verificationSql);
             logCommandResult(baselineState);
           }
 
           if (baselineState?.status === "OK") {
+            logStage("update the declarative table name from state A to state B");
+            copyFileSync(testCase.desiredPath, workDeclaration);
+            process.stdout.write("    result: OK\n");
+
             logStage("generate transition without applying it");
             const rawSync = runSupabase(workProject, syncCommand);
             transitionRawSyncStatus = rawSync.status;
             transitionMigrationFiles = captureMigrationFiles(
               workProject,
-              new Set([baselineMigrationName]),
+              new Set(transitionBaselineMigrationFiles.map((file) => file.path)),
             );
             const safetyAssertion = assertRenameAmbiguityHandledSafely(
               rawSync,
@@ -1378,7 +1426,7 @@ function main(): void {
           } else {
             sync = skippedCommand(
               `npx ${syncCommand.join(" ")}`,
-              "Baseline reset or state capture failed, so the transition was skipped.",
+              "Baseline data setup or state capture failed, so the transition was skipped.",
             );
             transitionSafetySummary =
               "The safety assertion could not run because baseline setup failed.";
@@ -1387,7 +1435,7 @@ function main(): void {
           }
         } else {
           transitionSafetySummary =
-            "The safety assertion could not run because desired declarative generation failed.";
+            "The safety assertion could not run because the declarative baseline failed.";
           logStage("generate transition without applying it");
           logCommandResult(sync);
         }
@@ -1397,14 +1445,17 @@ function main(): void {
           name: testCase.name,
           migrationSql: baselineSql,
           desiredSql,
+          dataSetupSql,
+          runtimeStart,
           reset,
-          baselineReset,
+          baselineSync,
+          dataSetup,
           baselineState,
-          generate,
           sync,
           syncVerification,
           transitionRawSyncStatus,
           transitionSafetySummary,
+          transitionBaselineMigrationFiles,
           transitionMigrationFiles,
         });
         writeReport(results, runDirectory);

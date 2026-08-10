@@ -34,12 +34,13 @@ For snapshot cases, the runner:
 8. Stops and removes the shared local database once with
    `npx supabase stop --no-backup`. Cleanup failures are included in the report.
 
-For a transition case, the runner generates the desired declarative tree from
-state B, resets the shared database to the populated baseline state A, and asks
-`sync --no-apply` to plan A to B. The rename-ambiguity fixture passes only when
-the planner explicitly warns or refuses without inferring a native rename.
-Catalog identity and data are queried before and after planning to prove that
-the non-applied safety check left state A unchanged.
+For a transition case, the runner writes declarative state A and runs
+`sync --apply`, allowing the CLI to generate and apply its own baseline
+migration. It inserts representative data, captures catalog identity, replaces
+the same declarative file with state B, and runs `sync --no-apply`. The
+rename-ambiguity fixture passes only when the planner explicitly warns or
+refuses without inferring a native rename. Catalog identity and data are queried
+again to prove that planning left state A unchanged.
 
 A command that exits with code 0 but emits `code=unmodeled_kind` is recorded as
 a warning rather than an error. Because pg-delta explicitly omitted an

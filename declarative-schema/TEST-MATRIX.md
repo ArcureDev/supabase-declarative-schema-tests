@@ -289,15 +289,17 @@ Edge Functions, seed/data fixtures, and behavioral assertions outside pg-delta.
 
 Every transition case should perform this lifecycle:
 
-1. Create baseline state A through an ordinary migration.
+1. Write declarative baseline state A and run `sync --apply`, retaining the
+   CLI-generated migration as the history baseline.
 2. Insert representative data and capture object identities where relevant.
-3. Replace the declarative input with desired state B.
+3. Edit or replace the declarative input with desired state B.
 4. Generate the migration without applying it.
 5. Assert the SQL shape and safety classification.
-6. Apply the generated migration.
-7. Assert catalogs, data, identity, privileges, dependencies, and behavior.
-8. Generate again and require an empty second diff.
-9. Where meaningful, test B to A and A to B to C as separate transitions.
+6. For warning/refusal safety cases, stop and assert that state A is unchanged.
+7. Otherwise, apply the generated migration.
+8. Assert catalogs, data, identity, privileges, dependencies, and behavior.
+9. Generate again and require an empty second diff.
+10. Where meaningful, test B to A and A to B to C as separate transitions.
 
 The harness should retain the generated SQL and diagnostics for review. A test
 must fail if pg-delta reaches the right final schema through a needlessly
