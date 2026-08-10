@@ -84,10 +84,28 @@ The checked-in runtime project and fixtures are never mutated. Temporary
 working copies and their potentially sensitive pg-delta debug bundles are
 stored in `.tmp/`, which is ignored by Git.
 
+The executable `run.mts` is intentionally a thin entry point. Its implementation
+is split by responsibility under `runner/`: command execution, safe filesystem
+operations, fixture discovery, assertions, reporting, version aggregation, and
+the separate snapshot and transition lifecycles.
+
+Fast unit tests verify report/version file creation and formatting, argument
+parsing, and isolated safety assertions without requiring Docker:
+
+```powershell
+npm run declarative-schema:unit
+```
+
+The runner is also checked with the strict root `tsconfig.json`:
+
+```powershell
+npm run typecheck
+```
+
 Docker must be running. From the repository root, run:
 
 ```powershell
-npm run test:declarative-schema
+npm run declarative-schema
 ```
 
 Progress is always shown for every phase, including its status and duration:
@@ -110,7 +128,7 @@ Testing 02-enum-type...
 To additionally print each exact CLI command immediately before it runs:
 
 ```powershell
-npm run test:declarative-schema -- --verbose
+npm run declarative-schema -- --verbose
 ```
 
 To select numbered snapshot or transition cases, use `--case=` with one number,
@@ -118,24 +136,24 @@ an inclusive range, a comma-separated list, or a combination of ranges and
 numbers:
 
 ```powershell
-npm run test:declarative-schema -- --case=18
-npm run test:declarative-schema -- --case=10-20
-npm run test:declarative-schema -- --case=11,15,24
-npm run test:declarative-schema -- --case=10-15,24
-npm run test:declarative-schema -- --case=181
+npm run declarative-schema -- --case=18
+npm run declarative-schema -- --case=10-20
+npm run declarative-schema -- --case=11,15,24
+npm run declarative-schema -- --case=10-15,24
+npm run declarative-schema -- --case=181
 ```
 
 To rerun only the failed or warning cases from the newest timestamped report,
 use `--failed`. Reports created before this option was added are supported too:
 
 ```powershell
-npm run test:declarative-schema -- --failed
+npm run declarative-schema -- --failed
 ```
 
 Options can be combined:
 
 ```powershell
-npm run test:declarative-schema -- --case=18 --verbose
+npm run declarative-schema -- --case=18 --verbose
 ```
 
 Command output remains captured in that run's timestamped file under `reports/`

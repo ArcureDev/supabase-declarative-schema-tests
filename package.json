@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test:declarative-schema": "node --experimental-strip-types declarative-schema/run.mts"
+    "declarative-schema": "node --experimental-strip-types declarative-schema/run.mts",
+    "declarative-schema:unit": "node --experimental-strip-types --test declarative-schema/runner/assertions.test.mts declarative-schema/runner/runner.test.mts declarative-schema/runner/selection.test.mts",
+    "typecheck": "tsc --project tsconfig.json"
   },
   "devDependencies": {
-    "supabase": "https://pkg.pr.new/supabase/cli/supabase@f9bd2890b73b6084ac64753accabd34d97454eb3"
+    "@types/node": "^26.2.0",
+    "supabase": "https://pkg.pr.new/supabase/cli/supabase@f9bd2890b73b6084ac64753accabd34d97454eb3",
+    "typescript": "^7.0.2"
   },
   "engines": {
     "node": ">=22.6.0"
