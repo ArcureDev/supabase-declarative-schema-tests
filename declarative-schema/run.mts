@@ -52,7 +52,16 @@ if (!supabaseChecksumMatch) {
 }
 const supabaseChecksum = supabaseChecksumMatch[1].slice(0, 7);
 const migrationsDirectory = join(scriptDirectory, "migrations");
+const transitionsDirectory = join(scriptDirectory, "transitions");
 const runtimeTemplateDirectory = join(scriptDirectory, "runtime");
+const runtimeConfigPath = join(runtimeTemplateDirectory, "supabase", "config.toml");
+const runtimeProjectId = /^project_id\s*=\s*"([^"]+)"$/m.exec(
+  readFileSync(runtimeConfigPath, "utf8"),
+)?.[1];
+if (!runtimeProjectId) {
+  throw new Error(`Unable to determine the runtime project ID from ${runtimeConfigPath}.`);
+}
+const localDatabaseContainer = `supabase_db_${runtimeProjectId}`;
 const localWorkRoot = join(scriptDirectory, ".tmp");
 const reportsDirectory = join(scriptDirectory, "reports");
 const versionsDirectory = join(scriptDirectory, "versions");
@@ -64,6 +73,24 @@ type CaseSelection =
   | { kind: "all" }
   | { kind: "numbers"; caseNumbers: Set<number> }
   | { kind: "latest-failures" };
+
+type SnapshotCase = {
+  kind: "snapshot";
+  fileName: string;
+  name: string;
+};
+
+type RenameAmbiguityTransition = {
+  kind: "rename-ambiguity-transition";
+  name: string;
+  directory: string;
+  baselinePath: string;
+  desiredPath: string;
+  verificationPath: string;
+  sourceIdentifier: string;
+};
+
+type TestCase = SnapshotCase | RenameAmbiguityTransition;
 
 export function parseCaseSelection(args: string[]): CaseSelection {
   if (args.includes("--case")) {
@@ -213,9 +240,13 @@ type GeneratedFile = {
 };
 
 type ProjectResult = {
+  kind: "snapshot" | "transition";
   name: string;
   migrationSql: string;
+  desiredSql?: string;
   reset?: CommandResult;
+  baselineReset?: CommandResult;
+  baselineState?: CommandResult;
   generate: CommandResult;
   nextGeneratedFiles?: GeneratedFile[];
   legacyGenerate?: CommandResult;
@@ -224,6 +255,9 @@ type ProjectResult = {
   syncVerification?: CommandResult;
   legacySync?: CommandResult;
   legacySyncVerification?: CommandResult;
+  transitionRawSyncStatus?: CommandResult["status"];
+  transitionSafetySummary?: string;
+  transitionMigrationFiles?: GeneratedFile[];
 };
 
 type ProjectStatus = "OK" | "WARNING" | "FAILED";
@@ -244,9 +278,14 @@ function commandResultsStatus(commandResults: CommandResult[]): ProjectStatus {
 
 function projectStatus(result: ProjectResult): ProjectStatus {
   return commandResultsStatus(
-    [result.reset, result.generate, result.sync, result.syncVerification].filter(
-      (commandResult) => commandResult !== undefined,
-    ),
+    [
+      result.reset,
+      result.baselineReset,
+      result.baselineState,
+      result.generate,
+      result.sync,
+      result.syncVerification,
+    ].filter((commandResult) => commandResult !== undefined),
   );
 }
 
@@ -299,6 +338,35 @@ function removeMigrationSqlFiles(workProject: string): number {
   }
 
   return entries.length;
+}
+
+function captureMigrationFiles(
+  workProject: string,
+  excludedFileNames: Set<string> = new Set(),
+): GeneratedFile[] {
+  const directory = join(workProject, "supabase", "migrations");
+  requirePathInside(workProject, directory);
+  if (!existsSync(directory)) {
+    return [];
+  }
+
+  const directoryMetadata = lstatSync(directory);
+  if (!directoryMetadata.isDirectory() || directoryMetadata.isSymbolicLink()) {
+    throw new Error(`Unsafe migrations path: ${directory}`);
+  }
+
+  return readdirSync(directory, { withFileTypes: true })
+    .filter((entry) => {
+      if (entry.isSymbolicLink() || !entry.isFile() || !entry.name.endsWith(".sql")) {
+        throw new Error(`Unexpected entry in migrations directory: ${join(directory, entry.name)}`);
+      }
+      return !excludedFileNames.has(entry.name);
+    })
+    .map((entry) => ({
+      path: entry.name,
+      content: readFileSync(join(directory, entry.name), "utf8").trim(),
+    }))
+    .sort((left, right) => left.path.localeCompare(right.path));
 }
 
 function inspectDirectoryTree(directory: string): void {
@@ -426,8 +494,112 @@ function runSupabase(
   };
 }
 
+function runDatabaseQuery(workProject: string, sql: string): CommandResult {
+  const dockerArguments = [
+    "exec",
+    "--interactive",
+    localDatabaseContainer,
+    "psql",
+    "--username",
+    "postgres",
+    "--dbname",
+    "postgres",
+    "--no-psqlrc",
+    "--tuples-only",
+    "--no-align",
+    "--set",
+    "ON_ERROR_STOP=1",
+    "--file",
+    "-",
+  ];
+  const command = `docker ${dockerArguments.join(" ")}`;
+  if (verbose) {
+    process.stdout.write(`    command: ${command}\n`);
+  }
+  const startedAt = performance.now();
+  const result = spawnSync("docker", dockerArguments, {
+    cwd: workProject,
+    encoding: "utf8",
+    input: sql,
+    timeout: commandTimeoutMilliseconds,
+  });
+  const durationMilliseconds = performance.now() - startedAt;
+  const commandOutput = normalizedOutput(result.stdout, result.stderr);
+  if (result.error) {
+    return {
+      command,
+      durationMilliseconds,
+      exitCode: result.status,
+      output: [commandOutput, result.error.message].filter(Boolean).join("\n"),
+      status: "ERROR",
+    };
+  }
+  return {
+    command,
+    durationMilliseconds,
+    exitCode: result.status,
+    output: commandOutput,
+    status: result.status === 0 ? "OK" : "ERROR",
+  };
+}
+
 function requiresFallback(result: CommandResult): boolean {
   return result.status === "WARNING" || result.status === "ERROR";
+}
+
+function assertRenameAmbiguityHandledSafely(
+  rawSync: CommandResult,
+  generatedMigrationFiles: GeneratedFile[],
+  sourceIdentifier: string,
+): { result: CommandResult; summary: string } {
+  const generatedSql = generatedMigrationFiles.map((file) => file.content).join("\n");
+  const diagnosticText = `${rawSync.output}\n${generatedSql}`;
+  const safetyDiagnosticPattern =
+    /(?:\b(?:warn(?:ing)?|error|blocked|refus(?:e|ed|ing))\b.*\b(?:ambiguous|ambiguity|destructive|unsafe|data loss)\b|\b(?:ambiguous|ambiguity|destructive|unsafe|data loss)\b.*\b(?:warn(?:ing)?|error|blocked|refus(?:e|ed|ing))\b|\b(?:rename ambiguity|ambiguous rename|destructive changes?|unsafe operation|data loss|confirmation required|required confirmation)\b|\bcode=(?:rename_ambiguity|destructive_change|data_loss|unsafe_operation)\b)/i;
+  const safetyDiagnostic = diagnosticText
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => safetyDiagnosticPattern.test(line));
+  const hasSafetyDiagnostic = safetyDiagnostic !== undefined;
+  const identifiesSource = diagnosticText.replaceAll('"', "").includes(sourceIdentifier);
+  const inferredRename = /\balter\s+table\b[\s\S]*\brename\s+to\b/i.test(generatedSql);
+  const rawOutcome =
+    rawSync.status === "ERROR"
+      ? "refused"
+      : rawSync.status === "WARNING"
+        ? "warned"
+        : "completed";
+  const safelyHandled = hasSafetyDiagnostic && identifiesSource && !inferredRename;
+  const summary = safelyHandled
+    ? `The command ${rawOutcome} with an explicit ambiguity/destructive-change diagnostic and did not infer a rename. Evidence: ${safetyDiagnostic}`
+    : [
+        `The command ${rawOutcome} without satisfying the rename-ambiguity safety contract.`,
+        hasSafetyDiagnostic
+          ? "A safety diagnostic was present."
+          : "No explicit ambiguity, destructive-change, or data-loss diagnostic was present.",
+        identifiesSource
+          ? `The output identified ${sourceIdentifier}.`
+          : `The output did not identify ${sourceIdentifier}.`,
+        inferredRename
+          ? "The generated SQL inferred ALTER TABLE ... RENAME TO without an explicit hint."
+          : "The generated SQL did not infer ALTER TABLE ... RENAME TO.",
+      ].join(" ");
+
+  return {
+    result: {
+      ...rawSync,
+      output: [
+        summary,
+        `Raw sync status: ${rawSync.status}`,
+        rawSync.output,
+        generatedSql ? `Generated migration SQL:\n${generatedSql}` : "No migration SQL was generated.",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      status: safelyHandled ? "OK" : "ERROR",
+    },
+    summary,
+  };
 }
 
 function requireNoSchemaChanges(result: CommandResult): CommandResult {
@@ -438,6 +610,30 @@ function requireNoSchemaChanges(result: CommandResult): CommandResult {
     result.status = "ERROR";
   }
   return result;
+}
+
+function requireUnchangedDatabaseState(
+  before: CommandResult,
+  after: CommandResult,
+): CommandResult {
+  if (before.status !== "OK") {
+    after.output = [
+      "Could not verify unchanged state because the baseline state query failed.",
+      before.output,
+      after.output,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    after.status = "ERROR";
+  } else if (after.status === "OK" && after.output !== before.output) {
+    after.output = [
+      "The database changed while generating the non-applied transition.",
+      `Before:\n${before.output}`,
+      `After:\n${after.output}`,
+    ].join("\n");
+    after.status = "ERROR";
+  }
+  return after;
 }
 
 function skippedCommand(command: string, reason: string): CommandResult {
@@ -739,6 +935,8 @@ function writeReport(
 ): void {
   const projectCommands = results.flatMap((result) => [
     ...(result.reset ? [result.reset] : []),
+    ...(result.baselineReset ? [result.baselineReset] : []),
+    ...(result.baselineState ? [result.baselineState] : []),
     result.generate,
     ...(result.legacyGenerate ? [result.legacyGenerate] : []),
     result.sync,
@@ -789,6 +987,8 @@ function writeReport(
     lines.push(`## Case: ${result.name}`, "");
     const hasIssue = [
       result.reset,
+      result.baselineReset,
+      result.baselineState,
       result.generate,
       result.legacyGenerate,
       result.sync,
@@ -796,7 +996,32 @@ function writeReport(
       result.legacySync,
       result.legacySyncVerification,
     ].some((commandResult) => commandResult && requiresFallback(commandResult));
-    if (hasIssue) {
+    if (result.kind === "transition") {
+      lines.push(
+        "### Baseline state A",
+        "",
+        "```sql",
+        result.migrationSql,
+        "```",
+        "",
+        "### Desired state B",
+        "",
+        "```sql",
+        result.desiredSql ?? "",
+        "```",
+        "",
+        "### Rename-ambiguity safety assertion",
+        "",
+        `- Raw sync result: **${result.transitionRawSyncStatus ?? "SKIPPED"}**`,
+        `- Assertion: **${result.sync.status}**`,
+        `- ${result.transitionSafetySummary ?? "The safety assertion did not run."}`,
+        "",
+        "### Generated transition migration files",
+        "",
+        ...markdownForGeneratedFiles(result.transitionMigrationFiles ?? []),
+        "",
+      );
+    } else if (hasIssue) {
       lines.push("### Fixture migration SQL", "", "```sql", result.migrationSql, "```", "");
     }
     if (requiresFallback(result.generate)) {
@@ -820,6 +1045,14 @@ function writeReport(
         ...markdownForCommand(result.legacyGenerate),
         commandResultMarker(result.name, "legacy", "generate", result.legacyGenerate),
       );
+    }
+    if (result.baselineReset) {
+      lines.push("", "### Baseline reset", "");
+      lines.push(...markdownForCommand(result.baselineReset), "");
+    }
+    if (result.baselineState) {
+      lines.push("### Baseline state capture", "");
+      lines.push(...markdownForCommand(result.baselineState), "");
     }
     lines.push("", "### Sync (pg-delta next)", "");
     lines.push(
@@ -866,6 +1099,61 @@ function writeReport(
   writeFileSync(reportPath, `${lines.join("\n")}\n`, "utf8");
 }
 
+function discoverTransitionCases(): RenameAmbiguityTransition[] {
+  if (!existsSync(transitionsDirectory)) {
+    return [];
+  }
+
+  return readdirSync(transitionsDirectory, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink())
+    .map((entry): RenameAmbiguityTransition => {
+      const directory = join(transitionsDirectory, entry.name);
+      const manifestPath = join(directory, "transition.json");
+      const baselinePath = join(directory, "baseline.sql");
+      const desiredPath = join(directory, "desired.sql");
+      const verificationPath = join(directory, "verify.sql");
+      for (const requiredPath of [
+        manifestPath,
+        baselinePath,
+        desiredPath,
+        verificationPath,
+      ]) {
+        requirePathInside(directory, requiredPath);
+        if (
+          !existsSync(requiredPath) ||
+          !lstatSync(requiredPath).isFile() ||
+          lstatSync(requiredPath).isSymbolicLink()
+        ) {
+          throw new Error(`Transition fixture is missing a safe file: ${requiredPath}`);
+        }
+      }
+
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+        expectation?: unknown;
+        sourceIdentifier?: unknown;
+      };
+      if (manifest.expectation !== "rename-ambiguity-warning-or-refusal") {
+        throw new Error(`Unsupported transition expectation in ${manifestPath}.`);
+      }
+      if (
+        typeof manifest.sourceIdentifier !== "string" ||
+        !/^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/.test(manifest.sourceIdentifier)
+      ) {
+        throw new Error(`Invalid sourceIdentifier in ${manifestPath}.`);
+      }
+
+      return {
+        kind: "rename-ambiguity-transition",
+        name: entry.name,
+        directory,
+        baselinePath,
+        desiredPath,
+        verificationPath,
+        sourceIdentifier: manifest.sourceIdentifier,
+      };
+    });
+}
+
 function main(): void {
   if (!existsSync(migrationsDirectory)) {
     throw new Error(`Migration cases directory does not exist: ${migrationsDirectory}`);
@@ -876,13 +1164,36 @@ function main(): void {
 
   mkdirSync(reportsDirectory, { recursive: true });
 
-  const availableMigrationCases = readdirSync(migrationsDirectory, { withFileTypes: true })
+  const availableSnapshotCases: SnapshotCase[] = readdirSync(migrationsDirectory, {
+    withFileTypes: true,
+  })
     .filter((entry) => entry.isFile() && !entry.isSymbolicLink() && entry.name.endsWith(".sql"))
-    .map((entry) => ({ fileName: entry.name, name: entry.name.slice(0, -4) }))
-    .sort((left, right) => left.name.localeCompare(right.name));
+    .map((entry) => ({
+      kind: "snapshot",
+      fileName: entry.name,
+      name: entry.name.slice(0, -4),
+    }));
+  const availableCases: TestCase[] = [
+    ...availableSnapshotCases,
+    ...discoverTransitionCases(),
+  ].sort((left, right) => compareCaseNames(left.name, right.name));
 
-  if (availableMigrationCases.length === 0) {
-    throw new Error("Expected at least one migration case.");
+  if (availableCases.length === 0) {
+    throw new Error("Expected at least one schema case.");
+  }
+  const casesByNumber = new Map<number, TestCase>();
+  for (const availableCase of availableCases) {
+    const caseNumber = caseNumberFromName(availableCase.name);
+    if (caseNumber === undefined) {
+      throw new Error(`Case name must start with a number: ${availableCase.name}.`);
+    }
+    const existingCase = casesByNumber.get(caseNumber);
+    if (existingCase) {
+      throw new Error(
+        `Cases ${existingCase.name} and ${availableCase.name} use the same number ${caseNumber}.`,
+      );
+    }
+    casesByNumber.set(caseNumber, availableCase);
   }
 
   let selectedCaseNumbers: Set<number> | undefined;
@@ -897,28 +1208,23 @@ function main(): void {
     }
   }
 
-  const migrationCases = selectedCaseNumbers
-    ? availableMigrationCases.filter((migrationCase) => {
-        const caseNumber = caseNumberFromName(migrationCase.name);
+  const selectedCases = selectedCaseNumbers
+    ? availableCases.filter((availableCase) => {
+        const caseNumber = caseNumberFromName(availableCase.name);
         return caseNumber !== undefined && selectedCaseNumbers.has(caseNumber);
       })
-    : availableMigrationCases;
+    : availableCases;
 
-  if (migrationCases.length === 0) {
-    const availableCaseNumbers = availableMigrationCases
-      .map((migrationCase) => /^\d+/.exec(migrationCase.name)?.[0])
+  if (selectedCases.length === 0) {
+    const availableCaseNumbers = availableCases
+      .map((availableCase) => /^\d+/.exec(availableCase.name)?.[0])
       .filter((caseNumber) => caseNumber !== undefined)
       .join(", ");
     throw new Error(`None of the selected cases exist. Available cases: ${availableCaseNumbers}.`);
   }
   if (selectedCaseNumbers) {
-    const availableCaseNumbers = new Set(
-      availableMigrationCases
-        .map((migrationCase) => caseNumberFromName(migrationCase.name))
-        .filter((caseNumber) => caseNumber !== undefined),
-    );
     const missingCaseNumbers = [...selectedCaseNumbers].filter(
-      (caseNumber) => !availableCaseNumbers.has(caseNumber),
+      (caseNumber) => !casesByNumber.has(caseNumber),
     );
     if (missingCaseNumbers.length > 0) {
       throw new Error(`Selected case(s) do not exist: ${missingCaseNumbers.join(", ")}.`);
@@ -941,8 +1247,171 @@ function main(): void {
 
   let finalCleanup: CommandResult | undefined;
   try {
-    for (const [caseIndex, migrationCase] of migrationCases.entries()) {
-      process.stdout.write(`Testing ${migrationCase.name}...\n`);
+    for (const [caseIndex, testCase] of selectedCases.entries()) {
+      process.stdout.write(`Testing ${testCase.name}...\n`);
+      if (testCase.kind === "rename-ambiguity-transition") {
+        const workProject = join(runDirectory, basename(testCase.name));
+        const workMigrations = join(workProject, "supabase", "migrations");
+        const desiredMigrationName = "20260101000000_desired.sql";
+        const baselineMigrationName = "20260101000000_baseline.sql";
+        requirePathInside(runDirectory, workProject);
+        requirePathInside(workProject, workMigrations);
+        const baselineSql = readFileSync(testCase.baselinePath, "utf8").trim();
+        const desiredSql = readFileSync(testCase.desiredPath, "utf8").trim();
+        const verificationSql = readFileSync(testCase.verificationPath, "utf8").trim();
+        cpSync(runtimeTemplateDirectory, workProject, { recursive: true, errorOnExist: true });
+        mkdirSync(workMigrations);
+        copyFileSync(testCase.desiredPath, join(workMigrations, desiredMigrationName));
+
+        let reset: CommandResult | undefined;
+        if (caseIndex > 0) {
+          logStage("reset shared database to desired state B");
+          reset = runSupabase(workProject, [
+            "supabase",
+            "db",
+            "reset",
+            "--local",
+            "--no-seed",
+            "--debug",
+          ]);
+          logCommandResult(reset);
+        }
+
+        logStage("generate desired declarative schema B");
+        const generateCommand = [
+          "supabase",
+          "db",
+          "schema",
+          "declarative",
+          "generate",
+          "--local",
+          ...(caseIndex === 0 ? ["--reset"] : []),
+          "--overwrite",
+          "--debug",
+        ];
+        const generate =
+          reset?.status === "ERROR"
+            ? skippedCommand(
+                `npx ${generateCommand.join(" ")}`,
+                "Database reset failed, so desired declarative generation was skipped.",
+              )
+            : runSupabase(workProject, generateCommand);
+        logCommandResult(generate);
+
+        let baselineReset: CommandResult | undefined;
+        let baselineState: CommandResult | undefined;
+        let transitionMigrationFiles: GeneratedFile[] = [];
+        let transitionRawSyncStatus: CommandResult["status"] | undefined;
+        let transitionSafetySummary: string | undefined;
+        const syncCommand = [
+          "supabase",
+          "db",
+          "schema",
+          "declarative",
+          "sync",
+          "--no-apply",
+          "--debug",
+        ];
+        let sync = skippedCommand(
+          `npx ${syncCommand.join(" ")}`,
+          "Desired declarative generation failed, so the transition was skipped.",
+        );
+        let syncVerification: CommandResult | undefined;
+
+        if (generate.status === "OK") {
+          let transitionPreparationError: string | undefined;
+          logStage("replace desired migration with baseline state A");
+          try {
+            removeMigrationSqlFiles(workProject);
+            copyFileSync(testCase.baselinePath, join(workMigrations, baselineMigrationName));
+            process.stdout.write("    result: OK\n");
+          } catch (error) {
+            transitionPreparationError = error instanceof Error ? error.message : String(error);
+            process.stdout.write(`    result: ERROR (${transitionPreparationError})\n`);
+          }
+
+          logStage("reset shared database to populated baseline state A");
+          baselineReset = transitionPreparationError
+            ? skippedCommand(
+                "npx supabase db reset --local --no-seed --debug",
+                `Transition preparation failed: ${transitionPreparationError}`,
+              )
+            : runSupabase(workProject, [
+                "supabase",
+                "db",
+                "reset",
+                "--local",
+                "--no-seed",
+                "--debug",
+              ]);
+          logCommandResult(baselineReset);
+
+          if (baselineReset.status === "OK") {
+            logStage("capture baseline object identity and data");
+            baselineState = runDatabaseQuery(workProject, verificationSql);
+            logCommandResult(baselineState);
+          }
+
+          if (baselineState?.status === "OK") {
+            logStage("generate transition without applying it");
+            const rawSync = runSupabase(workProject, syncCommand);
+            transitionRawSyncStatus = rawSync.status;
+            transitionMigrationFiles = captureMigrationFiles(
+              workProject,
+              new Set([baselineMigrationName]),
+            );
+            const safetyAssertion = assertRenameAmbiguityHandledSafely(
+              rawSync,
+              transitionMigrationFiles,
+              testCase.sourceIdentifier,
+            );
+            sync = safetyAssertion.result;
+            transitionSafetySummary = safetyAssertion.summary;
+            logCommandResult(sync);
+
+            logStage("verify baseline identity and data were preserved");
+            syncVerification = requireUnchangedDatabaseState(
+              baselineState,
+              runDatabaseQuery(workProject, verificationSql),
+            );
+            logCommandResult(syncVerification);
+          } else {
+            sync = skippedCommand(
+              `npx ${syncCommand.join(" ")}`,
+              "Baseline reset or state capture failed, so the transition was skipped.",
+            );
+            transitionSafetySummary =
+              "The safety assertion could not run because baseline setup failed.";
+            logStage("generate transition without applying it");
+            logCommandResult(sync);
+          }
+        } else {
+          transitionSafetySummary =
+            "The safety assertion could not run because desired declarative generation failed.";
+          logStage("generate transition without applying it");
+          logCommandResult(sync);
+        }
+
+        results.push({
+          kind: "transition",
+          name: testCase.name,
+          migrationSql: baselineSql,
+          desiredSql,
+          reset,
+          baselineReset,
+          baselineState,
+          generate,
+          sync,
+          syncVerification,
+          transitionRawSyncStatus,
+          transitionSafetySummary,
+          transitionMigrationFiles,
+        });
+        writeReport(results, runDirectory);
+        continue;
+      }
+
+      const migrationCase = testCase;
       const sourceMigration = join(migrationsDirectory, migrationCase.fileName);
       const workProject = join(runDirectory, basename(migrationCase.name));
       const workMigrations = join(workProject, "supabase", "migrations");
@@ -1074,6 +1543,7 @@ function main(): void {
       }
 
       results.push({
+        kind: "snapshot",
         name: migrationCase.name,
         migrationSql,
         reset,

@@ -1,0 +1,4 @@
+{
+  "expectation": "rename-ambiguity-warning-or-refusal",
+  "sourceIdentifier": "public.rename_ambiguity_source"
+}

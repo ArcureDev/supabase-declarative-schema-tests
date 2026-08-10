@@ -1,34 +1,45 @@
 # Supabase declarative schema CLI matrix
 
 This suite contains exactly one checked-in Supabase project under `runtime/`.
-Each SQL file under `migrations/` is an independent test case. The runner tests
-the pg-delta next round trip entirely through the Supabase CLI while reusing the
-runtime project's local PostgreSQL container:
+Each SQL file under `migrations/` is an independent snapshot case. Transition
+cases under `transitions/` contain baseline state A, desired state B, and
+post-generation verification SQL. The runner tests pg-delta next entirely
+through the Supabase CLI while reusing the runtime project's local PostgreSQL
+container.
 
-The full planned fixture panel and implementation status are tracked in
-[`CONCEPTS.md`](./CONCEPTS.md).
+The implemented fixture inventory and the broader transition-testing roadmap
+are tracked in [`TEST-MATRIX.md`](./TEST-MATRIX.md).
 
-1. Remove any stale shared test runtime from an interrupted earlier run.
-2. Copy the next migration case and the runtime project to an isolated working
+For snapshot cases, the runner:
+
+1. Removes any stale shared test runtime from an interrupted earlier run.
+2. Copies the next migration case and the runtime project to an isolated working
    directory.
-3. For the first fixture, run
+3. For the first fixture, runs
    `npx supabase db schema declarative generate --local --reset --overwrite --debug`
    to start and initialize the shared local database from its migrations.
-4. Before each subsequent fixture, explicitly run
-   `npx supabase db reset --local --no-seed --debug`, then run
+4. Before each subsequent fixture, explicitly runs
+   `npx supabase db reset --local --no-seed --debug`, then runs
    `npx supabase db schema declarative generate --local --overwrite --debug`.
    The explicit reset is required because generate's `--reset` does not reload a
    different working directory's migrations when the shared container is
    already running.
-5. Remove the migration SQL files from the isolated copy.
-6. Run `npx supabase db schema declarative sync --no-apply --debug` to recreate a
+5. Removes the migration SQL files from the isolated copy.
+6. Runs `npx supabase db schema declarative sync --no-apply --debug` to recreate a
    migration from the generated declarative schema without an interactive apply
    prompt.
-7. Write a new timestamped report under `reports/`, recording `OK` or the
+7. Writes a new timestamped report under `reports/`, recording `OK` or the
    command error for every project. For example:
    `reports/report-2026-08-08T16-15-27-077Z.md`.
-8. Stop and remove the shared local database once with
+8. Stops and removes the shared local database once with
    `npx supabase stop --no-backup`. Cleanup failures are included in the report.
+
+For a transition case, the runner generates the desired declarative tree from
+state B, resets the shared database to the populated baseline state A, and asks
+`sync --no-apply` to plan A to B. The rename-ambiguity fixture passes only when
+the planner explicitly warns or refuses without inferring a native rename.
+Catalog identity and data are queried before and after planning to prove that
+the non-applied safety check left state A unchanged.
 
 A command that exits with code 0 but emits `code=unmodeled_kind` is recorded as
 a warning rather than an error. Because pg-delta explicitly omitted an
@@ -37,10 +48,10 @@ unchanged: legacy is tried, sync is skipped after an unsafe generate result, and
 the overall run remains nonzero rather than reporting a lossy round trip as
 successful.
 
-When a pg-delta next `generate` or `sync` command fails, the runner retries that
-same command with `SUPABASE_USE_PG_DELTA_NEXT=false`. The report records the
-legacy result separately. A successful legacy retry does not hide the next
-failure or change the runner's nonzero exit status.
+When a snapshot case's pg-delta next `generate` or `sync` command fails, the
+runner retries that same command with `SUPABASE_USE_PG_DELTA_NEXT=false`. The
+report records the legacy result separately. A successful legacy retry does not
+hide the next failure or change the runner's nonzero exit status.
 
 The report's case-results table shows the primary and legacy outcomes
 independently. The legacy outcome is `NOT RUN` when the primary engine did not
@@ -68,7 +79,7 @@ produced by the legacy attempt, regardless of whether that retry succeeds. Both
 sets are written to the report with their relative filenames and full contents;
 an empty set is reported explicitly.
 
-The checked-in runtime project and migration cases are never mutated. Temporary
+The checked-in runtime project and fixtures are never mutated. Temporary
 working copies and their potentially sensitive pg-delta debug bundles are
 stored in `.tmp/`, which is ignored by Git.
 
@@ -101,14 +112,16 @@ To additionally print each exact CLI command immediately before it runs:
 npm run test:declarative-schema -- --verbose
 ```
 
-To select numbered migration cases, use `--case=` with one number, an inclusive
-range, a comma-separated list, or a combination of ranges and numbers:
+To select numbered snapshot or transition cases, use `--case=` with one number,
+an inclusive range, a comma-separated list, or a combination of ranges and
+numbers:
 
 ```powershell
 npm run test:declarative-schema -- --case=18
 npm run test:declarative-schema -- --case=10-20
 npm run test:declarative-schema -- --case=11,15,24
 npm run test:declarative-schema -- --case=10-15,24
+npm run test:declarative-schema -- --case=181
 ```
 
 To rerun only the failed or warning cases from the newest timestamped report,
