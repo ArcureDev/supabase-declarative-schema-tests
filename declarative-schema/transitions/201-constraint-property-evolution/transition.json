@@ -1,0 +1,37 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "constraint-property-evolution.sql",
+  "description": "primary, unique, deferrability, NULL equality, and check-property evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the unique constraint with NULLS NOT DISTINCT",
+      "pattern": "\\badd\\s+constraint\\s+constraint_accounts_tenant_code_key\\b[\\s\\S]*?\\bunique\\s+nulls\\s+not\\s+distinct\\b[\\s\\S]*?\\binitially\\s+deferred\\b"
+    },
+    {
+      "description": "drops the old check constraint",
+      "pattern": "\\bdrop\\s+constraint\\s+constraint_accounts_amount_nonnegative\\b"
+    },
+    {
+      "description": "adds the replacement check constraint",
+      "pattern": "\\badd\\s+constraint\\s+constraint_accounts_amount_range\\b[\\s\\S]*?\\bcheck\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not replace the accounts table",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.constraint_accounts\\b"
+    }
+  ]
+}

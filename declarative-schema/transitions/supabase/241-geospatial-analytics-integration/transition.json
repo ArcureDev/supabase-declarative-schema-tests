@@ -1,0 +1,61 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "geospatial-analytics-integration.sql",
+  "description": "geospatial and analytics integration release evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds projected geometry",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?geodata\\.places[\\s\\S]*\\badd\\s+(?:column\\s+)?location_webmercator\\b"
+    },
+    {
+      "description": "creates the spatial index",
+      "pattern": "\\bcreate\\s+index\\s+places_location_gist_idx\\b[\\s\\S]*\\busing\\s+gist\\b"
+    },
+    {
+      "description": "creates region access RLS",
+      "pattern": "\\bcreate\\s+policy\\s+places_region_access\\b"
+    },
+    {
+      "description": "creates the fourth-quarter partition",
+      "pattern": "\\bcreate\\s+table\\s+analytics\\.events_2026_q4\\b[\\s\\S]*\\bpartition\\s+of\\b"
+    },
+    {
+      "description": "creates the analytics materialized view",
+      "pattern": "\\bcreate\\s+materialized\\s+view\\s+analytics\\.daily_event_totals\\b"
+    },
+    {
+      "description": "creates the analytics publication",
+      "pattern": "\\bcreate\\s+publication\\s+ds_241_analytics_publication\\b"
+    },
+    {
+      "description": "creates the partner foreign table boundary",
+      "pattern": "\\bcreate\\s+foreign\\s+table\\s+analytics\\.partner_events\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "drops PostGIS",
+      "pattern": "\\bdrop\\s+extension\\s+postgis\\b"
+    },
+    {
+      "description": "rewrites the populated source geometry",
+      "pattern": "\\balter\\s+(?:column\\s+)?location\\s+type\\b"
+    },
+    {
+      "description": "attaches an unvalidated existing partition",
+      "pattern": "\\battach\\s+partition\\b"
+    }
+  ]
+}

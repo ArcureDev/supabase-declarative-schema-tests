@@ -4,7 +4,9 @@ This suite contains a shared Supabase project template under `runtime/`.
 Each SQL file under `migrations/` is an independent snapshot case. Transition
 cases under `transitions/` contain a self-contained Supabase project with
 declarative baseline state A, desired state B, and post-generation verification
-SQL. The runner tests pg-delta next entirely through the Supabase CLI while
+SQL. Supabase product and managed-service transitions are grouped under
+`transitions/supabase/`. The runner discovers transition fixtures recursively
+and tests pg-delta next as the primary engine through the Supabase CLI while
 reusing the runtime project's local PostgreSQL container.
 
 The implemented fixture inventory and the broader transition-testing roadmap
@@ -38,9 +40,23 @@ For a transition case, the runner copies its checked-in project and runs
 `sync --apply` against declarative state A, allowing the CLI to generate and
 apply its own baseline migration. It inserts representative data, captures
 catalog identity, replaces the same declarative file with state B, and runs
-`sync --no-apply`. The rename-ambiguity fixture passes only when the planner
-explicitly warns or refuses without inferring a native rename. Catalog identity
-and data are queried again to prove that planning left state A unchanged.
+`sync --no-apply`. Safety fixtures such as rename ambiguity and destructive
+column drops stop after planning, require an explicit diagnostic, and prove that
+state A is unchanged. Applicable transitions such as populated column changes
+and dependency ordering inspect the generated SQL, apply it with `migration up`,
+verify catalog identity, data, dependency edges, and behavior, and require a
+second sync to report no schema changes. Cases 185–188 cover identical no-op
+declarations, grants/RLS preservation, repeatable migration output, and recovery
+after an expected data-dependent apply failure.
+
+Most cases 189–244 use the reusable `applicable-transition` manifest profile.
+Their manifests declare required and forbidden migration regexes, while fixture
+SQL performs catalog, identity, data, and behavior checks. Cases 206, 211, 218,
+and 221 use `expected-unsupported`: state A is bootstrapped directly, planning
+must emit a stable capability diagnostic, and the database must remain
+unchanged. These profiles keep production, advanced PostgreSQL, managed-boundary,
+and compound project cases data-driven instead of adding one runner branch per
+fixture.
 
 A command that exits with code 0 but emits `code=unmodeled_kind` is recorded as
 a warning rather than an error. Because pg-delta explicitly omitted an
@@ -54,14 +70,21 @@ runner retries that same command with `SUPABASE_USE_PG_DELTA_NEXT=false`. The
 report records the legacy result separately. A successful legacy retry does not
 hide the next failure or change the runner's nonzero exit status.
 
+When a transition case finishes with a warning or failure, the runner repeats
+the complete transition with legacy in a separate working copy. This includes
+baseline generation, data setup, transition planning, migration application,
+and verification, so the two engine outcomes are comparable without reusing
+state mutated by the primary attempt.
+
 The report's case-results table shows the primary and legacy outcomes
 independently. The legacy outcome is `NOT RUN` when the primary engine did not
 need a fallback; otherwise it is `OK`, `WARNING`, or `FAILED`.
 
 After each run, reports that contain command-result metadata are aggregated by
 the seven-character Supabase checksum into
-`versions/version-<ISO-8601-datetime>-<checksum>.md`, for example
-`versions/version-20260809T080000Z-f9bd289.md`.
+`versions/version-<checksum>.md`, for example
+`versions/version-f9bd289.md`. Each new report updates that checksum's file in
+place, so the versions directory contains only one file per checksum.
 Each version file keeps the newest complete snapshot for every case, so a
 targeted run updates its selected cases without removing the other cases. Its
 matrix contains `generate`, `sync`, and `sync-verification` results for pg-delta
@@ -79,6 +102,11 @@ every file it produced before retrying with legacy. It then snapshots every file
 produced by the legacy attempt, regardless of whether that retry succeeds. Both
 sets are written to the report with their relative filenames and full contents;
 an empty set is reported explicitly.
+
+Transition manifests can declare runtime-only `sensitiveValues`. The runner
+fails a migration-shape assertion if one appears in sync output or generated
+SQL, and redacts every declared value from the complete rendered report,
+including fixture setup SQL and failed command output.
 
 The checked-in runtime project and fixtures are never mutated. Temporary
 working copies and their potentially sensitive pg-delta debug bundles are
@@ -106,6 +134,12 @@ Docker must be running. From the repository root, run:
 
 ```powershell
 npm run declarative-schema
+```
+
+To list the available runner options without starting Docker:
+
+```powershell
+npm run declarative-schema -- --help
 ```
 
 Progress is rendered with `listr2`. Interactive terminals show a live spinner;
@@ -152,6 +186,18 @@ use `--failed`. Reports created before this option was added are supported too:
 npm run declarative-schema -- --failed
 ```
 
+To run every case that is not fully OK in the current version matrix, including
+cases with commands not run, errors, warnings, or no recorded results, use
+`--not-ok`:
+
+```powershell
+npm run declarative-schema -- --not-ok
+```
+
+This option runs missing and incomplete cases first, followed by errors and then
+warnings. It reads the latest `versions/version-<checksum>.md` file and runs only
+when both its Supabase CLI version and checksum exactly match the installed CLI.
+
 Options can be combined:
 
 ```powershell
@@ -166,4 +212,4 @@ The runner uses `SUPABASE_USE_PG_DELTA_NEXT=true` for its primary commands and
 sets it to `false` only for legacy retries. It executes projects sequentially
 against the shared runtime because each reset replaces its complete database
 state. Generated schemas, migrations, caches, and diagnostics remain isolated
-in a separate working directory for each fixture.
+in separate working directories for each fixture and transition fallback.

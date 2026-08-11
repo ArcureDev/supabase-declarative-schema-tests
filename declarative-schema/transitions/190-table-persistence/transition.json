@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "table-persistence.sql",
+  "description": "change a populated ordinary table to unlogged with native alteration",
+  "requiredMigrationPatterns": [
+    {
+      "description": "sets the populated table unlogged",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*persistence_guard\\b[\\s\\S]*\\bset\\s+unlogged\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not recreate the populated table",
+      "pattern": "\\b(?:drop\\s+table|create\\s+(?:unlogged\\s+)?table)\\s+public\\s*\\.\\s*persistence_guard\\b"
+    }
+  ]
+}

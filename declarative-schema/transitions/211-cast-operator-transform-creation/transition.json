@@ -1,0 +1,25 @@
+{
+  "expectation": "expected-unsupported",
+  "declarativeFile": "cast-operator-transform-creation.sql",
+  "description": "cast/operator creation with an explicit restricted-role transform boundary",
+  "requiredDiagnosticPatterns": [
+    {
+      "description": "reports the restricted internal-language boundary",
+      "pattern": "\\bpermission\\s+denied\\s+for\\s+language\\s+internal\\b"
+    },
+    {
+      "description": "classifies the shadow dependency load failure",
+      "pattern": "\\bshadow\\s+load\\s+stuck\\s+after\\b"
+    }
+  ],
+  "forbiddenDiagnosticPatterns": [
+    {
+      "description": "does not emit destructive advanced-object SQL",
+      "pattern": "\\bdrop\\s+(?:cast|operator|transform|type|table)\\b"
+    },
+    {
+      "description": "does not panic",
+      "pattern": "\\b(?:panic|segmentation fault)\\b"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "view-materialized-view-evolution.sql",
+  "description": "compatible view replacement and materialized-view rebuild",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the ordinary view",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+view\\s+public\\.transition_live\\b"
+    },
+    {
+      "description": "drops the changed materialized view",
+      "pattern": "\\bdrop\\s+materialized\\s+view\\s+(?:if\\s+exists\\s+)?public\\.transition_rollup\\b"
+    },
+    {
+      "description": "recreates the materialized view",
+      "pattern": "\\bcreate\\s+materialized\\s+view\\s+public\\.transition_rollup\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop the source table or ordinary view",
+      "pattern": "\\bdrop\\s+(?:table\\s+public\\.transition_view_source|view\\s+public\\.transition_live)\\b"
+    },
+    {
+      "description": "does not delete or truncate source data",
+      "pattern": "\\b(?:delete\\s+from|truncate)\\s+public\\.transition_view_source\\b"
+    }
+  ]
+}

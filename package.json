@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "declarative-schema": "node --experimental-strip-types declarative-schema/run.mts",
-    "declarative-schema:unit": "node --experimental-strip-types --test declarative-schema/runner/assertions.test.mts declarative-schema/runner/runner.test.mts declarative-schema/runner/selection.test.mts",
+    "declarative-schema:unit": "node --experimental-strip-types --test declarative-schema/runner/assertions.test.mts declarative-schema/runner/fixture-catalog.test.mts declarative-schema/runner/help.test.mts declarative-schema/runner/runner.test.mts declarative-schema/runner/selection.test.mts",
     "typecheck": "tsc --project tsconfig.json"
   },
   "devDependencies": {

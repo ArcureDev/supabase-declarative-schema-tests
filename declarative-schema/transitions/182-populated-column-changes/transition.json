@@ -1,0 +1,5 @@
+{
+  "expectation": "populated-column-changes-preserve-data",
+  "declarativeFile": "populated-column-changes.sql",
+  "tableIdentifier": "public.populated_column_changes"
+}

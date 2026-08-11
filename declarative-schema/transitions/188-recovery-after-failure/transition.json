@@ -1,0 +1,4 @@
+{
+  "expectation": "recovery-after-failure",
+  "declarativeFile": "recovery-after-failure.sql"
+}

@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "auth-uid-policy-hardening.sql",
+  "description": "harden an auth.uid policy and add update access without modifying Auth-managed objects",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alter the Auth-facing policy",
+      "pattern": "\\balter\\s+policy\\s+auth_owned_documents_226\\s+on\\s+public\\.auth_documents_226\\b"
+    },
+    {
+      "description": "grant update access",
+      "pattern": "\\bgrant\\s+update\\s+on\\s+(?:table\\s+)?public\\.auth_documents_226\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not emit Auth-managed DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,80}\\bauth\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the Auth schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?auth\\b"
+    },
+    {
+      "description": "do not weaken or recreate security",
+      "pattern": "\\b(?:drop\\s+policy|disable\\s+row\\s+level\\s+security|revoke|drop\\s+table)\\b"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "index-definition-evolution.sql",
+  "description": "index create, drop, uniqueness, method, multicolumn expression, ordering, collation, operator class, INCLUDE, predicate, and storage-option evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "drops the obsolete lookup definition",
+      "pattern": "\\bdrop\\s+index\\s+(?:if\\s+exists\\s+)?public\\.index_evolution_lookup_idx\\b"
+    },
+    {
+      "description": "creates the rich unique lookup index",
+      "pattern": "\\bcreate\\s+unique\\s+index\\s+index_evolution_lookup_idx\\b[\\s\\S]*?\\binclude\\s*\\(\\s*score\\s*,\\s*payload\\s*\\)[\\s\\S]*?\\bwhere\\b"
+    },
+    {
+      "description": "adds the hash index",
+      "pattern": "\\bcreate\\s+index\\s+index_evolution_hash_idx\\b[\\s\\S]*?\\busing\\s+hash\\b"
+    },
+    {
+      "description": "drops the retired index",
+      "pattern": "\\bdrop\\s+index\\s+(?:if\\s+exists\\s+)?public\\.index_evolution_retired_idx\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not replace the indexed table",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.index_evolution\\b"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "data-shape-preservation.sql",
+  "description": "preserve representative data shapes while adding a defaulted column",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds the defaulted shape version column",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*data_shape_guard\\b[\\s\\S]*\\badd\\s+(?:column\\s+)?shape_version\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not recreate the populated table",
+      "pattern": "\\b(?:drop\\s+table|create\\s+table)\\s+public\\s*\\.\\s*data_shape_guard\\b"
+    },
+    {
+      "description": "does not drop existing data-shape columns",
+      "pattern": "\\bdrop\\s+(?:column\\s+)?(?:nullable_text|tags|document|bytes|large_text|amount|happened_at)\\b"
+    }
+  ]
+}

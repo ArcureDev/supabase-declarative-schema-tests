@@ -1,0 +1,45 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "sequence-options.sql",
+  "description": "alter sequence bounds increment cache and cycle without restarting it",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alters the existing sequence",
+      "pattern": "\\balter\\s+sequence\\s+public\\s*\\.\\s*transition_ticket_seq\\b"
+    },
+    {
+      "description": "sets increment to five",
+      "pattern": "\\balter\\s+sequence\\s+public\\s*\\.\\s*transition_ticket_seq\\b[\\s\\S]*\\bincrement\\s+(?:by\\s+)?5\\b"
+    },
+    {
+      "description": "sets minimum to five",
+      "pattern": "\\balter\\s+sequence\\s+public\\s*\\.\\s*transition_ticket_seq\\b[\\s\\S]*\\bminvalue\\s+5\\b"
+    },
+    {
+      "description": "sets maximum to one thousand",
+      "pattern": "\\balter\\s+sequence\\s+public\\s*\\.\\s*transition_ticket_seq\\b[\\s\\S]*\\bmaxvalue\\s+1000\\b"
+    },
+    {
+      "description": "sets cache and cycling",
+      "pattern": "\\balter\\s+sequence\\s+public\\s*\\.\\s*transition_ticket_seq\\b[\\s\\S]*\\bcache\\s+20\\b[\\s\\S]*\\bcycle\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not recreate the sequence",
+      "pattern": "\\b(?:drop|create)\\s+sequence\\s+public\\s*\\.\\s*transition_ticket_seq\\b"
+    },
+    {
+      "description": "does not restart the sequence",
+      "pattern": "\\b(?:restart\\b|setval\\s*\\()"
+    },
+    {
+      "description": "does not recreate the populated table",
+      "pattern": "\\b(?:drop\\s+table|create\\s+table)\\s+public\\s*\\.\\s*sequence_option_guard\\b"
+    }
+  ]
+}

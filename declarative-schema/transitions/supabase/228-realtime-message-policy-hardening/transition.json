@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "realtime-message-policy-hardening.sql",
+  "description": "scope Realtime private-channel authorization to the authenticated user",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alter the supported Realtime policy",
+      "pattern": "\\balter\\s+policy\\s+transition_realtime_receive_228\\s+on\\s+realtime\\.messages\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not emit Realtime-managed DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function)\\b[\\s\\S]{0,100}\\brealtime\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the Realtime schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?realtime\\b"
+    },
+    {
+      "description": "do not drop the policy",
+      "pattern": "\\bdrop\\s+policy\\b"
+    }
+  ]
+}

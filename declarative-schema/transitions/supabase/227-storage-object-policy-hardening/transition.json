@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "storage-object-policy-hardening.sql",
+  "description": "restrict Storage uploads to the authenticated caller folder",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alter the supported Storage policy",
+      "pattern": "\\balter\\s+policy\\s+transition_storage_insert_227\\s+on\\s+storage\\.objects\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not emit Storage-managed DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bstorage\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the Storage schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?storage\\b"
+    },
+    {
+      "description": "do not drop the policy",
+      "pattern": "\\bdrop\\s+policy\\b"
+    }
+  ]
+}

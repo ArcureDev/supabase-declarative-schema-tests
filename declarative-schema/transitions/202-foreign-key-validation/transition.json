@@ -1,0 +1,41 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "foreign-key-validation.sql",
+  "description": "cross-schema composite and self foreign keys, staged validation, invalid legacy data, and action, match, and deferral changes",
+  "requiredMigrationPatterns": [
+    {
+      "description": "validates the staged parent foreign key",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?accounting\\.constraint_child\\b[\\s\\S]*?\\bvalidate\\s+constraint\\s+constraint_child_parent_fk\\b"
+    },
+    {
+      "description": "replaces the reviewer foreign key",
+      "pattern": "\\bdrop\\s+constraint\\s+constraint_child_reviewer_fk\\b[\\s\\S]*?\\badd\\s+constraint\\s+constraint_child_reviewer_fk\\b"
+    },
+    {
+      "description": "adds the legacy foreign key as NOT VALID",
+      "pattern": "\\badd\\s+constraint\\s+constraint_child_legacy_fk\\b[\\s\\S]*?\\bforeign\\s+key\\b[\\s\\S]*?\\bnot\\s+valid\\b"
+    },
+    {
+      "description": "adds the composite self foreign key",
+      "pattern": "\\badd\\s+constraint\\s+constraint_parent_self_fk\\b[\\s\\S]*?\\bforeign\\s+key\\s*\\(\\s*tenant_id\\s*,\\s*parent_id\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not replace foreign-key tables",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?(?:public\\.constraint_parent|accounting\\.constraint_child)\\b"
+    }
+  ]
+}

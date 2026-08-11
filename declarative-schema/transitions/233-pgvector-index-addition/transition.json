@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pgvector-index-addition.sql",
+  "description": "add an HNSW index to populated vector data without rebuilding the table",
+  "requiredMigrationPatterns": [
+    {
+      "description": "create the HNSW cosine index",
+      "pattern": "\\bcreate\\s+index\\s+transition_vector_hnsw_233\\b[\\s\\S]*\\busing\\s+hnsw\\b[\\s\\S]*\\bvector_cosine_ops\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not rebuild vector state",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b"
+    },
+    {
+      "description": "do not alter extension-owned schemas",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function|type)\\b[\\s\\S]{0,100}\\bextensions\\s*\\."
+    }
+  ]
+}

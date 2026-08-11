@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "queue-message-data-boundary.sql",
+  "description": "replace a queue wrapper while preserving queue relations and queued messages",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replace only the queue wrapper",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_queue_marker_232\\s*\\(\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not mutate queue runtime state",
+      "pattern": "\\bpgmq\\.(?:create|drop_queue|purge_queue|send|archive|delete)\\b"
+    },
+    {
+      "description": "do not emit managed queue DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bpgmq\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the queue schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?pgmq\\b"
+    },
+    {
+      "description": "do not drop pgmq",
+      "pattern": "\\bdrop\\s+extension\\b"
+    }
+  ]
+}

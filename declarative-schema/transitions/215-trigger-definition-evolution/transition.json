@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "trigger-definition-evolution.sql",
+  "description": "trigger-function replacement and trigger event expansion",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the trigger function",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_capture_row\\b"
+    },
+    {
+      "description": "drops the old trigger definition",
+      "pattern": "\\bdrop\\s+trigger\\s+(?:if\\s+exists\\s+)?transition_capture\\s+on\\s+public\\.transition_trigger_source\\b"
+    },
+    {
+      "description": "creates the expanded trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+transition_capture\\b[\\s\\S]*?\\bafter\\s+insert\\s+or\\s+update\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop functions or tables",
+      "pattern": "\\bdrop\\s+(?:function|table)\\b"
+    },
+    {
+      "description": "does not delete or truncate data",
+      "pattern": "\\b(?:delete\\s+from|truncate)\\b"
+    }
+  ]
+}

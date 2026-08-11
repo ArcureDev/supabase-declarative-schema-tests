@@ -1,0 +1,37 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "cross-kind-dependency-ordering.sql",
+  "description": "topological creation across functions, aggregate, views, materialized view, and trigger",
+  "requiredMigrationPatterns": [
+    {
+      "description": "creates the aggregate after its state function",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+public\\.transition_sum_state\\b[\\s\\S]*?\\bcreate\\s+aggregate\\s+public\\.transition_total\\b"
+    },
+    {
+      "description": "creates the view after the aggregate",
+      "pattern": "\\bcreate\\s+aggregate\\s+public\\.transition_total\\b[\\s\\S]*?\\bcreate\\s+(?:or\\s+replace\\s+)?view\\s+public\\.transition_summary\\b"
+    },
+    {
+      "description": "creates the view after its scale function",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+public\\.transition_scale\\b[\\s\\S]*?\\bcreate\\s+(?:or\\s+replace\\s+)?view\\s+public\\.transition_summary\\b"
+    },
+    {
+      "description": "creates the materialized view after its source view",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?view\\s+public\\.transition_summary\\b[\\s\\S]*?\\bcreate\\s+materialized\\s+view\\s+public\\.transition_snapshot\\b"
+    },
+    {
+      "description": "creates the trigger after its function",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+public\\.transition_dependency_capture\\b[\\s\\S]*?\\bcreate\\s+trigger\\s+transition_dependency_capture\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop schema objects",
+      "pattern": "\\bdrop\\b"
+    },
+    {
+      "description": "does not delete or truncate data",
+      "pattern": "\\b(?:delete\\s+from|truncate)\\b"
+    }
+  ]
+}

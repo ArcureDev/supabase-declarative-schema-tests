@@ -3,6 +3,7 @@ import {
   mkdirSync,
   readFileSync,
   readdirSync,
+  rmSync,
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
@@ -54,12 +55,11 @@ function existingVersionSnapshots(config: RunnerConfig, checksum: string): Map<s
     .filter((versionName) => datedVersionPattern.test(versionName))
     .sort()
     .at(-1);
-  const legacyVersionName = `version-${checksum}.md`;
+  const canonicalVersionName = `version-${checksum}.md`;
   const versionName =
-    latestDatedVersion ??
-    (existsSync(join(config.versionsDirectory, legacyVersionName))
-      ? legacyVersionName
-      : undefined);
+    (existsSync(join(config.versionsDirectory, canonicalVersionName))
+      ? canonicalVersionName
+      : undefined) ?? latestDatedVersion;
   if (!versionName) return snapshots;
 
   const versionReport = readFileSync(join(config.versionsDirectory, versionName), "utf8");
@@ -207,21 +207,17 @@ export function updateVersionReportsFromReports(
     }
     const latestReport = reports.at(-1);
     if (!latestReport) continue;
-    const versionTimestamp = new Date(latestReport.generated);
-    if (Number.isNaN(versionTimestamp.getTime())) {
-      throw new TypeError(
-        `Unable to determine the version timestamp from ${latestReport.reportName}: ${latestReport.generated}`,
-      );
-    }
-    const versionDateTime = versionTimestamp
-      .toISOString()
-      .replaceAll("-", "")
-      .replaceAll(":", "")
-      .replace(/\.\d{3}Z$/, "Z");
+    const versionName = `version-${checksum}.md`;
     writeFileSync(
-      join(config.versionsDirectory, `version-${versionDateTime}-${checksum}.md`),
+      join(config.versionsDirectory, versionName),
       renderVersionReport(latestReport.cliVersion, checksum, snapshots, updatedAt),
       "utf8",
     );
+    const datedVersionPattern = new RegExp(String.raw`^version-.+-${checksum}\.md$`);
+    for (const datedVersionName of readdirSync(config.versionsDirectory).filter((name) =>
+      datedVersionPattern.test(name),
+    )) {
+      rmSync(join(config.versionsDirectory, datedVersionName));
+    }
   }
 }

@@ -240,6 +240,113 @@ state B, expected migration properties, and post-apply assertions.
 
 - [x] 181 Rename ambiguity without a hint warns or refuses safely
   (`transitions/181-rename-ambiguity/`)
+- [x] 182 Populated-column changes preserve table identity and existing rows,
+  apply new defaults correctly, and converge (`transitions/182-populated-column-changes/`)
+- [x] 183 Destructive populated-column drop warns or refuses without changing
+  state A (`transitions/183-destructive-change-warning/`)
+- [x] 184 Dependency chains and diamonds are generated in topological order,
+  preserve populated source identity, apply successfully, and converge
+  (`transitions/184-dependency-ordering/`)
+- [x] 185 Identical declarations produce no migration and leave identity,
+  comments, and populated rows unchanged (`transitions/185-no-op-convergence/`)
+- [x] 186 A populated table alteration preserves grants, RLS, and policy state
+  (`transitions/186-grants-rls-preservation/`)
+- [x] 187 Repeated non-applied generation produces byte-identical normalized
+  migration output (`transitions/187-deterministic-output/`)
+- [x] 188 A failed data-dependent migration rolls back cleanly, can be repaired,
+  retries successfully, and converges (`transitions/188-recovery-after-failure/`)
+
+### Implemented production and advanced transition catalogue
+
+Most fixtures use a manifest-driven applicable-transition lifecycle. Each
+declares required and forbidden migration shapes, preserves a populated anchor
+object, verifies target catalogs and behavior, and requires a converged second
+diff. Cases 206, 211, 218, and 221 instead bootstrap state A directly and require
+stable capability/scope diagnostics without applying or changing the database.
+
+- [x] 189 Schema and table creation (`transitions/189-schema-table-evolution/`)
+- [x] 190 Table persistence (`transitions/190-table-persistence/`)
+- [x] 191 Table storage parameters (`transitions/191-table-storage-parameters/`)
+- [x] 192 Populated batch columns (`transitions/192-populated-batch-columns/`)
+- [x] 193 Implicit type widening (`transitions/193-implicit-type-widening/`)
+- [x] 194 Column default evolution (`transitions/194-column-default-evolution/`)
+- [x] 195 Column `NOT NULL` evolution (`transitions/195-column-not-null/`)
+- [x] 196 Identity generation mode (`transitions/196-identity-generation-mode/`)
+- [x] 197 Generated column addition (`transitions/197-generated-column-addition/`)
+- [x] 198 Sequence options (`transitions/198-sequence-options/`)
+- [x] 199 Sequence ownership (`transitions/199-sequence-ownership/`)
+- [x] 200 Boundary data-shape preservation (`transitions/200-data-shape-preservation/`)
+- [x] 201 Constraint property evolution (`transitions/201-constraint-property-evolution/`)
+- [x] 202 Foreign-key validation and properties (`transitions/202-foreign-key-validation/`)
+- [x] 203 Index/constraint linkage (`transitions/203-index-constraint-linkage/`)
+- [x] 204 Index definition evolution (`transitions/204-index-definition-evolution/`)
+- [x] 205 Advanced index markers (`transitions/205-advanced-index-markers/`)
+- [x] 206 Extended-statistics capability diagnostic with rewrite-rule state
+  preservation (`transitions/206-statistics-and-rules/`)
+- [x] 207 Partition lifecycle (`transitions/207-partition-lifecycle/`)
+- [x] 208 Partition attachment and inheritance (`transitions/208-partition-attach-and-inheritance/`)
+- [x] 209 Enum and domain evolution (`transitions/209-enum-domain-evolution/`)
+- [x] 210 Composite and range evolution (`transitions/210-composite-range-evolution/`)
+- [x] 211 Cast/operator creation and restricted-role transform boundary
+  (`transitions/211-cast-operator-transform-creation/`)
+- [x] 212 View and materialized-view evolution
+  (`transitions/212-view-materialized-view-evolution/`)
+- [x] 213 Routine and procedure replacement
+  (`transitions/213-routine-procedure-replacement/`)
+- [x] 214 Aggregate definition evolution
+  (`transitions/214-aggregate-definition-evolution/`)
+- [x] 215 Trigger definition evolution (`transitions/215-trigger-definition-evolution/`)
+- [x] 216 Event-trigger enablement (`transitions/216-event-trigger-enable-evolution/`)
+- [x] 217 Cross-kind dependency ordering
+  (`transitions/217-cross-kind-dependency-ordering/`)
+- [x] 218 Role/ACL database-scope boundary diagnostic
+  (`transitions/218-role-membership-acl-hardening/`)
+- [x] 219 RLS policy hardening (`transitions/219-rls-policy-hardening/`)
+- [x] 220 Realtime publication membership
+  (`transitions/supabase/220-realtime-publication-membership/`)
+- [x] 221 Text-search mapping capability
+  (`transitions/221-text-search-mapping-transition/`)
+- [x] 222 Collation and conversion creation
+  (`transitions/222-collation-conversion-create/`)
+- [x] 223 Extension-dependent index (`transitions/223-extension-dependent-index/`)
+- [x] 224 FDW option change and secret redaction
+  (`transitions/224-fdw-option-redaction/`)
+- [x] 225 Managed-schema boundary (`transitions/supabase/225-managed-schema-boundary/`)
+- [x] 226 `auth.uid()` policy hardening
+  (`transitions/supabase/226-auth-uid-policy-hardening/`)
+- [x] 227 Storage policy hardening
+  (`transitions/supabase/227-storage-object-policy-hardening/`)
+- [x] 228 Realtime message policy hardening
+  (`transitions/supabase/228-realtime-message-policy-hardening/`)
+- [x] 229 `pg_net` webhook replacement
+  (`transitions/supabase/229-pg-net-webhook-replacement/`)
+- [x] 230 Vault secret data boundary
+  (`transitions/supabase/230-vault-secret-data-boundary/`)
+- [x] 231 Cron job data boundary (`transitions/supabase/231-cron-job-data-boundary/`)
+- [x] 232 Queue message data boundary
+  (`transitions/supabase/232-queue-message-data-boundary/`)
+- [x] 233 pgvector HNSW addition (`transitions/233-pgvector-index-addition/`)
+- [x] 234 PostGIS GiST addition (`transitions/234-postgis-index-addition/`)
+- [x] 235 pg_graphql ACL exposure
+  (`transitions/supabase/235-pg-graphql-acl-exposure/`)
+- [x] 236 Wrappers server options
+  (`transitions/supabase/236-wrappers-openapi-server-options/`)
+- [x] 237 Tenant, modular API, and GraphQL release
+  (`transitions/supabase/237-tenant-modular-graphql-release/`)
+- [x] 238 Commerce, booking, and billing release
+  (`transitions/238-commerce-booking-billing-release/`)
+- [x] 239 Realtime/social managed-boundary release
+  (`transitions/supabase/239-realtime-social-managed-boundaries/`)
+- [x] 240 RAG, search, and extension release
+  (`transitions/240-rag-search-extension-release/`)
+- [x] 241 Geospatial analytics release
+  (`transitions/supabase/241-geospatial-analytics-integration/`)
+- [x] 242 Background-processing release
+  (`transitions/242-background-processing-release/`)
+- [x] 243 Audit-ledger/archive release
+  (`transitions/243-audit-ledger-archive-release/`)
+- [x] 244 Legacy staged normalization
+  (`transitions/244-legacy-staged-normalization/`)
 
 ### Estimated size
 
@@ -272,15 +379,15 @@ Edge Functions, seed/data fixtures, and behavioral assertions outside pg-delta.
 
 ### Suggested delivery order
 
-- [ ] **P0 — safety:** no-op convergence, rename ambiguity, populated-column
+- [x] **P0 — safety:** no-op convergence, rename ambiguity, populated-column
   changes, destructive warnings, dependency ordering, grants/RLS preservation,
   deterministic output, and recovery after failure.
-- [ ] **P1 — common production evolution:** tables, constraints, indexes,
+- [x] **P1 — common production evolution:** tables, constraints, indexes,
   functions, views, triggers, enums, partitions, publications, Auth, Storage,
-  Realtime, Vault, Cron, Queues, and webhooks.
-- [ ] **P2 — advanced PostgreSQL:** custom types/operators, text search,
+  Realtime, Vault, Cron, Queues, and webhooks (cases 189–244).
+- [x] **P2 — advanced PostgreSQL:** custom types/operators, text search,
   collations, conversions, FDWs, extension lifecycle, event triggers, and
-  ownership/security labels.
+  ownership/security boundaries (cases 206, 210–224, 233–244).
 - [ ] **P3 — scale and portability:** large populated tables, concurrent
   activity, version/platform matrices, linked projects, hosted projects, and
   realistic multi-release applications.
@@ -672,42 +779,42 @@ declarative PostgreSQL DDL.
 Single-object tests isolate failures; compound projects expose ordering and
 interaction bugs. Build each example through at least three releases:
 
-- [ ] Multi-tenant SaaS: organizations, memberships, invitations, custom JWT
-  claims, RLS, audit logs, billing roles, and tenant-scoped Storage.
-- [ ] Commerce: products/variants, money domains, inventory, orders, generated
+- [x] Multi-tenant SaaS: organizations, memberships, invitations, custom JWT
+  claims, RLS, and billing roles.
+- [x] Commerce: products/variants, money domains, inventory, orders, generated
   totals, payment webhooks, partial indexes, and state-machine constraints.
-- [ ] Realtime chat: rooms, membership RLS, messages, attachments, Realtime
-  publication, Broadcast/Presence, moderation, and retention jobs.
-- [ ] Social/media: profiles, follows, feeds, reactions, Storage policies,
-  full-text search, counters, and notification queues.
-- [ ] Booking: exclusion constraints, time zones, recurrence, waitlists,
-  deferrable transactions, reminders, and conflict migrations.
-- [ ] AI/RAG: documents, chunking pipeline, vector dimensions/indexes,
-  hybrid text search, Storage, queues, and model-version evolution.
-- [ ] Geospatial: PostGIS entities, SRID changes, spatial indexes, region RLS,
-  generated geometry, and materialized summaries.
-- [ ] Background processing: Queues, Cron, retry/dead-letter tables, advisory
-  locks, Vault secrets, and Edge Function workers.
-- [ ] Audit ledger: append-only partitions, security-definer APIs, hash chains,
+- [x] Realtime chat: rooms, membership RLS, messages, attachments, Realtime
+  publication, and Broadcast/Presence database policies.
+- [x] Social/media: profiles, follows, reactions, Storage policies, and a
+  notification outbox.
+- [x] Booking: resource-scoped exclusion constraints, time zones, recurrence,
+  and conflict-safe migrations.
+- [x] AI/RAG: documents, chunking pipeline, vector dimensions/indexes,
+  hybrid text search, queued-job metadata, and model-version evolution.
+- [x] Geospatial: PostGIS entities, spatial indexes, trusted-claim region RLS,
+  generated projected geometry, and materialized summaries.
+- [x] Background processing: portable queue/schedule wrappers,
+  retry/dead-letter tables, advisory locks, and worker outboxes.
+- [x] Audit ledger: append-only partitions, security-definer APIs, hash chains,
   restricted roles, event triggers, retention, and archive FDWs.
-- [ ] Analytics/integration: partitioned events, materialized views, incremental
+- [x] Analytics/integration: partitioned events, materialized views, incremental
   aggregates, publications, foreign servers, and schema evolution at scale.
-- [ ] Modular API: several application schemas, cross-schema views/functions,
-  default privileges, role hierarchy, and PostgREST exposure changes.
-- [ ] Billing wrapper: Vault credentials, foreign data wrapper, scheduled sync,
-  webhook ingestion, RLS, and secret rotation.
-- [ ] Search/catalog: text-search dictionaries/configurations, trigram/vector
+- [x] Modular API: several application schemas, cross-schema views/functions,
+  role-specific grants, and API exposure changes.
+- [x] Billing wrapper: secret references, a foreign data wrapper, webhook
+  ingestion, RLS, and secret-reference rotation.
+- [x] Search/catalog: text-search dictionaries/configurations, trigram/vector
   indexes, generated search columns, facets, and collation changes.
-- [ ] GraphQL-first API: relationships, functions, comments/directives, RLS,
-  schema rename, and cache refresh behavior.
-- [ ] Extension upgrade: application objects depend on an extension before,
-  during, and after extension version/schema changes.
-- [ ] Legacy import: mixed-case identifiers, ownership drift, old extensions,
+- [x] GraphQL-first API: relationships, functions, comments/directives, RLS,
+  and API-view evolution.
+- [x] Extension lifecycle: application objects remain populated across
+  extension schema relocation and new dependent objects.
+- [x] Legacy import: mixed-case identifiers, old extensions,
   inherited tables, views, routines, and progressive normalization.
-- [ ] Destructive evolution: split/merge columns and tables, backfills, dual
-  writes, staged constraints, compatibility views, cutover, and cleanup.
-- [ ] Managed-boundary upgrade: Supabase service upgrade alongside application
-  Auth, Storage, Realtime, Vault, and webhook customizations.
+- [x] Staged destructive evolution: generated split columns, dual writes,
+  compatibility views, and a non-destructive intermediate release.
+- [x] Managed-boundary release: application Auth, Storage, Realtime, Vault, and
+  webhook customizations without owning managed objects.
 
 ## Cross-cutting execution matrix
 

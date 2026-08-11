@@ -1,0 +1,65 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "advanced-index-markers.sql",
+  "description": "GIN, GiST, SP-GiST, BRIN, pg_trgm, duplicate-equivalent indexes, clustered index, and replica-identity index evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds the GIN array index",
+      "pattern": "\\bcreate\\s+index\\s+advanced_documents_tags_gin_idx\\b[^;]*\\busing\\s+gin\\b"
+    },
+    {
+      "description": "adds the GiST index",
+      "pattern": "\\bcreate\\s+index\\s+advanced_documents_location_gist_idx\\b[^;]*\\busing\\s+gist\\b"
+    },
+    {
+      "description": "adds the SP-GiST index",
+      "pattern": "\\bcreate\\s+index\\s+advanced_documents_network_spgist_idx\\b[^;]*\\busing\\s+spgist\\b"
+    },
+    {
+      "description": "adds the BRIN index",
+      "pattern": "\\bcreate\\s+index\\s+advanced_documents_recorded_brin_idx\\b[^;]*\\busing\\s+brin\\b"
+    },
+    {
+      "description": "creates the first pg_trgm index",
+      "pattern": "\\bcreate\\s+index\\s+advanced_documents_body_trgm_a_idx\\b[^;]*\\busing\\s+gin\\b[^;]*\\bgin_trgm_ops\\b"
+    },
+    {
+      "description": "preserves a duplicate-equivalent pg_trgm index",
+      "pattern": "\\bcreate\\s+index\\s+advanced_documents_body_trgm_b_idx\\b[^;]*\\busing\\s+gin\\b[^;]*\\bgin_trgm_ops\\b"
+    },
+    {
+      "description": "sets the clustered index marker",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.advanced_documents\\s+cluster\\s+on\\s+advanced_documents_cluster_idx\\b"
+    },
+    {
+      "description": "sets the replica-identity index",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.advanced_documents\\b[\\s\\S]*?\\breplica\\s+identity\\s+using\\s+index\\s+advanced_documents_external_uidx\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not rebuild marker indexes",
+      "pattern": "\\bdrop\\s+index\\s+(?:if\\s+exists\\s+)?public\\.(?:advanced_documents_external_uidx|advanced_documents_cluster_idx)\\b"
+    },
+    {
+      "description": "does not physically rewrite the populated table",
+      "pattern": "(?:^|;)\\s*cluster\\s+(?:table\\s+)?public\\.advanced_documents\\s+using\\b"
+    },
+    {
+      "description": "does not replace the documents table",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.advanced_documents\\b"
+    }
+  ]
+}

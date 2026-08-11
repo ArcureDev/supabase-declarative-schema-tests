@@ -1,0 +1,57 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "partition-lifecycle.sql",
+  "description": "range, list, hash, default and multilevel partition add, drop, detach, and safe populated bound evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "detaches the populated partition before changing its bound",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.partition_events\\s+detach\\s+partition\\s+public\\.partition_events_2024\\b"
+    },
+    {
+      "description": "reattaches the expanded partition bound",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.partition_events\\s+attach\\s+partition\\s+public\\.partition_events_2024\\b[\\s\\S]*?\\bto\\s*\\(\\s*'2024-07-01'"
+    },
+    {
+      "description": "detaches the retired populated partition",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.partition_events\\s+detach\\s+partition\\s+public\\.partition_events_retire\\b"
+    },
+    {
+      "description": "adds the 2026 range partition",
+      "pattern": "(?:\\bcreate\\s+table\\s+public\\.partition_events_2026\\b[\\s\\S]*?\\bpartition\\s+of\\s+public\\.partition_events\\b|\\battach\\s+partition\\s+public\\.partition_events_2026\\b)"
+    },
+    {
+      "description": "adds the second hash remainder",
+      "pattern": "\\bcreate\\s+table\\s+public\\.partition_metrics_p1\\b[\\s\\S]*?\\bmodulus\\s+2\\s*,\\s*remainder\\s+1\\b"
+    },
+    {
+      "description": "drops the obsolete empty partition",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?public\\.partition_events_obsolete\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not drop the populated bound-change partition",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?public\\.partition_events_2024\\b"
+    },
+    {
+      "description": "does not drop the detached populated table",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?public\\.partition_events_retire\\b"
+    },
+    {
+      "description": "does not replace the partition root",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.partition_events\\b"
+    }
+  ]
+}

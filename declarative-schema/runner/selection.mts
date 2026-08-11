@@ -14,17 +14,33 @@ export function parseCaseSelection(args: string[]): CaseSelection {
   const failedArguments = args.filter(
     (argument) => argument === "--failed" || argument.startsWith("--failed="),
   );
+  const notOkArguments = args.filter(
+    (argument) => argument === "--not-ok" || argument.startsWith("--not-ok="),
+  );
   if (failedArguments.some((argument) => argument !== "--failed")) {
     throw new Error("The --failed option does not accept a value.");
+  }
+  if (notOkArguments.some((argument) => argument !== "--not-ok")) {
+    throw new Error("The --not-ok option does not accept a value.");
   }
   if (failedArguments.length > 1) {
     throw new Error("Specify --failed only once.");
   }
-  if (caseArguments.length > 0 && failedArguments.length > 0) {
-    throw new Error("Use either --case or --failed, not both.");
+  if (notOkArguments.length > 1) {
+    throw new Error("Specify --not-ok only once.");
+  }
+  const selectionArgumentCount =
+    Number(caseArguments.length > 0) +
+    Number(failedArguments.length > 0) +
+    Number(notOkArguments.length > 0);
+  if (selectionArgumentCount > 1) {
+    throw new Error("Use only one of --case, --failed, or --not-ok.");
   }
   if (failedArguments.length === 1) {
     return { kind: "latest-failures" };
+  }
+  if (notOkArguments.length === 1) {
+    return { kind: "latest-not-ok" };
   }
   const caseArgument = caseArguments[0];
   if (caseArgument === undefined) {
@@ -88,6 +104,88 @@ export function latestReportPath(reportsDirectory: string): string {
     throw new Error("Cannot use --failed because no previous report exists.");
   }
   return join(reportsDirectory, reportFileName);
+}
+
+export function latestVersionPath(versionsDirectory: string, checksum: string): string {
+  if (!existsSync(versionsDirectory)) {
+    throw new Error("Cannot use --not-ok because no version report exists.");
+  }
+  const canonicalVersionPath = join(versionsDirectory, `version-${checksum}.md`);
+  if (existsSync(canonicalVersionPath)) return canonicalVersionPath;
+
+  const datedVersionPattern = new RegExp(String.raw`^version-.+-${checksum}\.md$`);
+  const versionFileName = readdirSync(versionsDirectory)
+    .filter((fileName) => datedVersionPattern.test(fileName))
+    .sort((left, right) => right.localeCompare(left))[0];
+  if (!versionFileName) {
+    throw new Error(
+      `Cannot use --not-ok because no version report exists for checksum ${checksum}.`,
+    );
+  }
+  return join(versionsDirectory, versionFileName);
+}
+
+export function notOkCaseNumbersFromVersion(
+  versionFilePath: string,
+  expectedCliVersion: string,
+  expectedChecksum: string,
+  availableCaseNames: string[],
+): Set<number> {
+  const versionReport = readFileSync(versionFilePath, "utf8");
+  const cliVersion = /^- Supabase CLI version: `([^`]+)`$/m.exec(versionReport)?.[1];
+  const checksum = /^- Checksum: `([0-9a-f]{7})`$/im.exec(versionReport)?.[1];
+  if (cliVersion !== expectedCliVersion || checksum !== expectedChecksum) {
+    throw new Error(
+      `Cannot use --not-ok because ${versionFilePath} records CLI version ${cliVersion ?? "(missing)"} and checksum ${checksum ?? "(missing)"}, but the current CLI is version ${expectedCliVersion} with checksum ${expectedChecksum}.`,
+    );
+  }
+
+  const requiredCommands = ["generate", "sync", "sync-verification"];
+  const caseResults = new Map<string, { commands: Set<string>; priority: number }>();
+  const rowPattern =
+    /^\| `([^`]+)` \| (generate|sync|sync-verification) \| \*\*(OK|WARNING|ERROR|—)\*\* \| \*\*(OK|WARNING|ERROR|—)\*\* \|/gm;
+  for (const row of versionReport.matchAll(rowPattern)) {
+    const caseName = row[1];
+    const command = row[2];
+    const nextStatus = row[3];
+    const legacyStatus = row[4];
+    if (!caseName || !command || !nextStatus || !legacyStatus) continue;
+    const result = caseResults.get(caseName) ?? {
+      commands: new Set<string>(),
+      priority: 3,
+    };
+    result.commands.add(command);
+    const statuses = [nextStatus, legacyStatus];
+    const rowPriority =
+      statuses.every((status) => status === "—")
+        ? 0
+        : statuses.includes("ERROR")
+          ? 1
+          : statuses.includes("WARNING")
+            ? 2
+            : 3;
+    result.priority = Math.min(result.priority, rowPriority);
+    caseResults.set(caseName, result);
+  }
+  if (caseResults.size === 0) {
+    throw new Error(`Cannot use --not-ok because ${versionFilePath} has no version result rows.`);
+  }
+
+  const prioritizedCaseNumbers: { caseNumber: number; priority: number; index: number }[] = [];
+  for (const [index, caseName] of availableCaseNames.entries()) {
+    const result = caseResults.get(caseName);
+    const isComplete =
+      result !== undefined && requiredCommands.every((command) => result.commands.has(command));
+    const priority = isComplete ? result.priority : 0;
+    const caseNumber = caseNumberFromName(caseName);
+    if (priority < 3 && caseNumber !== undefined) {
+      prioritizedCaseNumbers.push({ caseNumber, priority, index });
+    }
+  }
+  prioritizedCaseNumbers.sort(
+    (left, right) => left.priority - right.priority || left.index - right.index,
+  );
+  return new Set(prioritizedCaseNumbers.map(({ caseNumber }) => caseNumber));
 }
 
 export function failedCaseNumbersFromReport(reportFilePath: string): Set<number> {

@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "composite-range-evolution.sql",
+  "description": "composite attribute addition and custom range creation",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds the composite attribute in place",
+      "pattern": "\\balter\\s+type\\s+public\\.transition_pair\\s+add\\s+attribute\\s+unit\\b"
+    },
+    {
+      "description": "creates the date range type",
+      "pattern": "\\bcreate\\s+type\\s+public\\.transition_date_span\\s+as\\s+range\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop types or tables",
+      "pattern": "\\bdrop\\s+(?:type|table)\\b"
+    },
+    {
+      "description": "does not drop composite attributes",
+      "pattern": "\\bdrop\\s+attribute\\b"
+    }
+  ]
+}

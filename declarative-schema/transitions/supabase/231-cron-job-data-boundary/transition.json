@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "cron-job-data-boundary.sql",
+  "description": "replace a scheduled function while preserving runtime Cron job data",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replace only the scheduled function",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_cron_task_231\\s*\\(\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not manage Cron runtime rows",
+      "pattern": "\\bcron\\.(?:schedule|unschedule)\\b|\\b(?:insert|update|delete)\\b[\\s\\S]{0,80}\\bcron\\.job\\b"
+    },
+    {
+      "description": "do not emit managed Cron DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bcron\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the Cron schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?cron\\b"
+    },
+    {
+      "description": "do not drop pg_cron",
+      "pattern": "\\bdrop\\s+extension\\b"
+    }
+  ]
+}

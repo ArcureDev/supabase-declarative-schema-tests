@@ -1,0 +1,25 @@
+{
+  "expectation": "expected-unsupported",
+  "declarativeFile": "role-membership-acl-hardening.sql",
+  "description": "require an explicit database-scope boundary for cluster-global role evolution",
+  "requiredDiagnosticPatterns": [
+    {
+      "description": "reports the cluster-global role scope boundary",
+      "pattern": "\\bscope\\s+database\\s+does\\s+not\\s+manage\\s+cluster-global\\s+roles\\b"
+    }
+  ],
+  "forbiddenDiagnosticPatterns": [
+    {
+      "description": "do not drop roles or application objects",
+      "pattern": "\\bdrop\\s+(?:role|table|policy)\\b"
+    },
+    {
+      "description": "do not weaken privileges or RLS",
+      "pattern": "\\b(?:revoke|disable\\s+row\\s+level\\s+security)\\b"
+    },
+    {
+      "description": "does not panic",
+      "pattern": "\\b(?:panic|segmentation fault)\\b"
+    }
+  ]
+}

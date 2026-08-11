@@ -1,0 +1,21 @@
+{
+  "expectation": "expected-unsupported",
+  "declarativeFile": "text-search-mapping-transition.sql",
+  "description": "replace a text-search configuration mapping without recreating the configuration",
+  "requiredDiagnosticPatterns": [
+    {
+      "description": "reports the stable unmodeled-kind capability code",
+      "pattern": "\\bcode=unmodeled_kind\\b"
+    }
+  ],
+  "forbiddenDiagnosticPatterns": [
+    {
+      "description": "do not drop text-search state or anchor",
+      "pattern": "\\bdrop\\s+(?:text\\s+search\\s+configuration|table)\\b"
+    },
+    {
+      "description": "does not panic",
+      "pattern": "\\b(?:panic|segmentation fault)\\b"
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 export type CaseSelection =
   | { kind: "all" }
   | { kind: "numbers"; caseNumbers: Set<number> }
-  | { kind: "latest-failures" };
+  | { kind: "latest-failures" }
+  | { kind: "latest-not-ok" };
 
 export type SnapshotCase = {
   kind: "snapshot";
@@ -9,8 +10,7 @@ export type SnapshotCase = {
   name: string;
 };
 
-export type RenameAmbiguityTransition = {
-  kind: "rename-ambiguity-transition";
+export type TransitionFixtureBase = {
   name: string;
   directory: string;
   projectDirectory: string;
@@ -18,10 +18,90 @@ export type RenameAmbiguityTransition = {
   desiredPath: string;
   dataSetupPath: string;
   verificationPath: string;
+  sensitiveValues: string[];
+};
+
+export type RenameAmbiguityTransition = TransitionFixtureBase & {
+  kind: "rename-ambiguity-transition";
   sourceIdentifier: string;
 };
 
-export type TestCase = SnapshotCase | RenameAmbiguityTransition;
+export type DestructiveChangeTransition = TransitionFixtureBase & {
+  kind: "destructive-change-transition";
+  tableIdentifier: string;
+  columnIdentifier: string;
+};
+
+export type PopulatedColumnTransition = TransitionFixtureBase & {
+  kind: "populated-column-transition";
+  baselineVerificationPath: string;
+  tableIdentifier: string;
+};
+
+export type DependencyOrderingTransition = TransitionFixtureBase & {
+  kind: "dependency-ordering-transition";
+  baselineVerificationPath: string;
+  tableIdentifier: string;
+  functionIdentifier: string;
+  baseViewIdentifier: string;
+  leftViewIdentifier: string;
+  rightViewIdentifier: string;
+  leafViewIdentifier: string;
+};
+
+export type NoOpConvergenceTransition = TransitionFixtureBase & {
+  kind: "no-op-convergence-transition";
+};
+
+export type GrantsRlsPreservationTransition = TransitionFixtureBase & {
+  kind: "grants-rls-preservation-transition";
+  baselineVerificationPath: string;
+};
+
+export type MigrationPatternAssertion = {
+  description: string;
+  pattern: string;
+};
+
+export type ApplicableTransition = TransitionFixtureBase & {
+  kind: "applicable-transition";
+  baselineVerificationPath: string;
+  description: string;
+  requiredMigrationPatterns: MigrationPatternAssertion[];
+  forbiddenMigrationPatterns: MigrationPatternAssertion[];
+};
+
+export type ExpectedUnsupportedTransition = TransitionFixtureBase & {
+  kind: "expected-unsupported-transition";
+  baselineVerificationPath: string;
+  description: string;
+  requiredDiagnosticPatterns: MigrationPatternAssertion[];
+  forbiddenDiagnosticPatterns: MigrationPatternAssertion[];
+};
+
+export type DeterministicOutputTransition = TransitionFixtureBase & {
+  kind: "deterministic-output-transition";
+};
+
+export type RecoveryAfterFailureTransition = TransitionFixtureBase & {
+  kind: "recovery-after-failure-transition";
+  baselineVerificationPath: string;
+  repairPath: string;
+};
+
+export type TransitionCase =
+  | RenameAmbiguityTransition
+  | DestructiveChangeTransition
+  | PopulatedColumnTransition
+  | DependencyOrderingTransition
+  | NoOpConvergenceTransition
+  | GrantsRlsPreservationTransition
+  | ApplicableTransition
+  | ExpectedUnsupportedTransition
+  | DeterministicOutputTransition
+  | RecoveryAfterFailureTransition;
+
+export type TestCase = SnapshotCase | TransitionCase;
 
 export type CommandStatus = "OK" | "WARNING" | "ERROR" | "SKIPPED";
 
@@ -46,6 +126,7 @@ export type ProjectResult = {
   migrationSql: string;
   desiredSql?: string | undefined;
   dataSetupSql?: string | undefined;
+  sensitiveValues?: string[] | undefined;
   runtimeStart?: CommandResult | undefined;
   reset?: CommandResult | undefined;
   baselineSync?: CommandResult | undefined;
@@ -57,12 +138,25 @@ export type ProjectResult = {
   legacyGeneratedFiles?: GeneratedFile[] | undefined;
   sync: CommandResult;
   syncVerification?: CommandResult | undefined;
+  syncVerificationTitle?: string | undefined;
   legacySync?: CommandResult | undefined;
   legacySyncVerification?: CommandResult | undefined;
   transitionRawSyncStatus?: CommandStatus | undefined;
   transitionSafetySummary?: string | undefined;
+  transitionAssertionTitle?: string | undefined;
   transitionBaselineMigrationFiles?: GeneratedFile[] | undefined;
   transitionMigrationFiles?: GeneratedFile[] | undefined;
+  transitionApply?: CommandResult | undefined;
+  transitionVerification?: CommandResult | undefined;
+  transitionRepeatSync?: CommandResult | undefined;
+  transitionSecondMigrationFiles?: GeneratedFile[] | undefined;
+  transitionExpectedFailure?: CommandResult | undefined;
+  transitionFailureRawStatus?: CommandStatus | undefined;
+  transitionFailureSummary?: string | undefined;
+  transitionFailureVerification?: CommandResult | undefined;
+  transitionRepair?: CommandResult | undefined;
+  transitionRetry?: CommandResult | undefined;
+  legacyTransition?: ProjectResult | undefined;
 };
 
 export type ProjectStatus = "OK" | "WARNING" | "FAILED";
@@ -115,4 +209,5 @@ export type CaseRunContext = {
   config: RunnerConfig;
   runDirectory: string;
   caseIndex: number;
+  pgDeltaEngine?: PgDeltaEngine | undefined;
 };

@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "enum-domain-evolution.sql",
+  "description": "ordered enum label addition and domain default evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds the reviewing enum label in place",
+      "pattern": "\\balter\\s+type\\s+public\\.transition_status\\s+add\\s+value\\b[\\s\\S]*?'reviewing'"
+    },
+    {
+      "description": "changes the domain default in place",
+      "pattern": "\\balter\\s+domain\\s+public\\.transition_code\\s+set\\s+default\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop types, domains, or tables",
+      "pattern": "\\bdrop\\s+(?:type|domain|table)\\b"
+    },
+    {
+      "description": "does not delete or truncate data",
+      "pattern": "\\b(?:delete\\s+from|truncate)\\b"
+    }
+  ]
+}

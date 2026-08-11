@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "realtime-publication-membership.sql",
+  "description": "add a populated table to Supabase Realtime with full replica identity",
+  "requiredMigrationPatterns": [
+    {
+      "description": "set full replica identity",
+      "pattern": "\\balter\\s+table\\s+public\\.realtime_feed_220\\s+replica\\s+identity\\s+full\\b"
+    },
+    {
+      "description": "add the table to Realtime",
+      "pattern": "\\balter\\s+publication\\s+supabase_realtime\\s+add\\s+table\\s+public\\.realtime_feed_220\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not drop publication or table",
+      "pattern": "\\bdrop\\s+(?:publication|table)\\b"
+    },
+    {
+      "description": "do not recreate the managed publication",
+      "pattern": "\\bcreate\\s+publication\\s+supabase_realtime\\b"
+    }
+  ]
+}

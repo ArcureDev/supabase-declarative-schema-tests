@@ -1,5 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
+import { sensitiveRepresentations } from "./sensitive.mts";
 import { legacyProjectStatus, projectStatus, requiresFallback, versionResultStatus } from "./status.mts";
 import type {
   CommandResult,
@@ -20,6 +21,15 @@ export function createReportPath(reportsDirectory: string, now = new Date()): st
     collisionIndex += 1;
   }
   return reportPath;
+}
+
+export function redactSensitiveValues(text: string, sensitiveValues: string[]): string {
+  return [...new Set(sensitiveValues.flatMap(sensitiveRepresentations))]
+    .sort((left, right) => right.length - left.length)
+    .reduce((redacted, value) => {
+      const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return redacted.replace(new RegExp(escaped, "gi"), "[REDACTED]");
+    }, text);
 }
 
 export function markdownForCommand(result: CommandResult): string[] {
@@ -58,6 +68,88 @@ export function caseAnchor(caseName: string): string {
     .replace(/^-+|-+$/g, "")}`;
 }
 
+function projectCommandResults(result: ProjectResult): CommandResult[] {
+  const commands = [
+    result.runtimeStart,
+    result.reset,
+    result.baselineSync,
+    result.dataSetup,
+    result.baselineState,
+    result.generate,
+    result.legacyGenerate,
+    result.sync,
+    result.transitionRepeatSync,
+    result.transitionApply,
+    result.transitionExpectedFailure,
+    result.transitionFailureVerification,
+    result.transitionRepair,
+    result.transitionRetry,
+    result.transitionVerification,
+    result.syncVerification,
+    result.legacySync,
+    result.legacySyncVerification,
+  ].filter((commandResult) => commandResult !== undefined);
+  return result.legacyTransition
+    ? [...commands, ...projectCommandResults(result.legacyTransition)]
+    : commands;
+}
+
+function markdownForLegacyTransition(
+  caseName: string,
+  result: ProjectResult,
+): string[] {
+  const lines = [
+    "### Transition fallback (legacy)",
+    "",
+    `- Overall result: **${projectStatus(result)}**`,
+    `- Raw sync result: **${result.transitionRawSyncStatus ?? "SKIPPED"}**`,
+    `- Assertion: **${result.transitionRepeatSync?.status ?? result.sync.status}**`,
+    `- ${result.transitionSafetySummary ?? "The safety assertion did not run."}`,
+    "",
+    "#### Legacy-generated baseline migration files",
+    "",
+    ...markdownForGeneratedFiles(result.transitionBaselineMigrationFiles ?? []),
+    "",
+    "#### Legacy-generated transition migration files",
+    "",
+    ...markdownForGeneratedFiles(result.transitionMigrationFiles ?? []),
+    "",
+  ];
+  const commandSections: Array<{
+    title: string;
+    result: CommandResult | undefined;
+    marker?: DeclarativeCommand | undefined;
+  }> = [
+    { title: "Start local runtime", result: result.runtimeStart },
+    { title: "Clear local runtime before baseline", result: result.reset },
+    { title: "Establish baseline", result: result.baselineSync },
+    { title: "Insert representative data", result: result.dataSetup },
+    { title: "Capture baseline state", result: result.baselineState },
+    { title: "Sync", result: result.sync, marker: "sync" },
+    { title: "Repeat sync and deterministic comparison", result: result.transitionRepeatSync },
+    { title: "Apply generated transition migration", result: result.transitionApply },
+    { title: "Apply migration expecting failure", result: result.transitionExpectedFailure },
+    { title: "Verify rollback after expected failure", result: result.transitionFailureVerification },
+    { title: "Repair invalid data", result: result.transitionRepair },
+    { title: "Retry generated migration", result: result.transitionRetry },
+    { title: "Verify desired state B", result: result.transitionVerification },
+    { title: "Sync verification / convergence", result: result.syncVerification, marker: "sync-verification" },
+  ];
+  for (const section of commandSections) {
+    if (!section.result) continue;
+    lines.push(
+      `#### ${section.title} (legacy)`,
+      "",
+      ...markdownForCommand(section.result),
+      ...(section.marker
+        ? [commandResultMarker(caseName, "legacy", section.marker, section.result)]
+        : []),
+      "",
+    );
+  }
+  return lines;
+}
+
 export function renderReport(
   config: RunnerConfig,
   results: ProjectResult[],
@@ -65,19 +157,7 @@ export function renderReport(
   cleanupError: CommandResult | undefined,
   generatedAt: Date,
 ): string {
-  const projectCommands = results.flatMap((result) => [
-    ...(result.runtimeStart ? [result.runtimeStart] : []),
-    ...(result.reset ? [result.reset] : []),
-    ...(result.baselineSync ? [result.baselineSync] : []),
-    ...(result.dataSetup ? [result.dataSetup] : []),
-    ...(result.baselineState ? [result.baselineState] : []),
-    ...(result.generate ? [result.generate] : []),
-    ...(result.legacyGenerate ? [result.legacyGenerate] : []),
-    result.sync,
-    ...(result.syncVerification ? [result.syncVerification] : []),
-    ...(result.legacySync ? [result.legacySync] : []),
-    ...(result.legacySyncVerification ? [result.legacySyncVerification] : []),
-  ]);
+  const projectCommands = results.flatMap(projectCommandResults);
   const lines = [
     "# Supabase declarative schema CLI report",
     "",
@@ -85,7 +165,7 @@ export function renderReport(
     `- Supabase CLI version: \`${config.supabaseCliVersion}\``,
     `- Checksum: \`${config.supabaseChecksum}\``,
     "- Primary engine: pg-delta next (`SUPABASE_USE_PG_DELTA_NEXT=true`)",
-    "- Snapshot fallback: failed declarative commands are retried with legacy (`SUPABASE_USE_PG_DELTA_NEXT=false`)",
+    "- Fallback: snapshot declarative failures and transition warnings/failures are retried with legacy (`SUPABASE_USE_PG_DELTA_NEXT=false`)",
     `- Cases: ${results.length}`,
     `- Commands OK: ${projectCommands.filter((result) => result.status === "OK").length}`,
     `- Commands with warnings: ${projectCommands.filter((result) => result.status === "WARNING").length}`,
@@ -123,6 +203,13 @@ export function renderReport(
       result.generate,
       result.legacyGenerate,
       result.sync,
+      result.transitionRepeatSync,
+      result.transitionApply,
+      result.transitionExpectedFailure,
+      result.transitionFailureVerification,
+      result.transitionRepair,
+      result.transitionRetry,
+      result.transitionVerification,
       result.syncVerification,
       result.legacySync,
       result.legacySyncVerification,
@@ -152,10 +239,10 @@ export function renderReport(
         "",
         ...markdownForGeneratedFiles(result.transitionBaselineMigrationFiles ?? []),
         "",
-        "### Rename-ambiguity safety assertion",
+        `### ${result.transitionAssertionTitle ?? "Transition safety assertion"}`,
         "",
         `- Raw sync result: **${result.transitionRawSyncStatus ?? "SKIPPED"}**`,
-        `- Assertion: **${result.sync.status}**`,
+        `- Assertion: **${result.transitionRepeatSync?.status ?? result.sync.status}**`,
         `- ${result.transitionSafetySummary ?? "The safety assertion did not run."}`,
         "",
         "### Generated transition migration files",
@@ -163,6 +250,37 @@ export function renderReport(
         ...markdownForGeneratedFiles(result.transitionMigrationFiles ?? []),
         "",
       );
+      if (
+        result.transitionRawSyncStatus === "WARNING" ||
+        result.transitionRawSyncStatus === "ERROR"
+      ) {
+        lines.push(
+          "### Raw transition diagnostic evidence",
+          "",
+          "```text",
+          result.sync.output || "(no output)",
+          "```",
+          "",
+        );
+      }
+      if (result.transitionSecondMigrationFiles) {
+        lines.push(
+          "### Repeated generated transition migration files",
+          "",
+          ...markdownForGeneratedFiles(result.transitionSecondMigrationFiles),
+          "",
+        );
+      }
+      if (result.transitionExpectedFailure) {
+        lines.push(
+          "### Expected migration failure assertion",
+          "",
+          `- Raw apply result: **${result.transitionFailureRawStatus ?? "SKIPPED"}**`,
+          `- Assertion: **${result.transitionExpectedFailure.status}**`,
+          `- ${result.transitionFailureSummary ?? "The expected failure assertion did not run."}`,
+          "",
+        );
+      }
     } else if (hasIssue) {
       lines.push("### Fixture migration SQL", "", "```sql", result.migrationSql, "```", "");
     }
@@ -224,9 +342,65 @@ export function renderReport(
       commandResultMarker(result.name, "next", "sync", result.sync),
       "",
     );
+    if (result.transitionRepeatSync) {
+      lines.push(
+        "### Repeat sync and deterministic comparison",
+        "",
+        ...markdownForCommand(result.transitionRepeatSync),
+        "",
+      );
+    }
+    if (result.transitionExpectedFailure) {
+      lines.push(
+        "### Apply migration expecting failure",
+        "",
+        ...markdownForCommand(result.transitionExpectedFailure),
+        "",
+      );
+    }
+    if (result.transitionFailureVerification) {
+      lines.push(
+        "### Verify rollback after expected failure",
+        "",
+        ...markdownForCommand(result.transitionFailureVerification),
+        "",
+      );
+    }
+    if (result.transitionRepair) {
+      lines.push(
+        "### Repair invalid data",
+        "",
+        ...markdownForCommand(result.transitionRepair),
+        "",
+      );
+    }
+    if (result.transitionRetry) {
+      lines.push(
+        "### Retry generated migration",
+        "",
+        ...markdownForCommand(result.transitionRetry),
+        "",
+      );
+    }
+    if (result.transitionApply) {
+      lines.push(
+        "### Apply generated transition migration",
+        "",
+        ...markdownForCommand(result.transitionApply),
+        "",
+      );
+    }
+    if (result.transitionVerification) {
+      lines.push(
+        "### Verify desired state B",
+        "",
+        ...markdownForCommand(result.transitionVerification),
+        "",
+      );
+    }
     if (result.syncVerification) {
       lines.push(
-        "### Sync verification (pg-delta next)",
+        `### ${result.syncVerificationTitle ?? "Sync verification / convergence (pg-delta next)"}`,
         "",
         ...markdownForCommand(result.syncVerification),
         commandResultMarker(result.name, "next", "sync-verification", result.syncVerification),
@@ -256,12 +430,18 @@ export function renderReport(
         "",
       );
     }
+    if (result.legacyTransition) {
+      lines.push(...markdownForLegacyTransition(result.name, result.legacyTransition));
+    }
   }
 
   if (cleanupError) {
     lines.push("## Shared runtime cleanup", "", ...markdownForCommand(cleanupError), "");
   }
-  return `${lines.join("\n")}\n`;
+  return redactSensitiveValues(
+    `${lines.join("\n")}\n`,
+    results.flatMap((result) => result.sensitiveValues ?? []),
+  );
 }
 
 export function writeReport(

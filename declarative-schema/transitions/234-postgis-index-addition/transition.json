@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "postgis-index-addition.sql",
+  "description": "add a GiST index to populated PostGIS geography data",
+  "requiredMigrationPatterns": [
+    {
+      "description": "create the geography GiST index",
+      "pattern": "\\bcreate\\s+index\\s+transition_places_gist_234\\b[\\s\\S]*\\busing\\s+gist\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not rebuild spatial state",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b"
+    },
+    {
+      "description": "do not relocate PostGIS",
+      "pattern": "\\balter\\s+extension\\s+postgis\\s+set\\s+schema\\b"
+    },
+    {
+      "description": "do not alter extension-owned schemas",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function|type)\\b[\\s\\S]{0,100}\\bextensions\\s*\\."
+    }
+  ]
+}

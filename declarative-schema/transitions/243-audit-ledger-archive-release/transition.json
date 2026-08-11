@@ -1,0 +1,69 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "audit-ledger-archive-release.sql",
+  "description": "audit ledger, event trigger, and archive boundary evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds the ledger source",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?audit\\.ledger[\\s\\S]*\\badd\\s+(?:column\\s+)?source\\b"
+    },
+    {
+      "description": "adds ledger request identifiers",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?audit\\.ledger[\\s\\S]*\\badd\\s+(?:column\\s+)?request_id\\b"
+    },
+    {
+      "description": "creates the September partition",
+      "pattern": "\\bcreate\\s+table\\s+audit\\.ledger_2026_09\\b[\\s\\S]*\\bpartition\\s+of\\b"
+    },
+    {
+      "description": "creates the ledger query index",
+      "pattern": "\\bcreate\\s+index\\s+ledger_actor_time_idx\\b"
+    },
+    {
+      "description": "creates the audit feed",
+      "pattern": "\\bcreate\\s+view\\s+audit\\.audit_feed\\b"
+    },
+    {
+      "description": "replaces the append API",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+audit\\.append_event\\b"
+    },
+    {
+      "description": "creates the DDL event trigger",
+      "pattern": "\\bcreate\\s+event\\s+trigger\\s+ds_243_ddl_boundary\\b"
+    },
+    {
+      "description": "creates the archive foreign table",
+      "pattern": "\\bcreate\\s+foreign\\s+table\\s+audit\\.archived_ledger\\b"
+    },
+    {
+      "description": "grants read-only audit feed access",
+      "pattern": "\\bgrant\\s+select\\s+on\\s+(?:table\\s+)?audit\\.audit_feed\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "grants direct ledger mutation",
+      "pattern": "\\bgrant\\s+(?:insert|update|delete)[\\s\\S]*\\baudit\\.ledger\\b"
+    },
+    {
+      "description": "drops append-only protection",
+      "pattern": "\\bdrop\\s+(?:trigger|function)\\s+(?:ledger_append_only|audit\\.append_event)\\b"
+    },
+    {
+      "description": "detaches ledger inheritance",
+      "pattern": "\\balter\\s+table\\s+audit\\.ledger[\\s\\S]*\\bno\\s+inherit\\b"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "background-processing-release.sql",
+  "description": "background queue, retry, and dead-letter release evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds retry attempts",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?jobs\\.queue[\\s\\S]*\\badd\\s+(?:column\\s+)?attempts\\b"
+    },
+    {
+      "description": "replaces the queue status check",
+      "pattern": "\\bdrop\\s+constraint\\s+queue_status_check\\b[\\s\\S]*\\badd\\s+constraint\\s+queue_status_check\\b"
+    },
+    {
+      "description": "forces queue RLS",
+      "pattern": "\\bforce\\s+row\\s+level\\s+security\\b"
+    },
+    {
+      "description": "creates the queue claim index",
+      "pattern": "\\bcreate\\s+index\\s+queue_claim_idx\\b"
+    },
+    {
+      "description": "creates dead letters",
+      "pattern": "\\bcreate\\s+table\\s+jobs\\.dead_letters\\b"
+    },
+    {
+      "description": "creates the skip-locked claim routine",
+      "pattern": "\\bcreate\\s+function\\s+jobs\\.claim_next\\b[\\s\\S]*\\bskip\\s+locked\\b"
+    },
+    {
+      "description": "creates the dead-letter outbox trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+dead_letter_outbox\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "drops a populated column",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "emits Cron or pgmq runtime calls",
+      "pattern": "\\bselect\\s+(?:cron|pgmq)\\."
+    },
+    {
+      "description": "emits Vault runtime data changes",
+      "pattern": "\\b(?:insert|update|delete)\\s+(?:into\\s+|from\\s+)?vault\\."
+    }
+  ]
+}

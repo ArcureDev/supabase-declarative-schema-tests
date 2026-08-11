@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "schema-table-evolution.sql",
+  "description": "create a schema and identity-bearing table from an anchor-only baseline",
+  "requiredMigrationPatterns": [
+    {
+      "description": "creates the application schema",
+      "pattern": "\\bcreate\\s+schema\\s+(?:if\\s+not\\s+exists\\s+)?transition_app\\b"
+    },
+    {
+      "description": "creates the widgets table",
+      "pattern": "\\bcreate\\s+table\\s+transition_app\\s*\\.\\s*widgets\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not drop the new schema or table",
+      "pattern": "\\bdrop\\s+(?:schema\\s+transition_app|table\\s+transition_app\\s*\\.\\s*widgets)\\b"
+    }
+  ]
+}

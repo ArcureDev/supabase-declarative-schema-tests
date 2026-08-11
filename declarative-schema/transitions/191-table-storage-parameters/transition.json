@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "table-storage-parameters.sql",
+  "description": "add a fillfactor to a populated table without recreation",
+  "requiredMigrationPatterns": [
+    {
+      "description": "sets table fillfactor to 70",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*storage_parameter_guard\\b[\\s\\S]*\\bset\\s*\\([\\s\\S]*fillfactor\\s*=\\s*'?70'?"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not recreate the populated table",
+      "pattern": "\\b(?:drop\\s+table|create\\s+table)\\s+public\\s*\\.\\s*storage_parameter_guard\\b"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "expectation": "deterministic-output",
+  "declarativeFile": "deterministic-output.sql"
+}

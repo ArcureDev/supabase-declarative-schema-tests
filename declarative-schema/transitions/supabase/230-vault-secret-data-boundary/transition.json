@@ -1,0 +1,34 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "vault-secret-data-boundary.sql",
+  "description": "replace a Vault-backed wrapper without exporting or changing secret data",
+  "sensitiveValues": ["PGDELTA_VAULT_SECRET_230"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "replace only the Vault wrapper",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_vault_header_230\\s*\\(\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "never emit the runtime Vault secret",
+      "pattern": "pgdelta_vault_secret_230"
+    },
+    {
+      "description": "do not manage Vault data",
+      "pattern": "\\b(?:insert|update|delete)\\b[\\s\\S]{0,100}\\bvault\\.(?:secrets|decrypted_secrets)\\b"
+    },
+    {
+      "description": "do not alter managed Vault schemas",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bvault\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the Vault schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?vault\\b"
+    },
+    {
+      "description": "do not drop Vault or expose the wrapper",
+      "pattern": "\\bdrop\\s+extension\\b|\\bgrant\\s+execute\\b[\\s\\S]*\\bto\\s+(?:public|anon|authenticated)\\b"
+    }
+  ]
+}

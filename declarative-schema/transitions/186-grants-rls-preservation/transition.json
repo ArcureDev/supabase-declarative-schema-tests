@@ -1,0 +1,4 @@
+{
+  "expectation": "grants-rls-preservation",
+  "declarativeFile": "grants-rls-preservation.sql"
+}

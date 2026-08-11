@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "sequence-ownership.sql",
+  "description": "attach an existing sequence to its populated table column",
+  "requiredMigrationPatterns": [
+    {
+      "description": "sets sequence ownership to the id column",
+      "pattern": "\\balter\\s+sequence\\s+public\\s*\\.\\s*transition_owned_seq\\b[\\s\\S]*\\bowned\\s+by\\s+public\\s*\\.\\s*sequence_owner_guard\\s*\\.\\s*id\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not recreate the sequence",
+      "pattern": "\\b(?:drop|create)\\s+sequence\\s+public\\s*\\.\\s*transition_owned_seq\\b"
+    },
+    {
+      "description": "does not restart the sequence",
+      "pattern": "\\b(?:restart\\b|setval\\s*\\()"
+    },
+    {
+      "description": "does not recreate the populated table",
+      "pattern": "\\b(?:drop\\s+table|create\\s+table)\\s+public\\s*\\.\\s*sequence_owner_guard\\b"
+    }
+  ]
+}

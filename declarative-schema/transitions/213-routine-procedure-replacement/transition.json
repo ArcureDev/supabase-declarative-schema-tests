@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "routine-procedure-replacement.sql",
+  "description": "in-place SQL function and procedure replacement",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the function",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_compute\\b"
+    },
+    {
+      "description": "replaces the procedure",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+procedure\\s+public\\.transition_record\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop routines or tables",
+      "pattern": "\\bdrop\\s+(?:function|procedure|routine|table)\\b"
+    }
+  ]
+}

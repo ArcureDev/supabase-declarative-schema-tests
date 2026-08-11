@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pg-net-webhook-replacement.sql",
+  "description": "replace a pg_net webhook function without invoking an external endpoint",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replace only the webhook function",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.notify_transition_229\\s*\\(\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not recreate webhook objects",
+      "pattern": "\\bdrop\\s+(?:function|trigger|table)\\b|\\bcreate\\s+trigger\\b"
+    },
+    {
+      "description": "do not emit managed net-schema DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function)\\b[\\s\\S]{0,100}\\bnet\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop the net schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?net\\b"
+    }
+  ]
+}

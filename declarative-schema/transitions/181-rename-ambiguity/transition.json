@@ -1,4 +1,5 @@
 {
   "expectation": "rename-ambiguity-warning-or-refusal",
+  "declarativeFile": "rename-ambiguity.sql",
   "sourceIdentifier": "public.rename_ambiguity_source"
 }

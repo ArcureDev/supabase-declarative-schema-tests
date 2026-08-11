@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pg-graphql-acl-exposure.sql",
+  "description": "expose a populated table to anon without modifying pg_graphql-owned objects",
+  "requiredMigrationPatterns": [
+    {
+      "description": "grant GraphQL-visible select access",
+      "pattern": "\\bgrant\\s+select\\s+on\\s+(?:table\\s+)?public\\.graphql_items_235\\s+to\\s+anon\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not emit GraphQL-managed DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function|type)\\b[\\s\\S]{0,100}\\b(?:graphql|graphql_public)\\s*\\."
+    },
+    {
+      "description": "do not drop extension or application table",
+      "pattern": "\\bdrop\\s+(?:extension|table)\\b"
+    },
+    {
+      "description": "do not revoke authenticated access",
+      "pattern": "\\brevoke\\b[\\s\\S]*\\bfrom\\s+authenticated\\b"
+    }
+  ]
+}

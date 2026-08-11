@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "rls-policy-hardening.sql",
+  "description": "strengthen an update policy in place while preserving populated data",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alter the existing policy",
+      "pattern": "\\balter\\s+policy\\s+transition_update_219\\s+on\\s+public\\.rls_items_219\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not recreate security objects",
+      "pattern": "\\bdrop\\s+(?:policy|table)\\b"
+    },
+    {
+      "description": "do not disable RLS or revoke access",
+      "pattern": "\\b(?:disable\\s+row\\s+level\\s+security|revoke)\\b"
+    }
+  ]
+}

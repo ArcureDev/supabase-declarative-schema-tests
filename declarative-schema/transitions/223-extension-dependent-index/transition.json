@@ -1,0 +1,17 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "extension-dependent-index.sql",
+  "description": "enable pg_trgm before adding a dependent index to populated data",
+  "requiredMigrationPatterns": [
+    {
+      "description": "create the extension before its dependent index",
+      "pattern": "\\bcreate\\s+extension\\s+(?:if\\s+not\\s+exists\\s+)?pg_trgm\\b[\\s\\S]*\\bcreate\\s+index\\s+transition_docs_trgm_223\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not remove extension dependencies or populated data",
+      "pattern": "\\bdrop\\s+(?:extension|schema|table|column)\\b"
+    }
+  ]
+}

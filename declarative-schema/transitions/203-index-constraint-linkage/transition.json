@@ -1,0 +1,41 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "index-constraint-linkage.sql",
+  "description": "attach an existing unique index as a constraint and replace a constraint with a standalone index",
+  "requiredMigrationPatterns": [
+    {
+      "description": "attaches the existing unique index",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.constraint_attach\\b[\\s\\S]*?\\badd\\s+constraint\\s+constraint_attach_external_key\\s+unique\\s+using\\s+index\\s+constraint_attach_external_uidx\\b"
+    },
+    {
+      "description": "drops the retired unique constraint",
+      "pattern": "\\bdrop\\s+constraint\\s+constraint_attach_retired_key\\b"
+    },
+    {
+      "description": "creates the standalone replacement unique index",
+      "pattern": "\\bcreate\\s+unique\\s+index\\s+constraint_attach_retired_uidx\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not drop the index selected for attachment",
+      "pattern": "\\bdrop\\s+index\\s+(?:if\\s+exists\\s+)?public\\.constraint_attach_external_uidx\\b"
+    },
+    {
+      "description": "does not replace the source table",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.constraint_attach\\b"
+    }
+  ]
+}

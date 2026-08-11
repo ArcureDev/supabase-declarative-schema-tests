@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "wrappers-openapi-server-options.sql",
+  "description": "change a Wrappers OpenAPI server option without contacting the external provider",
+  "requiredMigrationPatterns": [
+    {
+      "description": "set only the OpenAPI base URL",
+      "pattern": "\\balter\\s+server\\s+transition_openapi_server_236\\s+options\\s*\\(\\s*set\\s+base_url\\s+'https://api\\.invalid/v2'\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not recreate or drop Wrappers objects",
+      "pattern": "\\b(?:create|drop)\\s+(?:server|foreign\\s+data\\s+wrapper)\\b"
+    },
+    {
+      "description": "never emit raw remote credentials",
+      "pattern": "\\b(?:api_key|authorization|conn_string|password|pgdelta_secret)\\b"
+    },
+    {
+      "description": "do not alter extension-owned schemas",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function|type)\\b[\\s\\S]{0,100}\\bextensions\\s*\\."
+    }
+  ]
+}

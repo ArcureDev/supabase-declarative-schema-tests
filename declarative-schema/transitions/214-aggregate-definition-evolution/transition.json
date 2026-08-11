@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "aggregate-definition-evolution.sql",
+  "description": "aggregate initial-condition replacement with state-function preservation",
+  "requiredMigrationPatterns": [
+    {
+      "description": "drops the changed aggregate signature",
+      "pattern": "\\bdrop\\s+aggregate\\s+(?:if\\s+exists\\s+)?public\\.transition_sum\\b"
+    },
+    {
+      "description": "recreates the aggregate",
+      "pattern": "\\bcreate\\s+aggregate\\s+public\\.transition_sum\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop the state function or tables",
+      "pattern": "\\bdrop\\s+(?:function\\s+public\\.transition_sum_state|table)\\b"
+    }
+  ]
+}

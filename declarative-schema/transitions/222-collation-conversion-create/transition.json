@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "collation-conversion-create.sql",
+  "description": "create an ICU collation and encoding conversion together",
+  "requiredMigrationPatterns": [
+    {
+      "description": "create the ICU collation",
+      "pattern": "\\bcreate\\s+collation\\s+public\\.transition_icu_222\\b"
+    },
+    {
+      "description": "create the encoding conversion",
+      "pattern": "\\bcreate\\s+conversion\\s+public\\.transition_utf8_latin1_222\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not drop created object families",
+      "pattern": "\\bdrop\\s+(?:collation|conversion|table)\\b"
+    }
+  ]
+}

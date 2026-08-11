@@ -1,0 +1,49 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "partition-attach-and-inheritance.sql",
+  "description": "safe populated partition attachment with reusable indexes, constraints, sequence, trigger, RLS, publication and foreign key plus multiple inheritance and NO INHERIT evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "attaches the populated validated table",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.partition_attach_orders\\s+attach\\s+partition\\s+public\\.partition_attach_existing\\b[\\s\\S]*?\\bfrom\\s*\\(\\s*'2026-01-01'\\s*\\)[\\s\\S]*?\\bto\\s*\\(\\s*'2027-01-01'\\s*\\)"
+    },
+    {
+      "description": "adds the second inheritance parent",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.inherit_multi_child\\s+inherit\\s+public\\.inherit_base_b\\b"
+    },
+    {
+      "description": "drops an inheritance parent",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.inherit_drop_child\\s+no\\s+inherit\\s+public\\.inherit_base_b\\b"
+    },
+    {
+      "description": "replaces the inherited check with NO INHERIT",
+      "pattern": "\\bdrop\\s+constraint\\s+inherit_base_payload_check\\b[\\s\\S]*?\\badd\\s+constraint\\s+inherit_base_payload_check\\b[\\s\\S]*?\\bno\\s+inherit\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "\\btruncate\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not replace the populated attached table",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.partition_attach_existing\\b"
+    },
+    {
+      "description": "does not rebuild the reusable local index",
+      "pattern": "\\bdrop\\s+index\\s+(?:if\\s+exists\\s+)?public\\.partition_attach_existing_customer_idx\\b"
+    },
+    {
+      "description": "does not replace inheritance children",
+      "pattern": "\\bdrop\\s+table\\s+(?:only\\s+)?public\\.(?:inherit_multi_child|inherit_drop_child)\\b"
+    }
+  ]
+}

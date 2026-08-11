@@ -1,0 +1,69 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "realtime-social-managed-boundaries.sql",
+  "description": "Realtime chat, social media, and managed-boundary release evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "creates attachment metadata",
+      "pattern": "\\bcreate\\s+table\\s+app\\.attachments\\b"
+    },
+    {
+      "description": "creates social follows",
+      "pattern": "\\bcreate\\s+table\\s+app\\.follows\\b"
+    },
+    {
+      "description": "creates message reactions",
+      "pattern": "\\bcreate\\s+table\\s+app\\.reactions\\b"
+    },
+    {
+      "description": "sets full replica identity",
+      "pattern": "\\balter\\s+table\\s+app\\.messages\\s+replica\\s+identity\\s+full\\b"
+    },
+    {
+      "description": "adds messages to Supabase Realtime",
+      "pattern": "\\balter\\s+publication\\s+supabase_realtime\\s+add\\s+table\\s+app\\.messages\\b"
+    },
+    {
+      "description": "creates the Storage boundary policy",
+      "pattern": "\\bcreate\\s+policy\\s+ds_239_storage_read\\s+on\\s+storage\\.objects\\b"
+    },
+    {
+      "description": "creates the Realtime boundary policy",
+      "pattern": "\\bcreate\\s+policy\\s+ds_239_realtime_send\\s+on\\s+realtime\\.messages\\b"
+    },
+    {
+      "description": "creates the Auth profile trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+ds_239_auth_profile_mirror\\b"
+    },
+    {
+      "description": "creates the webhook trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+ds_239_message_webhook\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "owns a managed schema",
+      "pattern": "\\b(?:create|drop|alter)\\s+schema\\s+(?:auth|storage|realtime|vault|net)\\b"
+    },
+    {
+      "description": "drops a managed table",
+      "pattern": "\\bdrop\\s+table\\s+(?:auth|storage|realtime|vault|net)\\."
+    },
+    {
+      "description": "emits managed service data changes",
+      "pattern": "\\b(?:insert|update|delete)\\s+(?:into\\s+|from\\s+)?(?:auth|storage|realtime|vault)\\."
+    }
+  ]
+}

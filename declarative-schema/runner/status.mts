@@ -30,12 +30,22 @@ export function projectStatus(result: ProjectResult): ProjectStatus {
       result.baselineState,
       result.generate,
       result.sync,
+      result.transitionRepeatSync,
+      result.transitionApply,
+      result.transitionExpectedFailure,
+      result.transitionFailureVerification,
+      result.transitionRepair,
+      result.transitionRetry,
+      result.transitionVerification,
       result.syncVerification,
     ].filter((commandResult) => commandResult !== undefined),
   );
 }
 
 export function legacyProjectStatus(result: ProjectResult): LegacyProjectStatus {
+  if (result.legacyTransition) {
+    return projectStatus(result.legacyTransition);
+  }
   const commandResults = [
     result.legacyGenerate,
     result.legacySync,

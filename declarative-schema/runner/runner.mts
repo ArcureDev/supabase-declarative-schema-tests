@@ -7,12 +7,28 @@ import {
   caseNumberFromName,
   failedCaseNumbersFromReport,
   latestReportPath,
+  latestVersionPath,
+  notOkCaseNumbersFromVersion,
   parseCaseSelection,
 } from "./selection.mts";
 import { runSnapshotCase } from "./snapshot-case.mts";
 import { projectFailed } from "./status.mts";
-import { runRenameAmbiguityTransition } from "./transition-case.mts";
-import type { CommandResult, ProjectResult, RunnerConfig, TestCase } from "./types.mts";
+import {
+  runApplicableTransition,
+  runDeterministicOutputTransition,
+  runExpectedUnsupportedTransition,
+  runNoOpConvergenceTransition,
+  runPlanningSafetyTransition,
+  runRecoveryAfterFailureTransition,
+} from "./transition-case.mts";
+import type {
+  CaseRunContext,
+  CommandResult,
+  ProjectResult,
+  RunnerConfig,
+  TestCase,
+  TransitionCase,
+} from "./types.mts";
 import { updateVersionReportsFromReports } from "./versions.mts";
 
 function selectCases(config: RunnerConfig, args: string[], availableCases: TestCase[]): TestCase[] {
@@ -42,6 +58,18 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
     if (selectedCaseNumbers.size === 0) {
       throw new Error(`The latest report has no failed cases: ${previousReportPath}`);
     }
+  } else if (selection.kind === "latest-not-ok") {
+    const versionPath = latestVersionPath(config.versionsDirectory, config.supabaseChecksum);
+    selectedCaseNumbers = notOkCaseNumbersFromVersion(
+      versionPath,
+      config.supabaseCliVersion,
+      config.supabaseChecksum,
+      availableCases.map((availableCase) => availableCase.name),
+    );
+    process.stdout.write(`Selecting not-OK cases from ${versionPath}\n`);
+    if (selectedCaseNumbers.size === 0) {
+      throw new Error(`The current version report has no not-OK cases: ${versionPath}`);
+    }
   }
 
   const selectedCases = selectedCaseNumbers
@@ -50,6 +78,19 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
         return caseNumber !== undefined && selectedCaseNumbers.has(caseNumber);
       })
     : availableCases;
+  if (selection.kind === "latest-not-ok" && selectedCaseNumbers) {
+    const selectionOrder = new Map(
+      [...selectedCaseNumbers].map((caseNumber, index) => [caseNumber, index]),
+    );
+    selectedCases.sort((left, right) => {
+      const leftCaseNumber = caseNumberFromName(left.name);
+      const rightCaseNumber = caseNumberFromName(right.name);
+      return (
+        (leftCaseNumber === undefined ? 0 : (selectionOrder.get(leftCaseNumber) ?? 0)) -
+        (rightCaseNumber === undefined ? 0 : (selectionOrder.get(rightCaseNumber) ?? 0))
+      );
+    });
+  }
   if (selectedCases.length === 0) {
     const availableCaseNumbers = availableCases
       .map((availableCase) => /^\d+/.exec(availableCase.name)?.[0])
@@ -66,6 +107,27 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
     }
   }
   return selectedCases;
+}
+
+async function runTransitionCase(
+  testCase: TransitionCase,
+  context: CaseRunContext,
+): Promise<ProjectResult> {
+  return testCase.kind === "rename-ambiguity-transition" ||
+    testCase.kind === "destructive-change-transition"
+    ? runPlanningSafetyTransition(testCase, context)
+    : testCase.kind === "expected-unsupported-transition"
+      ? runExpectedUnsupportedTransition(testCase, context)
+      : testCase.kind === "populated-column-transition" ||
+          testCase.kind === "dependency-ordering-transition" ||
+          testCase.kind === "grants-rls-preservation-transition" ||
+          testCase.kind === "applicable-transition"
+        ? runApplicableTransition(testCase, context)
+        : testCase.kind === "no-op-convergence-transition"
+          ? runNoOpConvergenceTransition(testCase, context)
+          : testCase.kind === "deterministic-output-transition"
+            ? runDeterministicOutputTransition(testCase, context)
+            : runRecoveryAfterFailureTransition(testCase, context);
 }
 
 export async function runDeclarativeSchema(
@@ -107,11 +169,25 @@ export async function runDeclarativeSchema(
   try {
     for (const [caseIndex, testCase] of selectedCases.entries()) {
       process.stdout.write(`\nCase ${testCase.name}\n`);
-      const context = { config, runDirectory, caseIndex };
-      const result =
-        testCase.kind === "rename-ambiguity-transition"
-          ? await runRenameAmbiguityTransition(testCase, context)
-          : await runSnapshotCase(testCase, context);
+      const context: CaseRunContext = {
+        config,
+        runDirectory,
+        caseIndex,
+        pgDeltaEngine: "next",
+      };
+      let result: ProjectResult;
+      if (testCase.kind === "snapshot") {
+        result = await runSnapshotCase(testCase, context);
+      } else {
+        result = await runTransitionCase(testCase, context);
+        if (projectFailed(result)) {
+          process.stdout.write(`\nRetrying case ${testCase.name} with pg-delta legacy\n`);
+          result.legacyTransition = await runTransitionCase(testCase, {
+            ...context,
+            pgDeltaEngine: "legacy",
+          });
+        }
+      }
       results.push(result);
       writeReport(config, reportPath, results, runDirectory);
     }

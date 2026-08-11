@@ -1,0 +1,6 @@
+{
+  "expectation": "destructive-change-warning-or-refusal",
+  "declarativeFile": "destructive-change-warning.sql",
+  "tableIdentifier": "public.destructive_change_guard",
+  "columnIdentifier": "doomed_value"
+}

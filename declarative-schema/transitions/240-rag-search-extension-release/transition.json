@@ -1,0 +1,69 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "rag-search-extension-release.sql",
+  "description": "AI/RAG, search catalog, and extension relocation evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "relocates pg_trgm",
+      "pattern": "\\balter\\s+extension\\s+pg_trgm\\s+set\\s+schema\\s+extensions\\b"
+    },
+    {
+      "description": "adds the v2 search document",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?app\\.catalog_items[\\s\\S]*\\badd\\s+(?:column\\s+)?catalog_search_v2\\b"
+    },
+    {
+      "description": "creates the application text-search configuration",
+      "pattern": "\\bcreate\\s+text\\s+search\\s+configuration\\s+app\\.catalog_english\\b"
+    },
+    {
+      "description": "creates the v2 text-search index",
+      "pattern": "\\bcreate\\s+index\\s+catalog_search_v2_idx\\b"
+    },
+    {
+      "description": "creates the facets index",
+      "pattern": "\\bcreate\\s+index\\s+catalog_facets_idx\\b"
+    },
+    {
+      "description": "adds the v2 vector",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?app\\.chunks[\\s\\S]*\\badd\\s+(?:column\\s+)?embedding_v2\\b"
+    },
+    {
+      "description": "creates the v2 vector index",
+      "pattern": "\\bcreate\\s+index\\s+chunks_embedding_v2_idx\\b"
+    },
+    {
+      "description": "creates RAG jobs",
+      "pattern": "\\bcreate\\s+table\\s+app\\.rag_jobs\\b"
+    },
+    {
+      "description": "creates the search API",
+      "pattern": "\\bcreate\\s+function\\s+app\\.search_catalog\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "drops an extension",
+      "pattern": "\\bdrop\\s+extension\\b"
+    },
+    {
+      "description": "drops a populated column",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "changes the v1 vector type",
+      "pattern": "\\balter\\s+(?:column\\s+)?embedding\\s+type\\b"
+    }
+  ]
+}

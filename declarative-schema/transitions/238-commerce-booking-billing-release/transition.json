@@ -1,0 +1,69 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "commerce-booking-billing-release.sql",
+  "description": "commerce, booking, and billing-wrapper release evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds the reservation exclusion constraint",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?booking\\.reservations[^;]*\\badd\\s+constraint\\s+reservations_no_overlap[^;]*\\bexclude\\b[^;]*\\bresource_id\\b[^;]*\\bwith\\s*=[^;]*\\bslot\\b[^;]*\\bwith\\s+&&"
+    },
+    {
+      "description": "creates commerce orders",
+      "pattern": "\\bcreate\\s+table\\s+commerce\\.orders\\b"
+    },
+    {
+      "description": "creates generated order-line totals",
+      "pattern": "\\bcreate\\s+table\\s+commerce\\.order_lines\\b[\\s\\S]*\\bgenerated\\s+always\\b"
+    },
+    {
+      "description": "creates the low-stock index",
+      "pattern": "\\bcreate\\s+index\\s+inventory_low_stock_idx\\b"
+    },
+    {
+      "description": "creates payment event staging",
+      "pattern": "\\bcreate\\s+trigger\\s+payment_event_stage\\b"
+    },
+    {
+      "description": "creates the billing FDW",
+      "pattern": "\\bcreate\\s+foreign\\s+data\\s+wrapper\\s+ds_238_billing_fdw\\b"
+    },
+    {
+      "description": "creates the billing server",
+      "pattern": "\\bcreate\\s+server\\s+ds_238_billing_server\\b"
+    },
+    {
+      "description": "creates the remote invoice boundary",
+      "pattern": "\\bcreate\\s+foreign\\s+table\\s+billing\\.remote_invoices\\b"
+    },
+    {
+      "description": "creates payment-event RLS",
+      "pattern": "\\bcreate\\s+policy\\s+payment_event_read\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "creates a credential-bearing user mapping",
+      "pattern": "\\bcreate\\s+user\\s+mapping\\b"
+    },
+    {
+      "description": "contains a cleartext password or token option",
+      "pattern": "\\b(?:password|token)\\s+'"
+    },
+    {
+      "description": "drops the money domain",
+      "pattern": "\\bdrop\\s+domain\\b"
+    }
+  ]
+}

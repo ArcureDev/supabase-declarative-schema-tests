@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "managed-schema-boundary.sql",
+  "description": "alter application state without touching Supabase-managed schemas or object identities",
+  "requiredMigrationPatterns": [
+    {
+      "description": "add only the application column",
+      "pattern": "\\balter\\s+table\\s+public\\.boundary_app_225\\s+add\\s+(?:column\\s+)?note\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not emit managed-schema DDL",
+      "pattern": "\\b(?:create|alter|drop|comment|grant|revoke)\\b[\\s\\S]{0,160}\\b(?:auth|storage|realtime|extensions|vault|net|cron|pgmq|pgsodium|graphql|supabase_migrations)\\s*\\."
+    },
+    {
+      "description": "do not create, alter, or drop managed schemas",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?(?:auth|storage|realtime|extensions|vault|net|cron|pgmq|pgsodium|graphql|supabase_migrations)\\b"
+    },
+    {
+      "description": "do not drop application state",
+      "pattern": "\\bdrop\\s+(?:table|column)\\b"
+    }
+  ]
+}

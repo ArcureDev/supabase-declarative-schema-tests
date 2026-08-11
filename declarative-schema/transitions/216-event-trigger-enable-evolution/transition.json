@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "event-trigger-enable-evolution.sql",
+  "description": "event-trigger function replacement and in-place enablement",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the event-trigger function",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_record_ddl\\b"
+    },
+    {
+      "description": "enables the event trigger in place",
+      "pattern": "\\balter\\s+event\\s+trigger\\s+transition_ddl_watch\\s+enable\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not drop the event trigger",
+      "pattern": "\\bdrop\\s+event\\s+trigger\\b"
+    },
+    {
+      "description": "does not drop functions or tables",
+      "pattern": "\\bdrop\\s+(?:function|table)\\b"
+    }
+  ]
+}

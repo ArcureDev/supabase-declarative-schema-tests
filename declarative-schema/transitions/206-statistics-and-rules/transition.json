@@ -1,0 +1,33 @@
+{
+  "expectation": "expected-unsupported",
+  "declarativeFile": "statistics-and-rules.sql",
+  "description": "extended-statistics evolution is rejected explicitly while rewrite-rule state remains unchanged",
+  "requiredDiagnosticPatterns": [
+    {
+      "description": "reports the stable unmodeled-kind capability code",
+      "pattern": "\\bcode=unmodeled_kind\\b"
+    },
+    {
+      "description": "states that statistics changes are omitted",
+      "pattern": "\\bdoes\\s+not\\s+manage\\s+these\\s+postgresql\\s+object\\s+kinds:\\s+statistics\\s+object\\b"
+    }
+  ],
+  "forbiddenDiagnosticPatterns": [
+    {
+      "description": "does not replace the transition anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "does not truncate populated data",
+      "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+    },
+    {
+      "description": "does not drop columns",
+      "pattern": "\\bdrop\\s+column\\b"
+    },
+    {
+      "description": "does not panic",
+      "pattern": "\\b(?:panic|segmentation fault)\\b"
+    }
+  ]
+}

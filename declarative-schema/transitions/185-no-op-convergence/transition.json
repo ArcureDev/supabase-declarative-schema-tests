@@ -1,0 +1,4 @@
+{
+  "expectation": "no-op-convergence",
+  "declarativeFile": "no-op-convergence.sql"
+}

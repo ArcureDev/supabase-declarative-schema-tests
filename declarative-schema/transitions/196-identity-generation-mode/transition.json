@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "identity-generation-mode.sql",
+  "description": "switch an identity column from by default to always",
+  "requiredMigrationPatterns": [
+    {
+      "description": "sets identity generation to always",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*identity_guard\\b[\\s\\S]*\\balter\\s+(?:column\\s+)?id\\b[\\s\\S]*\\bset\\s+generated\\s+always\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter or drop the transition anchor",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:only\\s+)?public\\s*\\.\\s*transition_anchor\\b"
+    },
+    {
+      "description": "does not recreate the populated table",
+      "pattern": "\\b(?:drop\\s+table|create\\s+table)\\s+public\\s*\\.\\s*identity_guard\\b"
+    },
+    {
+      "description": "does not rebuild the identity column",
+      "pattern": "\\b(?:drop\\s+identity|drop\\s+(?:column\\s+)?id)\\b"
+    }
+  ]
+}

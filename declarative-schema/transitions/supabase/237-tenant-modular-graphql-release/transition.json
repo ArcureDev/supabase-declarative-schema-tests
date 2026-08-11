@@ -1,0 +1,57 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "tenant-modular-graphql-release.sql",
+  "description": "tenant, modular API, and GraphQL release evolution",
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds membership billing roles",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?tenant\\.memberships[\\s\\S]*\\badd\\s+(?:column\\s+)?billing_role\\b"
+    },
+    {
+      "description": "creates tenant invitations",
+      "pattern": "\\bcreate\\s+table\\s+tenant\\.invitations\\b"
+    },
+    {
+      "description": "creates the pending-invitation index",
+      "pattern": "\\bcreate\\s+index\\s+invitations_pending_idx\\b"
+    },
+    {
+      "description": "creates the invitation owner policy",
+      "pattern": "\\bcreate\\s+policy\\s+invitations_owner_manage\\b"
+    },
+    {
+      "description": "grants invitation management privileges",
+      "pattern": "\\bgrant\\s+insert\\s*,\\s*update\\s*,\\s*delete\\s+on\\s+(?:table\\s+)?tenant\\.invitations\\s+to\\s+authenticated\\b"
+    },
+    {
+      "description": "replaces the custom access-token hook",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+tenant\\.custom_access_token_hook\\b"
+    },
+    {
+      "description": "replaces the organization API view",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?view\\s+api\\.organization_summary\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "revokes the Auth hook grant",
+      "pattern": "\\brevoke\\b[^;]*\\bfrom\\s+supabase_auth_admin\\b"
+    },
+    {
+      "description": "drops an API compatibility object",
+      "pattern": "\\bdrop\\s+(?:view|function)\\s+(?:api\\.organization_summary|tenant\\.custom_access_token_hook)\\b"
+    }
+  ]
+}

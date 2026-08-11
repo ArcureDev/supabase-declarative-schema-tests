@@ -1,0 +1,73 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "legacy-staged-normalization.sql",
+  "description": "legacy import and staged destructive-evolution normalization",
+  "requiredMigrationPatterns": [
+    {
+      "description": "relocates hstore",
+      "pattern": "\\balter\\s+extension\\s+hstore\\s+set\\s+schema\\s+extensions\\b"
+    },
+    {
+      "description": "adds generated given names",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?legacy\\.customer[\\s\\S]*\\badd\\s+(?:column\\s+)?given_name\\b"
+    },
+    {
+      "description": "adds normalized email values",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?legacy\\.customer[\\s\\S]*\\badd\\s+(?:column\\s+)?email_normalized\\b"
+    },
+    {
+      "description": "creates the normalized email index",
+      "pattern": "\\bcreate\\s+unique\\s+index\\s+customer_email_normalized_uidx\\b"
+    },
+    {
+      "description": "adds inherited activity source metadata",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?legacy\\.activity_base[\\s\\S]*\\badd\\s+(?:column\\s+)?source\\b"
+    },
+    {
+      "description": "creates the customer compatibility view",
+      "pattern": "\\bcreate\\s+view\\s+app\\.customers\\b"
+    },
+    {
+      "description": "creates the dual-write trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+customers_dual_write\\b"
+    },
+    {
+      "description": "creates the normalized activity view",
+      "pattern": "\\bcreate\\s+view\\s+app\\.activity\\b"
+    },
+    {
+      "description": "creates the normalized customer API",
+      "pattern": "\\bcreate\\s+function\\s+app\\.customer_profile\\b"
+    },
+    {
+      "description": "creates legacy-table RLS",
+      "pattern": "\\bcreate\\s+policy\\s+legacy_customer_read\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "drops or truncates a table",
+      "pattern": "(?:^|;)\\s*(?:drop\\s+table|truncate(?:\\s+table)?)\\b"
+    },
+    {
+      "description": "recreates or alters the transition anchor",
+      "pattern": "\\b(?:create|alter)\\s+table\\s+(?:only\\s+)?public\\.transition_anchor\\b"
+    },
+    {
+      "description": "uses cascading DDL",
+      "pattern": "\\bcascade\\b"
+    },
+    {
+      "description": "drops a legacy column or extension",
+      "pattern": "\\bdrop\\s+(?:column|extension)\\b"
+    },
+    {
+      "description": "renames the populated legacy table",
+      "pattern": "\\balter\\s+table\\s+legacy\\.customer[\\s\\S]*\\brename\\b"
+    },
+    {
+      "description": "drops a legacy compatibility object",
+      "pattern": "\\bdrop\\s+(?:view|function)\\s+legacy\\.(?:customersummary|displayname)\\b"
+    }
+  ]
+}

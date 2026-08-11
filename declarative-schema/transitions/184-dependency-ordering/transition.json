@@ -1,0 +1,10 @@
+{
+  "expectation": "dependency-ordering-preserved",
+  "declarativeFile": "dependency-ordering.sql",
+  "tableIdentifier": "public.dependency_source",
+  "functionIdentifier": "public.dependency_scale",
+  "baseViewIdentifier": "public.dependency_base",
+  "leftViewIdentifier": "public.dependency_left",
+  "rightViewIdentifier": "public.dependency_right",
+  "leafViewIdentifier": "public.dependency_leaf"
+}

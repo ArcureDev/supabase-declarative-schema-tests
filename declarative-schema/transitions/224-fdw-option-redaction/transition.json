@@ -1,0 +1,26 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "fdw-option-redaction.sql",
+  "description": "change a foreign-server host while preserving and redacting a user-mapping password",
+  "sensitiveValues": ["PGDELTA_SECRET_224"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "set only the changed server host",
+      "pattern": "\\balter\\s+server\\s+transition_server_224\\s+options\\s*\\(\\s*set\\s+host\\s+'beta\\.invalid'\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "never emit the injected password",
+      "pattern": "pgdelta_secret_224"
+    },
+    {
+      "description": "do not alter the user mapping",
+      "pattern": "\\balter\\s+user\\s+mapping\\b"
+    },
+    {
+      "description": "do not recreate or drop foreign objects",
+      "pattern": "\\b(?:create|drop)\\s+(?:server|foreign\\s+data\\s+wrapper)\\b"
+    }
+  ]
+}
