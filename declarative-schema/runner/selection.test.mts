@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   failedCaseNumbersFromReport,
   latestVersionPath,
+  notDoneCaseNumbersFromVersion,
   notOkCaseNumbersFromVersion,
   parseCaseSelection,
 } from "./selection.mts";
@@ -18,12 +19,15 @@ test("parseCaseSelection handles lists, ranges, status filters, and invalid inpu
   }
   assert.deepEqual(parseCaseSelection(["--failed"]), { kind: "latest-failures" });
   assert.deepEqual(parseCaseSelection(["--not-ok"]), { kind: "latest-not-ok" });
+  assert.deepEqual(parseCaseSelection(["--not-done"]), { kind: "latest-not-done" });
   assert.deepEqual(parseCaseSelection([]), { kind: "all" });
   assert.throws(() => parseCaseSelection(["--case"]), /Missing case selection/);
   assert.throws(() => parseCaseSelection(["--case=3-2"]), /ascending order/);
   assert.throws(() => parseCaseSelection(["--case=1", "--failed"]), /Use only one/);
   assert.throws(() => parseCaseSelection(["--failed", "--not-ok"]), /Use only one/);
+  assert.throws(() => parseCaseSelection(["--not-ok", "--not-done"]), /Use only one/);
   assert.throws(() => parseCaseSelection(["--not-ok=true"]), /does not accept a value/);
+  assert.throws(() => parseCaseSelection(["--not-done=true"]), /does not accept a value/);
 });
 
 test("failedCaseNumbersFromReport supports marker and legacy reports", () => {
@@ -86,22 +90,29 @@ test("notOkCaseNumbersFromVersion prioritizes incomplete and absent cases", () =
     );
 
     assert.equal(latestVersionPath(directory, "abcdef0"), versionFile);
+    const availableCaseNames = [
+      "1-ok",
+      "2-not-run",
+      "3-warning",
+      "4-error",
+      "5-incomplete",
+      "6-absent",
+    ];
     assert.deepEqual(
-      [
-        ...notOkCaseNumbersFromVersion(versionFile, "1.2.3", "abcdef0", [
-          "1-ok",
-          "2-not-run",
-          "3-warning",
-          "4-error",
-          "5-incomplete",
-          "6-absent",
-        ]),
-      ],
+      [...notOkCaseNumbersFromVersion(versionFile, "1.2.3", "abcdef0", availableCaseNames)],
       [2, 5, 6, 4, 3],
+    );
+    assert.deepEqual(
+      [...notDoneCaseNumbersFromVersion(versionFile, "1.2.3", "abcdef0", availableCaseNames)],
+      [2, 5, 6],
     );
     assert.throws(
       () => notOkCaseNumbersFromVersion(versionFile, "1.2.4", "abcdef0", ["1-ok"]),
       /current CLI is version 1\.2\.4/,
+    );
+    assert.throws(
+      () => notDoneCaseNumbersFromVersion(versionFile, "1.2.3", "1234567", ["1-ok"]),
+      /Cannot use --not-done because .*checksum 1234567/,
     );
     assert.throws(
       () => notOkCaseNumbersFromVersion(versionFile, "1.2.3", "1234567", ["1-ok"]),

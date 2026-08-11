@@ -503,6 +503,59 @@ test("writes reports and updates one version file per checksum while preserving 
         String.raw`\| \`181-rename-ambiguity\` \| sync \| \*\*WARNING\*\* \| \*\*OK\*\* \| \[\`${transitionReportName}\`\]\(\.\.\/reports\/${transitionReportName}#case-181-rename-ambiguity\) \|`,
       ),
     );
+
+    const coverageReportName = "report-2026-01-04T03-04-05-000Z.md";
+    const coverageReportPath = join(config.reportsDirectory, coverageReportName);
+    const coverageResult: ProjectResult = {
+      kind: "coverage",
+      name: "251-auth-hook-suite",
+      migrationSql: "-- coverage",
+      coverageDescription: "exercise auth hooks",
+      coverageRequirements: ["auth-hooks"],
+      sync: command(),
+      phaseResults: [
+        {
+          id: "start",
+          title: "Start local runtime",
+          plane: "service",
+          commandResult: command(),
+        },
+        {
+          id: "verify",
+          title: "Verify hook grants",
+          plane: "service",
+          commandResult: command("ERROR", "missing grant"),
+        },
+      ],
+    };
+    writeReport(
+      config,
+      coverageReportPath,
+      [coverageResult],
+      runDirectory,
+      undefined,
+      new Date("2026-01-04T03:04:05.000Z"),
+    );
+    const coverageReport = readFileSync(coverageReportPath, "utf8");
+    assert.match(
+      coverageReport,
+      /<!-- declarative-schema-command-result case="251-auth-hook-suite" engine="next" command="sync" status="ERROR" -->/,
+    );
+    assert.match(
+      coverageReport,
+      /<!-- declarative-schema-command-result case="251-auth-hook-suite" engine="next" command="generate" status="ERROR" -->/,
+    );
+
+    updateVersionReportsFromReports(config, new Date("2026-01-04T04:00:00.000Z"));
+    const versionWithCoverage = readFileSync(firstVersionPath, "utf8");
+    assert.match(versionWithCoverage, /^- Updated: 2026-01-04T04:00:00.000Z$/m);
+    assert.match(versionWithCoverage, /^- Cases: 3$/m);
+    assert.match(
+      versionWithCoverage,
+      new RegExp(
+        String.raw`\| \`251-auth-hook-suite\` \| sync \| \*\*ERROR\*\* \| \*\*—\*\* \| \[\`${coverageReportName}\`\]\(\.\.\/reports\/${coverageReportName}#case-251-auth-hook-suite\) \|`,
+      ),
+    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

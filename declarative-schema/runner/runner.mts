@@ -9,6 +9,7 @@ import {
   failedCaseNumbersFromReport,
   latestReportPath,
   latestVersionPath,
+  notDoneCaseNumbersFromVersion,
   notOkCaseNumbersFromVersion,
   parseCaseSelection,
 } from "./selection.mts";
@@ -60,7 +61,11 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
       throw new Error(`The latest report has no failed cases: ${previousReportPath}`);
     }
   } else if (selection.kind === "latest-not-ok") {
-    const versionPath = latestVersionPath(config.versionsDirectory, config.supabaseChecksum);
+    const versionPath = latestVersionPath(
+      config.versionsDirectory,
+      config.supabaseChecksum,
+      "--not-ok",
+    );
     selectedCaseNumbers = notOkCaseNumbersFromVersion(
       versionPath,
       config.supabaseCliVersion,
@@ -71,6 +76,22 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
     if (selectedCaseNumbers.size === 0) {
       throw new Error(`The current version report has no not-OK cases: ${versionPath}`);
     }
+  } else if (selection.kind === "latest-not-done") {
+    const versionPath = latestVersionPath(
+      config.versionsDirectory,
+      config.supabaseChecksum,
+      "--not-done",
+    );
+    selectedCaseNumbers = notDoneCaseNumbersFromVersion(
+      versionPath,
+      config.supabaseCliVersion,
+      config.supabaseChecksum,
+      availableCases.map((availableCase) => availableCase.name),
+    );
+    process.stdout.write(`Selecting not-done cases from ${versionPath}\n`);
+    if (selectedCaseNumbers.size === 0) {
+      throw new Error(`The current version report has no not-done cases: ${versionPath}`);
+    }
   }
 
   const selectedCases = selectedCaseNumbers
@@ -79,7 +100,10 @@ function selectCases(config: RunnerConfig, args: string[], availableCases: TestC
         return caseNumber !== undefined && selectedCaseNumbers.has(caseNumber);
       })
     : availableCases;
-  if (selection.kind === "latest-not-ok" && selectedCaseNumbers) {
+  if (
+    (selection.kind === "latest-not-ok" || selection.kind === "latest-not-done") &&
+    selectedCaseNumbers
+  ) {
     const selectionOrder = new Map(
       [...selectedCaseNumbers].map((caseNumber, index) => [caseNumber, index]),
     );
@@ -213,6 +237,9 @@ export async function runDeclarativeSchema(
       }
       results.push(result);
       writeReport(config, reportPath, results, runDirectory);
+      // Refresh the checksum matrix after every evaluated case so migrations,
+      // transitions, and coverage all land in versions/ as soon as they report.
+      updateVersionReportsFromReports(config);
     }
   } finally {
     process.stdout.write("\nCleaning up test runtime\n");

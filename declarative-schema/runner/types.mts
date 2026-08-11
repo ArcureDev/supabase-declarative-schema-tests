@@ -2,7 +2,8 @@ export type CaseSelection =
   | { kind: "all" }
   | { kind: "numbers"; caseNumbers: Set<number> }
   | { kind: "latest-failures" }
-  | { kind: "latest-not-ok" };
+  | { kind: "latest-not-ok" }
+  | { kind: "latest-not-done" };
 
 export type SnapshotCase = {
   kind: "snapshot";

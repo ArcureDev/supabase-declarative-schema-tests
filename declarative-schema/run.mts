@@ -16,6 +16,7 @@ Options:
                       (examples: --case=18, --case=10-20, --case=10-15,24)
   --failed            Rerun failed or warning cases from the latest report
   --not-ok            Run cases not fully OK in the current version matrix
+  --not-done          Run cases not yet completed in the current version matrix
   --plane=<plane>     Run ddl, service, functions, config, or remote cases
   --remote            Include opt-in linked/hosted coverage cases
   --verbose           Print each Supabase CLI command as it runs

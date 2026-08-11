@@ -18,6 +18,7 @@ test("--help prints usage and exits successfully", () => {
   assert.match(result.stdout, /--case=<selection>/);
   assert.match(result.stdout, /--failed/);
   assert.match(result.stdout, /--not-ok/);
+  assert.match(result.stdout, /--not-done/);
   assert.match(result.stdout, /--verbose/);
   assert.match(result.stdout, /--help/);
 });

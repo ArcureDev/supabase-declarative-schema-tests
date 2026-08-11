@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "managed-database-webhook-trigger.sql",
+  "description": "add a database-webhook trigger that directly depends on the filtered supabase_functions.http_request managed function",
+  "requiredMigrationPatterns": [
+    {
+      "description": "creates the database-webhook trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+database_webhook_297\\b"
+    },
+    {
+      "description": "keeps the direct dependency on the managed webhook function",
+      "pattern": "\\bexecute\\s+function\\s+supabase_functions\\.http_request\\s*\\("
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not emit DDL for the managed webhook function",
+      "pattern": "\\b(?:create(?:\\s+or\\s+replace)?|alter|drop)\\s+function\\s+supabase_functions\\.http_request\\b"
+    },
+    {
+      "description": "does not create, alter, or drop the managed schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?supabase_functions\\b"
+    },
+    {
+      "description": "does not replace the preserved application table",
+      "pattern": "\\b(?:drop|create)\\s+table\\s+public\\.database_webhook_events_297\\b"
+    }
+  ]
+}

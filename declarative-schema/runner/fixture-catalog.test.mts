@@ -12,16 +12,16 @@ const scriptDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 test("checked-in fixture catalog is contiguous and internally valid", () => {
   const config = loadRunnerConfig(scriptDirectory, []);
   const cases = discoverCases(config);
-  assert.equal(cases.length, 296);
+  assert.equal(cases.length, 297);
   assert.deepEqual(
     cases.map((fixture) => caseNumberFromName(fixture.name)),
-    Array.from({ length: 296 }, (_, index) => index + 1),
+    Array.from({ length: 297 }, (_, index) => index + 1),
   );
 
   const transitions = cases.filter(
     (fixture) => fixture.kind !== "snapshot" && fixture.kind !== "coverage",
   );
-  assert.equal(transitions.length, 86);
+  assert.equal(transitions.length, 87);
   assert.equal(cases.filter((fixture) => fixture.kind === "coverage").length, 30);
   const supabaseTransitionNames = [
     "220-realtime-publication-membership",
@@ -55,6 +55,7 @@ test("checked-in fixture catalog is contiguous and internally valid", () => {
     "264-vault-backed-webhook-redaction",
     "276-pg-graphql-comments-inflection",
     "278-wrappers-vault-credential-redaction",
+    "297-managed-database-webhook-trigger",
   ];
   assert.deepEqual(
     transitions

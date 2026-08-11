@@ -446,6 +446,28 @@ export function renderReport(
         );
       }
     }
+    if (result.kind === "coverage") {
+      // Coverage planes do not run generate/sync/sync-verification. Record the
+      // overall case outcome under all three matrix commands so version files and
+      // --not-ok treat a finished coverage run as complete evidence.
+      const coverageStatus = projectStatus(result);
+      const coverageEvaluation: CommandResult = {
+        command: "coverage evaluation",
+        durationMilliseconds: 0,
+        exitCode: coverageStatus === "OK" ? 0 : 1,
+        output: "",
+        status: coverageStatus === "FAILED" ? "ERROR" : coverageStatus,
+      };
+      lines.push(
+        "### Coverage evaluation",
+        "",
+        ...markdownForCommand(coverageEvaluation),
+        commandResultMarker(result.name, "next", "generate", coverageEvaluation),
+        commandResultMarker(result.name, "next", "sync", coverageEvaluation),
+        commandResultMarker(result.name, "next", "sync-verification", coverageEvaluation),
+        "",
+      );
+    }
     if (result.legacyTransition) {
       lines.push(...markdownForLegacyTransition(result.name, result.legacyTransition));
     }

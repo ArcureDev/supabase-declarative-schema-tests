@@ -42,6 +42,25 @@ export function parseVersionReport(
     results.set(`${engine}:${command}`, status);
     caseResults.set(caseName, results);
   }
+  // Coverage (and any future) reports may only emit case-result markers. Fold
+  // those into the version matrix so every evaluated case updates the checksum
+  // file, even when generate/sync/sync-verification never ran.
+  const caseMarkerPattern =
+    /<!-- declarative-schema-case-result name="([^"]+)" status="(OK|WARNING|FAILED)" -->/g;
+  for (const marker of report.matchAll(caseMarkerPattern)) {
+    const caseName = marker[1];
+    const caseStatus = marker[2];
+    if (!caseName || !caseStatus || caseResults.has(caseName)) continue;
+    const status: VersionResultStatus = caseStatus === "FAILED" ? "ERROR" : caseStatus;
+    caseResults.set(
+      caseName,
+      new Map([
+        ["next:generate", status],
+        ["next:sync", status],
+        ["next:sync-verification", status],
+      ]),
+    );
+  }
   if (caseResults.size === 0) return undefined;
   return { checksum, cliVersion, generated, reportName, caseResults };
 }

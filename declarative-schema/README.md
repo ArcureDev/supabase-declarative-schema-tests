@@ -60,14 +60,16 @@ fixture.
 
 Supabase coverage beyond portable DDL uses numbered cases under `coverage/`.
 These cases share the same selection and reporting flow but execute an ordered
-set of typed phases in one explicit plane:
+set of typed phases in one explicit plane. The runner's `--plane=` filter selects:
 
+- `ddl` for snapshot and transition schema round-trips (everything outside
+  `coverage/`);
 - `service` for local Auth, Storage, Realtime, PostgREST, and other HTTP behavior;
 - `functions` for local Edge Function serving and invocation behavior;
 - `config` for `config.toml`, seeds, multi-file input, and CLI lifecycle behavior;
 - `remote` for explicitly opted-in linked or hosted disposable projects.
 
-The checked-in catalog contains 296 cases: 180 snapshots, 86 transitions, and
+The checked-in catalog contains 297 cases: 180 snapshots, 87 transitions, and
 30 multi-plane coverage cases. Cases 245–296 implement the Supabase requirement
 map across DDL and companion product behavior.
 
@@ -105,16 +107,20 @@ The report's case-results table shows the primary and legacy outcomes
 independently. The legacy outcome is `NOT RUN` when the primary engine did not
 need a fallback; otherwise it is `OK`, `WARNING`, or `FAILED`.
 
-After each run, reports that contain command-result metadata are aggregated by
-the seven-character Supabase checksum into
-`versions/version-<checksum>.md`, for example
+After each evaluated case, and again at the end of the run, reports that contain
+command-result or case-result metadata are aggregated by the seven-character
+Supabase checksum into `versions/version-<checksum>.md`, for example
 `versions/version-f9bd289.md`. Each new report updates that checksum's file in
 place, so the versions directory contains only one file per checksum.
 Each version file keeps the newest complete snapshot for every case, so a
 targeted run updates its selected cases without removing the other cases. Its
 matrix contains `generate`, `sync`, and `sync-verification` results for pg-delta
-next and, when fallback commands ran, legacy. A command that was not run is
-shown as a dash; a skipped primary command is recorded as `ERROR`.
+next and, when fallback commands ran, legacy. Snapshot and transition cases
+record those commands directly. Coverage cases do not run them; instead the
+overall coverage outcome is recorded under all three columns so the case still
+updates the version matrix and `--not-ok` can treat a finished coverage run as
+complete. A command that was not run is shown as a dash; a skipped primary
+command is recorded as `ERROR`.
 Each matrix source link targets an explicit, stable anchor on that case's
 section in the originating report.
 
@@ -223,20 +229,32 @@ This option runs missing and incomplete cases first, followed by errors and then
 warnings. It reads the latest `versions/version-<checksum>.md` file and runs only
 when both its Supabase CLI version and checksum exactly match the installed CLI.
 
+To run only cases that were never completed for the current CLI checksum—missing
+from the version matrix, listed under commands not run, or missing one of
+generate/sync/sync-verification—use `--not-done`:
+
+```powershell
+npm run declarative-schema -- --not-done
+```
+
+Unlike `--not-ok`, this skips cases that already finished with ERROR or WARNING.
+
 Options can be combined:
 
 ```powershell
 npm run declarative-schema -- --case=18 --verbose
 ```
 
-To run one coverage plane:
+To run one plane:
 
-```powershell
-npm run declarative-schema:ddl
-npm run declarative-schema:behavior
-npm run declarative-schema:functions
-npm run declarative-schema:config
-```
+- `npm run declarative-schema:ddl` — snapshot and transition schema round-trips
+  (`--plane=ddl`); excludes coverage cases
+- `npm run declarative-schema:behavior` — local Auth, Storage, Realtime,
+  PostgREST, and other HTTP behavior (`--plane=service`)
+- `npm run declarative-schema:functions` — local Edge Function serve and invoke
+  behavior (`--plane=functions`)
+- `npm run declarative-schema:config` — `config.toml`, seeds, multi-file input,
+  and CLI lifecycle behavior (`--plane=config`)
 
 Remote cases require both an explicit opt-in and the environment variables
 declared by their manifests:
@@ -245,6 +263,7 @@ declared by their manifests:
 npm run declarative-schema:remote
 ```
 
+That script runs linked or hosted disposable coverage (`--plane=remote --remote`).
 Never point remote coverage cases at production. They are designed for
 disposable projects or preview branches with deterministic teardown.
 

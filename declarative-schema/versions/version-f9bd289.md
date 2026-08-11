@@ -2,10 +2,10 @@
 
 - Supabase CLI version: `0.0.0-pr.6102`
 - Checksum: `f9bd289`
-- Updated: 2026-08-11T13:20:05.776Z
-- Source reports: 6
-- Cases: 234
-- Recorded command results: 675
+- Updated: 2026-08-11T17:09:44.787Z
+- Source reports: 8
+- Cases: 283
+- Recorded command results: 820
 - A dash means that command was not run. Skipped commands are recorded as `ERROR`.
 
 ## Commands not run
@@ -78,6 +78,29 @@
 | `232-queue-message-data-boundary` | generate | **—** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-232-queue-message-data-boundary) |
 | `233-pgvector-index-addition` | generate | **—** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-233-pgvector-index-addition) |
 | `234-postgis-index-addition` | generate | **—** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-234-postgis-index-addition) |
+| `245-managed-schema-negative-probe` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-245-managed-schema-negative-probe) |
+| `246-managed-boundary-retention` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-246-managed-boundary-retention) |
+| `248-extension-absence-version-diagnostic` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-248-extension-absence-version-diagnostic) |
+| `249-jwt-custom-claims-mfa-rls` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-249-jwt-custom-claims-mfa-rls) |
+| `250-anonymous-rls` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-250-anonymous-rls) |
+| `252-auth-users-trigger-hardening` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-252-auth-users-trigger-hardening) |
+| `253-supabase-role-boundaries` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-253-supabase-role-boundaries) |
+| `255-storage-policy-matrix` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-255-storage-policy-matrix) |
+| `256-storage-reference-helpers` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-256-storage-reference-helpers) |
+| `258-realtime-publication-removal` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-258-realtime-publication-removal) |
+| `259-filtered-column-publication` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-259-filtered-column-publication) |
+| `260-broadcast-presence-policies` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-260-broadcast-presence-policies) |
+| `261-database-broadcast-helper-evolution` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-261-database-broadcast-helper-evolution) |
+| `263-pg-net-trigger-lifecycle` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-263-pg-net-trigger-lifecycle) |
+| `264-vault-backed-webhook-redaction` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-264-vault-backed-webhook-redaction) |
+| `272-pgvector-dimension-change-safety` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-272-pgvector-dimension-change-safety) |
+| `273-pgvector-ivfflat-options` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-273-pgvector-ivfflat-options) |
+| `274-postgis-generated-geography` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-274-postgis-generated-geography) |
+| `275-postgis-version-availability-diagnostic` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-275-postgis-version-availability-diagnostic) |
+| `276-pg-graphql-comments-inflection` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-276-pg-graphql-comments-inflection) |
+| `278-wrappers-vault-credential-redaction` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-278-wrappers-vault-credential-redaction) |
+| `280-common-extension-upgrade-boundary` | generate | **—** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-280-common-extension-upgrade-boundary) |
+| `297-managed-database-webhook-trigger` | generate | **—** | **—** | [`report-2026-08-11T16-55-20-392Z.md`](../reports/report-2026-08-11T16-55-20-392Z.md#case-297-managed-database-webhook-trigger) |
 
 ## Errors
 
@@ -133,6 +156,67 @@
 | `228-realtime-message-policy-hardening` | sync | **ERROR** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-228-realtime-message-policy-hardening) |
 | `229-pg-net-webhook-replacement` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-229-pg-net-webhook-replacement) |
 | `230-vault-secret-data-boundary` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-230-vault-secret-data-boundary) |
+| `245-managed-schema-negative-probe` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-245-managed-schema-negative-probe) |
+| `245-managed-schema-negative-probe` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-245-managed-schema-negative-probe) |
+| `246-managed-boundary-retention` | sync | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-246-managed-boundary-retention) |
+| `247-platform-upgrade-config-drift-no-op` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-247-platform-upgrade-config-drift-no-op) |
+| `247-platform-upgrade-config-drift-no-op` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-247-platform-upgrade-config-drift-no-op) |
+| `247-platform-upgrade-config-drift-no-op` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-247-platform-upgrade-config-drift-no-op) |
+| `249-jwt-custom-claims-mfa-rls` | sync | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-249-jwt-custom-claims-mfa-rls) |
+| `250-anonymous-rls` | sync | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-250-anonymous-rls) |
+| `252-auth-users-trigger-hardening` | sync | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-252-auth-users-trigger-hardening) |
+| `253-supabase-role-boundaries` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-253-supabase-role-boundaries) |
+| `253-supabase-role-boundaries` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-253-supabase-role-boundaries) |
+| `255-storage-policy-matrix` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-255-storage-policy-matrix) |
+| `255-storage-policy-matrix` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-255-storage-policy-matrix) |
+| `256-storage-reference-helpers` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-256-storage-reference-helpers) |
+| `256-storage-reference-helpers` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-256-storage-reference-helpers) |
+| `258-realtime-publication-removal` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-258-realtime-publication-removal) |
+| `258-realtime-publication-removal` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-258-realtime-publication-removal) |
+| `259-filtered-column-publication` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-259-filtered-column-publication) |
+| `259-filtered-column-publication` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-259-filtered-column-publication) |
+| `260-broadcast-presence-policies` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-260-broadcast-presence-policies) |
+| `260-broadcast-presence-policies` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-260-broadcast-presence-policies) |
+| `261-database-broadcast-helper-evolution` | sync | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-261-database-broadcast-helper-evolution) |
+| `262-realtime-subscription-runtime` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-262-realtime-subscription-runtime) |
+| `262-realtime-subscription-runtime` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-262-realtime-subscription-runtime) |
+| `262-realtime-subscription-runtime` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-262-realtime-subscription-runtime) |
+| `263-pg-net-trigger-lifecycle` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-263-pg-net-trigger-lifecycle) |
+| `263-pg-net-trigger-lifecycle` | sync-verification | **—** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-263-pg-net-trigger-lifecycle) |
+| `264-vault-backed-webhook-redaction` | sync | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-264-vault-backed-webhook-redaction) |
+| `273-pgvector-ivfflat-options` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-273-pgvector-ivfflat-options) |
+| `273-pgvector-ivfflat-options` | sync-verification | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-273-pgvector-ivfflat-options) |
+| `275-postgis-version-availability-diagnostic` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-275-postgis-version-availability-diagnostic) |
+| `276-pg-graphql-comments-inflection` | sync-verification | **ERROR** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-276-pg-graphql-comments-inflection) |
+| `277-postgrest-schema-cache-behavior` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-277-postgrest-schema-cache-behavior) |
+| `277-postgrest-schema-cache-behavior` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-277-postgrest-schema-cache-behavior) |
+| `277-postgrest-schema-cache-behavior` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-277-postgrest-schema-cache-behavior) |
+| `278-wrappers-vault-credential-redaction` | sync | **ERROR** | **ERROR** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-278-wrappers-vault-credential-redaction) |
+| `278-wrappers-vault-credential-redaction` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-278-wrappers-vault-credential-redaction) |
+| `284-extension-config-availability` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-284-extension-config-availability) |
+| `284-extension-config-availability` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-284-extension-config-availability) |
+| `284-extension-config-availability` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-284-extension-config-availability) |
+| `285-multi-file-declarative-ordering` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-285-multi-file-declarative-ordering) |
+| `285-multi-file-declarative-ordering` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-285-multi-file-declarative-ordering) |
+| `285-multi-file-declarative-ordering` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-285-multi-file-declarative-ordering) |
+| `286-conflicting-definitions-diagnostic` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-286-conflicting-definitions-diagnostic) |
+| `286-conflicting-definitions-diagnostic` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-286-conflicting-definitions-diagnostic) |
+| `286-conflicting-definitions-diagnostic` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-286-conflicting-definitions-diagnostic) |
+| `287-local-reset-idempotence` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-287-local-reset-idempotence) |
+| `287-local-reset-idempotence` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-287-local-reset-idempotence) |
+| `287-local-reset-idempotence` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-287-local-reset-idempotence) |
+| `290-seed-idempotence` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-290-seed-idempotence) |
+| `290-seed-idempotence` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-290-seed-idempotence) |
+| `290-seed-idempotence` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-290-seed-idempotence) |
+| `291-schema-data-boundary` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-291-schema-data-boundary) |
+| `291-schema-data-boundary` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-291-schema-data-boundary) |
+| `291-schema-data-boundary` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-291-schema-data-boundary) |
+| `292-migration-repair-squash` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-292-migration-repair-squash) |
+| `292-migration-repair-squash` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-292-migration-repair-squash) |
+| `292-migration-repair-squash` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-292-migration-repair-squash) |
+| `294-pg-delta-feature-flag` | generate | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-294-pg-delta-feature-flag) |
+| `294-pg-delta-feature-flag` | sync | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-294-pg-delta-feature-flag) |
+| `294-pg-delta-feature-flag` | sync-verification | **ERROR** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-294-pg-delta-feature-flag) |
 
 ## Warnings
 
@@ -729,3 +813,66 @@
 | `233-pgvector-index-addition` | sync-verification | **OK** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-233-pgvector-index-addition) |
 | `234-postgis-index-addition` | sync | **OK** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-234-postgis-index-addition) |
 | `234-postgis-index-addition` | sync-verification | **OK** | **—** | [`report-2026-08-11T06-52-12-746Z.md`](../reports/report-2026-08-11T06-52-12-746Z.md#case-234-postgis-index-addition) |
+| `246-managed-boundary-retention` | sync-verification | **—** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-246-managed-boundary-retention) |
+| `248-extension-absence-version-diagnostic` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-248-extension-absence-version-diagnostic) |
+| `248-extension-absence-version-diagnostic` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-248-extension-absence-version-diagnostic) |
+| `249-jwt-custom-claims-mfa-rls` | sync-verification | **—** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-249-jwt-custom-claims-mfa-rls) |
+| `250-anonymous-rls` | sync-verification | **—** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-250-anonymous-rls) |
+| `251-auth-hook-suite` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-251-auth-hook-suite) |
+| `251-auth-hook-suite` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-251-auth-hook-suite) |
+| `251-auth-hook-suite` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-251-auth-hook-suite) |
+| `252-auth-users-trigger-hardening` | sync-verification | **—** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-252-auth-users-trigger-hardening) |
+| `254-auth-data-boundary-local-service` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-254-auth-data-boundary-local-service) |
+| `254-auth-data-boundary-local-service` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-254-auth-data-boundary-local-service) |
+| `254-auth-data-boundary-local-service` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-254-auth-data-boundary-local-service) |
+| `257-storage-api-data-boundary` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-257-storage-api-data-boundary) |
+| `257-storage-api-data-boundary` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-257-storage-api-data-boundary) |
+| `257-storage-api-data-boundary` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-257-storage-api-data-boundary) |
+| `261-database-broadcast-helper-evolution` | sync-verification | **—** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-261-database-broadcast-helper-evolution) |
+| `264-vault-backed-webhook-redaction` | sync-verification | **—** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-264-vault-backed-webhook-redaction) |
+| `265-url-config-stability` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-265-url-config-stability) |
+| `265-url-config-stability` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-265-url-config-stability) |
+| `265-url-config-stability` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-265-url-config-stability) |
+| `266-edge-function-jwt-verification` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-266-edge-function-jwt-verification) |
+| `266-edge-function-jwt-verification` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-266-edge-function-jwt-verification) |
+| `266-edge-function-jwt-verification` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-266-edge-function-jwt-verification) |
+| `267-edge-function-version-behavior` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-267-edge-function-version-behavior) |
+| `267-edge-function-version-behavior` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-267-edge-function-version-behavior) |
+| `267-edge-function-version-behavior` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-267-edge-function-version-behavior) |
+| `268-vault-secret-lifecycle` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-268-vault-secret-lifecycle) |
+| `268-vault-secret-lifecycle` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-268-vault-secret-lifecycle) |
+| `268-vault-secret-lifecycle` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-268-vault-secret-lifecycle) |
+| `269-cron-runtime-diagnostic` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-269-cron-runtime-diagnostic) |
+| `269-cron-runtime-diagnostic` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-269-cron-runtime-diagnostic) |
+| `269-cron-runtime-diagnostic` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-269-cron-runtime-diagnostic) |
+| `270-pgmq-queue-lifecycle` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-270-pgmq-queue-lifecycle) |
+| `270-pgmq-queue-lifecycle` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-270-pgmq-queue-lifecycle) |
+| `270-pgmq-queue-lifecycle` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-270-pgmq-queue-lifecycle) |
+| `271-cron-queue-webhook-pipeline` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-271-cron-queue-webhook-pipeline) |
+| `271-cron-queue-webhook-pipeline` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-271-cron-queue-webhook-pipeline) |
+| `271-cron-queue-webhook-pipeline` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-271-cron-queue-webhook-pipeline) |
+| `272-pgvector-dimension-change-safety` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-272-pgvector-dimension-change-safety) |
+| `272-pgvector-dimension-change-safety` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-272-pgvector-dimension-change-safety) |
+| `274-postgis-generated-geography` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-274-postgis-generated-geography) |
+| `274-postgis-generated-geography` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-274-postgis-generated-geography) |
+| `275-postgis-version-availability-diagnostic` | sync-verification | **OK** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-275-postgis-version-availability-diagnostic) |
+| `276-pg-graphql-comments-inflection` | sync | **OK** | **OK** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-276-pg-graphql-comments-inflection) |
+| `279-unavailable-remote-diagnostic` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-279-unavailable-remote-diagnostic) |
+| `279-unavailable-remote-diagnostic` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-279-unavailable-remote-diagnostic) |
+| `279-unavailable-remote-diagnostic` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-279-unavailable-remote-diagnostic) |
+| `280-common-extension-upgrade-boundary` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-280-common-extension-upgrade-boundary) |
+| `280-common-extension-upgrade-boundary` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-280-common-extension-upgrade-boundary) |
+| `281-postgrest-data-api-exposure` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-281-postgrest-data-api-exposure) |
+| `281-postgrest-data-api-exposure` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-281-postgrest-data-api-exposure) |
+| `281-postgrest-data-api-exposure` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-281-postgrest-data-api-exposure) |
+| `282-api-schema-exposure-config` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-282-api-schema-exposure-config) |
+| `282-api-schema-exposure-config` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-282-api-schema-exposure-config) |
+| `282-api-schema-exposure-config` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-282-api-schema-exposure-config) |
+| `283-auth-storage-realtime-config` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-283-auth-storage-realtime-config) |
+| `283-auth-storage-realtime-config` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-283-auth-storage-realtime-config) |
+| `283-auth-storage-realtime-config` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-283-auth-storage-realtime-config) |
+| `293-cli-version-evidence` | generate | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-293-cli-version-evidence) |
+| `293-cli-version-evidence` | sync | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-293-cli-version-evidence) |
+| `293-cli-version-evidence` | sync-verification | **OK** | **—** | [`report-2026-08-11T14-59-34-549Z.md`](../reports/report-2026-08-11T14-59-34-549Z.md#case-293-cli-version-evidence) |
+| `297-managed-database-webhook-trigger` | sync | **OK** | **—** | [`report-2026-08-11T16-55-20-392Z.md`](../reports/report-2026-08-11T16-55-20-392Z.md#case-297-managed-database-webhook-trigger) |
+| `297-managed-database-webhook-trigger` | sync-verification | **OK** | **—** | [`report-2026-08-11T16-55-20-392Z.md`](../reports/report-2026-08-11T16-55-20-392Z.md#case-297-managed-database-webhook-trigger) |

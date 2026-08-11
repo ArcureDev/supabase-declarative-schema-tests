@@ -2,7 +2,7 @@
 
 - Supabase CLI version: `0.0.0-pr.6102`
 - Checksum: `46a1614`
-- Updated: 2026-08-11T13:20:05.776Z
+- Updated: 2026-08-11T17:09:44.787Z
 - Source reports: 1
 - Cases: 10
 - Recorded command results: 33

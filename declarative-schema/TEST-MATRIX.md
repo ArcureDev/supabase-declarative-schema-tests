@@ -20,8 +20,8 @@ database from state A to state B. Rename safety, data preservation, dependency
 ordering, destructive-change warnings, idempotence, and multi-release evolution
 therefore need a separate fixture model described after the implemented panel.
 
-The complete catalog now contains 296 numbered cases: 180 snapshot round trips,
-86 state transitions, and 30 service, Functions, configuration, or remote
+The complete catalog now contains 297 numbered cases: 180 snapshot round trips,
+87 state transitions, and 30 service, Functions, configuration, or remote
 coverage cases.
 
 ## Implemented foundations
@@ -351,6 +351,8 @@ stable capability/scope diagnostics without applying or changing the database.
   (`transitions/243-audit-ledger-archive-release/`)
 - [x] 244 Legacy staged normalization
   (`transitions/244-legacy-staged-normalization/`)
+- [x] 297 Managed database-webhook trigger dependency
+  (`transitions/supabase/297-managed-database-webhook-trigger/`)
 
 ### Estimated size
 
@@ -684,6 +686,11 @@ configuration, secrets, deployed code, buckets/files, users, messages, and
 other service data need companion tests, but must not be mistaken for
 declarative PostgreSQL DDL.
 
+The checked items below have mapped fixtures in cases 245–296. A check records
+implemented coverage, not a passing result for every pg-delta engine; command
+evidence remains in the generated reports and `supabase-requirements.json`
+remains unverified until the relevant local and opt-in remote runs complete.
+
 ### Managed-schema safety
 
 - [x] A normal diff does not attempt to own, recreate, or drop Supabase-managed
@@ -731,6 +738,8 @@ declarative PostgreSQL DDL.
 - [x] pg_net webhook triggers for INSERT/UPDATE/DELETE, conditional triggers,
   payload construction, headers, timeout, retry/error logging, and trigger
   rename/change/drop.
+- [x] Dashboard-style database-webhook triggers that directly execute the
+  managed `supabase_functions.http_request()` trigger function.
 - [x] Vault-backed endpoint/token lookup and secret-redaction assertions.
 - [x] Local, preview, and production URL/config differences do not create
   unstable schema diffs.
