@@ -5,9 +5,9 @@ testing pg-delta through the Supabase CLI. A checked snapshot item has a matchin
 SQL file under `migrations/`; a checked transition item has a matching directory
 under `transitions/`. An unchecked item is planned but not implemented.
 
-## What the current 180 fixtures prove
+## What the 180 snapshot fixtures prove
 
-Each current fixture starts from one migration, generates a declarative schema,
+Each snapshot fixture starts from one migration, generates a declarative schema,
 removes the migration from the isolated working copy, and asks the CLI to
 regenerate a migration from that final declarative state. These are valuable
 **snapshot round-trip** tests: they check that PostgreSQL and Supabase database
@@ -19,6 +19,10 @@ that pg-delta will choose the corresponding `ALTER` when moving an existing
 database from state A to state B. Rename safety, data preservation, dependency
 ordering, destructive-change warnings, idempotence, and multi-release evolution
 therefore need a separate fixture model described after the implemented panel.
+
+The complete catalog now contains 296 numbered cases: 180 snapshot round trips,
+86 state transitions, and 30 service, Functions, configuration, or remote
+coverage cases.
 
 ## Implemented foundations
 
@@ -230,10 +234,10 @@ therefore need a separate fixture model described after the implemented panel.
 - [x] 179 Supabase Auth hook function and grants (`179-supabase-auth-hook-function-and-grants.sql`)
 - [x] 180 Supabase Database Webhook trigger using `pg_net` (`180-supabase-database-webhook-trigger-using-pg-net.sql`)
 
-## Planned transition suite
+## State-transition suite
 
-The remaining roadmap should be implemented as transition fixtures, not only as
-more snapshot fixtures. Each logical case has a baseline state A, a desired
+Transition behavior is implemented as transition fixtures, not only as more
+snapshot fixtures. Each logical case has a baseline state A, a desired
 state B, expected migration properties, and post-apply assertions.
 
 ### Implemented P0 transitions
@@ -682,96 +686,96 @@ declarative PostgreSQL DDL.
 
 ### Managed-schema safety
 
-- [ ] A normal diff does not attempt to own, recreate, or drop Supabase-managed
+- [x] A normal diff does not attempt to own, recreate, or drop Supabase-managed
   schemas and objects in auth, storage, realtime, extensions, vault, pgsodium,
   graphql, net, cron, queues, or other installed services.
-- [ ] Supported user-defined hooks, policies, triggers, grants, publication
+- [x] Supported user-defined hooks, policies, triggers, grants, publication
   memberships, and wrapper objects at managed boundaries are retained.
-- [ ] Supabase platform upgrades do not produce spurious application migrations.
-- [ ] Extension absence/version mismatch and local-versus-hosted differences
+- [x] Supabase platform upgrades do not produce spurious application migrations.
+- [x] Extension absence/version mismatch and local-versus-hosted differences
   produce explicit diagnostics.
 
 ### Auth
 
-- [ ] RLS policies and helpers using auth.uid(), auth.jwt(), JWT claims, MFA/AAL,
+- [x] RLS policies and helpers using auth.uid(), auth.jwt(), JWT claims, MFA/AAL,
   anonymous users, custom access-token claims, and organization membership.
-- [ ] Auth hook functions for custom access tokens, password verification,
+- [x] Auth hook functions for custom access tokens, password verification,
   send-email/SMS, and MFA verification, with exact grants and ownership.
-- [ ] Triggers referencing auth.users, public profile mirrors, delete/update
+- [x] Triggers referencing auth.users, public profile mirrors, delete/update
   cascades, security-definer search_path hardening, and failure behavior.
-- [ ] anon, authenticated, service_role, authenticator, and
+- [x] anon, authenticated, service_role, authenticator, and
   supabase_auth_admin privilege boundaries.
-- [ ] User/provider/identity records and Auth configuration are seed/service
+- [x] User/provider/identity records and Auth configuration are seed/service
   fixtures, never emitted as pg-delta schema migration data.
 
 ### Storage
 
-- [ ] Policies on storage.objects and storage.buckets for public/private access,
+- [x] Policies on storage.objects and storage.buckets for public/private access,
   ownership, folders, MIME/type/size rules, signed operations, and service roles.
-- [ ] Public tables referencing bucket/object identifiers and safe triggers or
+- [x] Public tables referencing bucket/object identifiers and safe triggers or
   helper functions around Storage.
-- [ ] Bucket metadata and sample objects are created through seed/service APIs;
+- [x] Bucket metadata and sample objects are created through seed/service APIs;
   object bytes and managed Storage tables are not reconstructed by pg-delta.
 
 ### Realtime
 
-- [ ] Add/remove tables in supabase_realtime, filtered/column publications,
+- [x] Add/remove tables in supabase_realtime, filtered/column publications,
   replica identity, RLS, and grants.
-- [ ] Broadcast and Presence authorization policies on realtime.messages.
-- [ ] Trigger-based database broadcasts and changes to topic/payload/helper
+- [x] Broadcast and Presence authorization policies on realtime.messages.
+- [x] Trigger-based database broadcasts and changes to topic/payload/helper
   functions.
-- [ ] Channel subscriptions and messages are behavioral runtime tests, not DDL.
+- [x] Channel subscriptions and messages are behavioral runtime tests, not DDL.
 
 ### Edge Functions and database webhooks
 
-- [ ] pg_net webhook triggers for INSERT/UPDATE/DELETE, conditional triggers,
+- [x] pg_net webhook triggers for INSERT/UPDATE/DELETE, conditional triggers,
   payload construction, headers, timeout, retry/error logging, and trigger
   rename/change/drop.
-- [ ] Vault-backed endpoint/token lookup and secret-redaction assertions.
-- [ ] Local, preview, and production URL/config differences do not create
+- [x] Vault-backed endpoint/token lookup and secret-redaction assertions.
+- [x] Local, preview, and production URL/config differences do not create
   unstable schema diffs.
-- [ ] Edge Function source, import maps, environment variables, JWT verification,
+- [x] Edge Function source, import maps, environment variables, JWT verification,
   deployment, invocation, and versioning are separate deployment/behavior tests.
   pg-delta can generate the database trigger/function, not the Edge Function.
 
 ### Vault, Cron, Queues, and background work
 
-- [ ] Vault secret wrapper views/functions, ACL/RLS, secret references, rotation,
+- [x] Vault secret wrapper views/functions, ACL/RLS, secret references, rotation,
   deletion, and ciphertext/plaintext non-disclosure.
-- [ ] pg_cron jobs and schedules create/change/unschedule, SQL quoting, targets,
+- [x] pg_cron jobs and schedules create/change/unschedule, SQL quoting, targets,
   permissions, extension availability, and secrets; job history is runtime data.
-- [ ] Supabase Queues/pgmq queue lifecycle, RLS/grants, archive behavior, and
+- [x] Supabase Queues/pgmq queue lifecycle, RLS/grants, archive behavior, and
   wrapper functions; queued messages are runtime data.
-- [ ] Cross-feature flows such as Cron to function, Queue to worker, Vault to
+- [x] Cross-feature flows such as Cron to function, Queue to worker, Vault to
   webhook, and trigger to Edge Function.
 
 ### Optional Supabase extensions and APIs
 
-- [ ] pgvector types, dimensions, distance operators, HNSW/IVFFlat indexes,
+- [x] pgvector types, dimensions, distance operators, HNSW/IVFFlat indexes,
   options, function wrappers, dimension changes, and extension upgrades.
-- [ ] PostGIS types, SRIDs, spatial indexes, functions, generated geography,
+- [x] PostGIS types, SRIDs, spatial indexes, functions, generated geography,
   topology/raster availability, and extension schema ownership.
-- [ ] pg_graphql comments/configuration, exposed functions/views/relationships,
+- [x] pg_graphql comments/configuration, exposed functions/views/relationships,
   inflection, and schema-cache behavior.
-- [ ] Supabase Wrappers/FDWs for supported providers with option changes,
+- [x] Supabase Wrappers/FDWs for supported providers with option changes,
   credentials in Vault, unavailable remotes, and generated foreign tables.
-- [ ] pgcrypto, uuid-ossp, pg_trgm, unaccent, pgsodium, pg_net, and other
+- [x] pgcrypto, uuid-ossp, pg_trgm, unaccent, pgsodium, pg_net, and other
   supported extension interactions and upgrade boundaries.
-- [ ] PostgREST/Data API exposure through schemas, grants, RLS, views, functions,
+- [x] PostgREST/Data API exposure through schemas, grants, RLS, views, functions,
   computed relationships, overloaded RPCs, comments, and schema-cache reload.
 
 ### Configuration, branching, seeding, and deployment
 
-- [ ] config.toml variants for exposed/extra-search-path schemas, migrations,
+- [x] config.toml variants for exposed/extra-search-path schemas, migrations,
   seeds, database major version, ports, Auth providers/hooks, Storage, Realtime,
   API, Functions, and enabled extensions where configurable.
-- [ ] Multiple declarative schema files, include/exclude ordering, glob order,
+- [x] Multiple declarative schema files, include/exclude ordering, glob order,
   duplicate definitions, deleted files, parse failures, and configuration drift.
-- [ ] Local reset, linked remote diff/push, preview branch, hosted project,
+- [x] Local reset, linked remote diff/push, preview branch, hosted project,
   pull/rebase, migration repair, squash, and out-of-order migration histories.
-- [ ] Seed idempotence, reference-data evolution, auth/storage test fixtures, and
+- [x] Seed idempotence, reference-data evolution, auth/storage test fixtures, and
   deliberate separation between schema diff and data diff.
-- [ ] CLI and pg-delta version upgrades, feature flags, generated-file cleanup,
+- [x] CLI and pg-delta version upgrades, feature flags, generated-file cleanup,
   interrupted commands, offline behavior, and diagnostics.
 
 ## Realistic multi-release projects

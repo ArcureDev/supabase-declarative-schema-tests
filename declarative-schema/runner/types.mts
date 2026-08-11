@@ -19,6 +19,7 @@ export type TransitionFixtureBase = {
   dataSetupPath: string;
   verificationPath: string;
   sensitiveValues: string[];
+  requirements: string[];
 };
 
 export type RenameAmbiguityTransition = TransitionFixtureBase & {
@@ -101,8 +102,6 @@ export type TransitionCase =
   | DeterministicOutputTransition
   | RecoveryAfterFailureTransition;
 
-export type TestCase = SnapshotCase | TransitionCase;
-
 export type CommandStatus = "OK" | "WARNING" | "ERROR" | "SKIPPED";
 
 export type CommandResult = {
@@ -113,6 +112,90 @@ export type CommandResult = {
   status: CommandStatus;
 };
 
+export type TestPlane =
+  | "ddl"
+  | "service"
+  | "functions"
+  | "config"
+  | "remote";
+
+export type HttpBehaviorStep = {
+  description: string;
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  path: string;
+  credential?: "anon" | "service-role" | undefined;
+  headers?: Record<string, string> | undefined;
+  body?: unknown;
+  expectedStatus: number;
+  expectedBodyPattern?: string | undefined;
+  expectedHeaderPatterns?: Record<string, string> | undefined;
+};
+
+export type PhaseResult = {
+  id: string;
+  title: string;
+  plane: TestPlane;
+  commandResult: CommandResult;
+};
+
+export type CoveragePhaseBase = {
+  id: string;
+  title: string;
+  dependsOn?: string[] | undefined;
+  acceptStatuses?: CommandStatus[] | undefined;
+  requiredOutputPatterns?: string[] | undefined;
+  forbiddenOutputPatterns?: string[] | undefined;
+};
+
+export type CoverageSupabasePhase = CoveragePhaseBase & {
+  kind: "supabase";
+  args: string[];
+  engine?: PgDeltaEngine | undefined;
+};
+
+export type CoverageSqlPhase = CoveragePhaseBase & {
+  kind: "sql";
+  file: string;
+};
+
+export type CoverageRuntimeStatusPhase = CoveragePhaseBase & {
+  kind: "runtime-status";
+};
+
+export type CoverageScriptPhase = CoveragePhaseBase & {
+  kind: "script";
+  file: string;
+  args: string[];
+};
+
+export type CoverageHttpPhase = CoveragePhaseBase & {
+  kind: "http";
+  request: HttpBehaviorStep;
+};
+
+export type CoveragePhase =
+  | CoverageSupabasePhase
+  | CoverageSqlPhase
+  | CoverageRuntimeStatusPhase
+  | CoverageScriptPhase
+  | CoverageHttpPhase;
+
+export type CoverageCase = {
+  kind: "coverage";
+  name: string;
+  directory: string;
+  projectDirectory: string;
+  description: string;
+  plane: Exclude<TestPlane, "ddl">;
+  requirements: string[];
+  sensitiveValues: string[];
+  requiredEnvironment: string[];
+  phases: CoveragePhase[];
+  remote: boolean;
+};
+
+export type TestCase = SnapshotCase | TransitionCase | CoverageCase;
+
 export type PgDeltaEngine = "next" | "legacy";
 
 export type GeneratedFile = {
@@ -121,12 +204,14 @@ export type GeneratedFile = {
 };
 
 export type ProjectResult = {
-  kind: "snapshot" | "transition";
+  kind: "snapshot" | "transition" | "coverage";
   name: string;
   migrationSql: string;
   desiredSql?: string | undefined;
   dataSetupSql?: string | undefined;
   sensitiveValues?: string[] | undefined;
+  coverageDescription?: string | undefined;
+  coverageRequirements?: string[] | undefined;
   runtimeStart?: CommandResult | undefined;
   reset?: CommandResult | undefined;
   baselineSync?: CommandResult | undefined;
@@ -157,6 +242,11 @@ export type ProjectResult = {
   transitionRepair?: CommandResult | undefined;
   transitionRetry?: CommandResult | undefined;
   legacyTransition?: ProjectResult | undefined;
+  /**
+   * New coverage planes use an ordered phase list instead of adding another
+   * optional ProjectResult field for every service-specific operation.
+   */
+  phaseResults?: PhaseResult[] | undefined;
 };
 
 export type ProjectStatus = "OK" | "WARNING" | "FAILED";
@@ -196,6 +286,7 @@ export type RunnerConfig = {
   supabaseChecksum: string;
   migrationsDirectory: string;
   transitionsDirectory: string;
+  coverageDirectory: string;
   runtimeTemplateDirectory: string;
   localDatabaseContainer: string;
   localWorkRoot: string;

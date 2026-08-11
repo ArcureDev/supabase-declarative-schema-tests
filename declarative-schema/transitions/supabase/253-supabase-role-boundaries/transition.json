@@ -1,0 +1,30 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "supabase-role-boundaries.sql",
+  "description": "tighten application ACLs across anon, authenticated, service_role, and supabase_auth_admin",
+  "requirements": ["A4"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "removes anonymous table access",
+      "pattern": "\\brevoke\\s+(?:all(?:\\s+privileges)?|select)\\s+on\\s+(?:table\\s+)?public\\.role_boundary_253\\s+from\\s+anon\\b"
+    },
+    {
+      "description": "grants authenticated read access",
+      "pattern": "\\bgrant\\s+select\\s+on\\s+(?:table\\s+)?public\\.role_boundary_253\\s+to\\s+authenticated\\b"
+    },
+    {
+      "description": "restricts the admin helper to Supabase Auth",
+      "pattern": "\\bgrant\\s+execute\\s+on\\s+function\\s+public\\.role_admin_marker_253\\s*\\(\\s*\\)\\s+to\\s+supabase_auth_admin\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not own or alter platform roles",
+      "pattern": "\\b(?:create|alter|drop)\\s+role\\s+(?:anon|authenticated|service_role|supabase_auth_admin)\\b"
+    },
+    {
+      "description": "does not weaken RLS or remove protected objects",
+      "pattern": "\\b(?:disable\\s+row\\s+level\\s+security|drop\\s+policy|drop\\s+table)\\b"
+    }
+  ]
+}

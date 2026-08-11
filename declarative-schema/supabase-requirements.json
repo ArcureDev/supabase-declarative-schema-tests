@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "requirements": [
+    {
+      "id": "M1",
+      "section": "Managed-schema safety",
+      "description": "Normal diffs do not own, recreate, or drop Supabase-managed schemas and objects.",
+      "cases": [225, 245],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "M2",
+      "section": "Managed-schema safety",
+      "description": "Supported hooks, policies, triggers, grants, publications, and wrappers survive managed boundaries.",
+      "cases": [220, 225, 226, 227, 228, 229, 236, 239, 246],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "M3",
+      "section": "Managed-schema safety",
+      "description": "Platform-managed catalog changes do not create spurious application migrations.",
+      "cases": [247],
+      "planes": ["config"],
+      "status": "planned"
+    },
+    {
+      "id": "M4",
+      "section": "Managed-schema safety",
+      "description": "Extension absence, version mismatch, and local-hosted differences produce explicit diagnostics.",
+      "cases": [248, 284],
+      "planes": ["ddl", "config"],
+      "status": "planned"
+    },
+    {
+      "id": "A1",
+      "section": "Auth",
+      "description": "RLS covers uid, jwt, claims, MFA/AAL, anonymous identities, and organization membership.",
+      "cases": [226, 237, 249, 250],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "A2",
+      "section": "Auth",
+      "description": "Auth hooks retain exact ownership, grants, and configuration.",
+      "cases": [237, 251],
+      "planes": ["ddl", "config"],
+      "status": "planned"
+    },
+    {
+      "id": "A3",
+      "section": "Auth",
+      "description": "Auth user triggers, profile mirrors, cascades, hardened search paths, and failure behavior are preserved.",
+      "cases": [239, 252],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "A4",
+      "section": "Auth",
+      "description": "Supabase database roles retain least-privilege boundaries.",
+      "cases": [253],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "A5",
+      "section": "Auth",
+      "description": "Auth records and provider state are service fixtures and never migration data.",
+      "cases": [254],
+      "planes": ["service"],
+      "status": "planned"
+    },
+    {
+      "id": "S1",
+      "section": "Storage",
+      "description": "Bucket and object policies cover visibility, ownership, folders, type, size, signed operations, and service roles.",
+      "cases": [227, 255],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "S2",
+      "section": "Storage",
+      "description": "Application tables safely reference Storage identifiers through supported helpers.",
+      "cases": [256],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "S3",
+      "section": "Storage",
+      "description": "Bucket metadata and object bytes are service data rather than pg-delta output.",
+      "cases": [257],
+      "planes": ["service"],
+      "status": "planned"
+    },
+    {
+      "id": "R1",
+      "section": "Realtime",
+      "description": "Realtime publication membership, filters, columns, replica identity, RLS, and grants evolve safely.",
+      "cases": [220, 258, 259],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "R2",
+      "section": "Realtime",
+      "description": "Broadcast and Presence authorization policies evolve safely.",
+      "cases": [228, 260],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "R3",
+      "section": "Realtime",
+      "description": "Database broadcast triggers and topic or payload helpers evolve safely.",
+      "cases": [261],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "R4",
+      "section": "Realtime",
+      "description": "Channel subscriptions and messages are verified as runtime behavior, not DDL.",
+      "cases": [262],
+      "planes": ["service"],
+      "status": "planned"
+    },
+    {
+      "id": "E1",
+      "section": "Edge Functions and webhooks",
+      "description": "pg_net webhook trigger lifecycle, payloads, headers, timeout, and failure behavior are covered.",
+      "cases": [229, 263],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "E2",
+      "section": "Edge Functions and webhooks",
+      "description": "Vault-backed webhook credentials are retained and fully redacted.",
+      "cases": [230, 264],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "E3",
+      "section": "Edge Functions and webhooks",
+      "description": "Environment-specific URLs and configuration do not destabilize schema diffs.",
+      "cases": [265],
+      "planes": ["config"],
+      "status": "planned"
+    },
+    {
+      "id": "E4",
+      "section": "Edge Functions and webhooks",
+      "description": "Edge Function source, JWT behavior, deployment, invocation, and versioning remain outside pg-delta DDL.",
+      "cases": [266, 267],
+      "planes": ["functions"],
+      "status": "planned"
+    },
+    {
+      "id": "V1",
+      "section": "Vault, Cron, Queues, and background work",
+      "description": "Vault wrappers, ACLs, rotation, deletion, and secret non-disclosure are covered.",
+      "cases": [230, 268],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "V2",
+      "section": "Vault, Cron, Queues, and background work",
+      "description": "Cron schedules and job history respect the schema-runtime boundary.",
+      "cases": [231, 269],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "V3",
+      "section": "Vault, Cron, Queues, and background work",
+      "description": "Queue lifecycle, RLS, grants, archive state, and messages respect the schema-runtime boundary.",
+      "cases": [232, 270],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "V4",
+      "section": "Vault, Cron, Queues, and background work",
+      "description": "Cross-feature background processing flows preserve each service boundary.",
+      "cases": [238, 239, 242, 271],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "X1",
+      "section": "Optional extensions and APIs",
+      "description": "pgvector dimensions, operators, HNSW, IVFFlat, wrappers, changes, and upgrades are covered.",
+      "cases": [233, 240, 272, 273],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "X2",
+      "section": "Optional extensions and APIs",
+      "description": "PostGIS types, SRIDs, indexes, generated geography, availability, and upgrades are covered.",
+      "cases": [234, 241, 274, 275],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "X3",
+      "section": "Optional extensions and APIs",
+      "description": "pg_graphql directives, relationships, inflection, and schema-cache behavior are covered.",
+      "cases": [235, 237, 276, 277],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "X4",
+      "section": "Optional extensions and APIs",
+      "description": "Wrappers and FDWs cover options, Vault credentials, unavailable remotes, and foreign tables.",
+      "cases": [224, 236, 238, 278, 279],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "X5",
+      "section": "Optional extensions and APIs",
+      "description": "Common Supabase extensions interact safely across availability and upgrade boundaries.",
+      "cases": [223, 240, 280],
+      "planes": ["ddl"],
+      "status": "planned"
+    },
+    {
+      "id": "X6",
+      "section": "Optional extensions and APIs",
+      "description": "PostgREST exposure covers schemas, grants, RLS, views, RPCs, relationships, comments, and cache reload.",
+      "cases": [237, 281],
+      "planes": ["ddl", "service"],
+      "status": "planned"
+    },
+    {
+      "id": "C1",
+      "section": "Configuration, branching, seeding, and deployment",
+      "description": "Supabase configuration variants are exercised without confusing configuration with DDL.",
+      "cases": [282, 283, 284],
+      "planes": ["service", "config"],
+      "status": "planned"
+    },
+    {
+      "id": "C2",
+      "section": "Configuration, branching, seeding, and deployment",
+      "description": "Multiple declarative files, ordering, duplicates, deletion, parse failure, and drift are covered.",
+      "cases": [285, 286],
+      "planes": ["config"],
+      "status": "planned"
+    },
+    {
+      "id": "C3",
+      "section": "Configuration, branching, seeding, and deployment",
+      "description": "Local reset and protected linked, preview, repair, and squash workflows are covered.",
+      "cases": [287, 288, 289, 292],
+      "planes": ["config", "remote"],
+      "status": "planned"
+    },
+    {
+      "id": "C4",
+      "section": "Configuration, branching, seeding, and deployment",
+      "description": "Seeds are idempotent and remain separate from declarative schema changes.",
+      "cases": [290, 291],
+      "planes": ["service", "config"],
+      "status": "planned"
+    },
+    {
+      "id": "C5",
+      "section": "Configuration, branching, seeding, and deployment",
+      "description": "CLI and pg-delta versions, feature flags, cleanup, interruption, offline behavior, and diagnostics are covered.",
+      "cases": [293, 294, 295, 296],
+      "planes": ["config"],
+      "status": "planned"
+    }
+  ]
+}

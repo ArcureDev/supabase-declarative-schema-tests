@@ -1,0 +1,22 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "auth-users-trigger-hardening.sql",
+  "description": "harden an auth.users profile trigger while preserving trigger identity, profile data, and cascade behavior",
+  "requirements": ["A3"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the profile trigger function in place",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.mirror_auth_user_252\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not recreate the Auth trigger",
+      "pattern": "\\b(?:drop|create)\\s+trigger\\s+auth_profile_mirror_252\\b"
+    },
+    {
+      "description": "does not alter Auth-managed tables or remove profile state",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+auth\\.users\\b|\\bdrop\\s+table\\s+public\\.auth_profile_252\\b|\\bcascade\\b"
+    }
+  ]
+}

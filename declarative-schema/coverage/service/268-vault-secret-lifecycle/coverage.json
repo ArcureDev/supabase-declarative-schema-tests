@@ -1,0 +1,155 @@
+{
+  "description": "create, rotate, inspect, and delete a Vault secret without exposing plaintext",
+  "plane": "service",
+  "requirements": [
+    "V1"
+  ],
+  "sensitiveValues": [
+    "VAULT_COVERAGE_SECRET_268_ALPHA",
+    "VAULT_COVERAGE_SECRET_268_BETA"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create the runtime Vault secret",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "VAULT_COVERAGE_SECRET_268"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Data API",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "inspect-created",
+      "title": "Inspect redacted Vault metadata",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "read redacted secret metadata through a service-only RPC",
+        "method": "POST",
+        "path": "/rest/v1/rpc/vault_probe_268",
+        "credential": "service-role",
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"description\"\\s*:\\s*\"created-v1\""
+      },
+      "forbiddenOutputPatterns": [
+        "VAULT_COVERAGE_SECRET_268"
+      ]
+    },
+    {
+      "id": "rotate",
+      "title": "Rotate the runtime secret",
+      "kind": "sql",
+      "file": "rotate.sql",
+      "dependsOn": [
+        "inspect-created"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "VAULT_COVERAGE_SECRET_268"
+      ]
+    },
+    {
+      "id": "inspect-rotated",
+      "title": "Inspect metadata after rotation",
+      "kind": "http",
+      "dependsOn": [
+        "rotate"
+      ],
+      "request": {
+        "description": "confirm only redacted rotation metadata is exposed",
+        "method": "POST",
+        "path": "/rest/v1/rpc/vault_probe_268",
+        "credential": "service-role",
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"description\"\\s*:\\s*\"rotated-v2\""
+      },
+      "forbiddenOutputPatterns": [
+        "VAULT_COVERAGE_SECRET_268"
+      ]
+    },
+    {
+      "id": "delete",
+      "title": "Delete the runtime secret",
+      "kind": "sql",
+      "file": "delete.sql",
+      "dependsOn": [
+        "inspect-rotated"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "VAULT_COVERAGE_SECRET_268"
+      ]
+    }
+  ]
+}

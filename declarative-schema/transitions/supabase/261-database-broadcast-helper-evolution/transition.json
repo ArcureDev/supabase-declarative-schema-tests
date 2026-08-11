@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "database-broadcast-helper-evolution.sql",
+  "description": "replace a database Broadcast helper while preserving its trigger",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the Broadcast helper in place",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.broadcast_order_changes_261\\s*\\(\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not recreate the trigger",
+      "pattern": "\\b(?:drop|create)\\s+trigger\\s+broadcast_order_changes_261\\b"
+    },
+    {
+      "description": "does not replace the populated table",
+      "pattern": "\\b(?:drop|create)\\s+table\\s+public\\.broadcast_orders_261\\b"
+    },
+    {
+      "description": "does not alter managed Realtime helpers",
+      "pattern": "\\b(?:create|alter|drop)\\s+function\\s+realtime\\.broadcast_changes\\b"
+    }
+  ]
+}

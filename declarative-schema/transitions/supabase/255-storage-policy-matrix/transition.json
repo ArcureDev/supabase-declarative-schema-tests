@@ -1,0 +1,37 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "storage-policy-matrix.sql",
+  "description": "harden the complete Storage object policy command matrix in place",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alters the Storage read policy",
+      "pattern": "\\balter\\s+policy\\s+storage_select_255\\s+on\\s+storage\\.objects\\b"
+    },
+    {
+      "description": "alters the Storage insert policy",
+      "pattern": "\\balter\\s+policy\\s+storage_insert_255\\s+on\\s+storage\\.objects\\b"
+    },
+    {
+      "description": "alters the Storage update policy",
+      "pattern": "\\balter\\s+policy\\s+storage_update_255\\s+on\\s+storage\\.objects\\b"
+    },
+    {
+      "description": "alters the Storage delete policy",
+      "pattern": "\\balter\\s+policy\\s+storage_delete_255\\s+on\\s+storage\\.objects\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace a policy",
+      "pattern": "\\b(?:drop|create)\\s+policy\\s+storage_(?:select|insert|update|delete)_255\\b"
+    },
+    {
+      "description": "does not own Storage-managed relations",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bstorage\\s*\\."
+    },
+    {
+      "description": "does not recreate preserved application tables",
+      "pattern": "\\b(?:drop|create)\\s+table\\s+public\\.(?:transition_anchor|storage_policy_identity_255)\\b"
+    }
+  ]
+}

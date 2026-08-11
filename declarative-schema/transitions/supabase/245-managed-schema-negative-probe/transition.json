@@ -1,0 +1,22 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "managed-schema-negative-probe.sql",
+  "description": "ignore an intentionally declared Auth-managed object while applying an application-only change",
+  "requirements": ["M1"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "adds only the application hardening flag",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.managed_guard_245[\\s\\S]*\\badd\\s+(?:column\\s+)?hardened\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not emit Auth-managed object DDL",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:table|schema)\\b[\\s\\S]{0,120}\\bauth(?:\\.|\\b)"
+    },
+    {
+      "description": "does not drop application or managed state",
+      "pattern": "\\bdrop\\s+(?:table|column|schema)\\b"
+    }
+  ]
+}

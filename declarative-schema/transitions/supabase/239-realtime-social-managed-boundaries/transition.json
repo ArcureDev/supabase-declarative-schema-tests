@@ -1,7 +1,7 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "realtime-social-managed-boundaries.sql",
-  "description": "Realtime chat, social media, and managed-boundary release evolution",
+  "description": "preserve chat and managed-service identity while adding Realtime social boundaries",
   "requiredMigrationPatterns": [
     {
       "description": "creates attachment metadata",
@@ -14,6 +14,10 @@
     {
       "description": "creates message reactions",
       "pattern": "\\bcreate\\s+table\\s+app\\.reactions\\b"
+    },
+    {
+      "description": "creates the notification outbox",
+      "pattern": "\\bcreate\\s+table\\s+app\\.notification_outbox\\b"
     },
     {
       "description": "sets full replica identity",
@@ -38,6 +42,14 @@
     {
       "description": "creates the webhook trigger",
       "pattern": "\\bcreate\\s+trigger\\s+ds_239_message_webhook\\b"
+    },
+    {
+      "description": "creates the Auth mirror wrapper",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+app\\.mirror_auth_user\\s*\\("
+    },
+    {
+      "description": "creates the pg_net webhook wrapper",
+      "pattern": "\\bcreate\\s+(?:or\\s+replace\\s+)?function\\s+app\\.dispatch_message_webhook\\s*\\("
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -55,7 +67,7 @@
     },
     {
       "description": "owns a managed schema",
-      "pattern": "\\b(?:create|drop|alter)\\s+schema\\s+(?:auth|storage|realtime|vault|net)\\b"
+      "pattern": "\\b(?:create|drop|alter)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?(?:auth|storage|realtime|extensions|vault|net)\\b"
     },
     {
       "description": "drops a managed table",
@@ -64,6 +76,22 @@
     {
       "description": "emits managed service data changes",
       "pattern": "\\b(?:insert|update|delete)\\s+(?:into\\s+|from\\s+)?(?:auth|storage|realtime|vault)\\."
+    },
+    {
+      "description": "recreates existing application relations or policy",
+      "pattern": "\\b(?:create\\s+table\\s+(?:app\\.(?:profiles|rooms|room_members|messages)|public\\.transition_anchor)|(?:create|drop|alter)\\s+policy\\s+messages_member_read)\\b"
+    },
+    {
+      "description": "alters or drops managed service tables",
+      "pattern": "\\b(?:alter|drop)\\s+table\\s+(?:auth\\.users|storage\\.objects|realtime\\.messages)\\b"
+    },
+    {
+      "description": "changes managed service ownership or ACLs",
+      "pattern": "\\b(?:alter\\s+table\\s+(?:auth\\.users|storage\\.objects|realtime\\.messages)\\s+owner|(?:grant|revoke)\\b[\\s\\S]{0,160}\\b(?:auth\\.users|storage\\.objects|realtime\\.messages)\\b)"
+    },
+    {
+      "description": "removes Realtime publication membership",
+      "pattern": "\\balter\\s+publication\\s+supabase_realtime\\s+drop\\s+table\\b|\\bdrop\\s+publication\\s+supabase_realtime\\b"
     }
   ]
 }

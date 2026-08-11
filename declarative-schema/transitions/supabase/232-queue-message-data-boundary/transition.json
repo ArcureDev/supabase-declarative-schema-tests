@@ -1,11 +1,15 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "queue-message-data-boundary.sql",
-  "description": "replace a queue wrapper while preserving queue relations and queued messages",
+  "description": "preserve wrapper, queue relation, and message identity while replacing only wrapper behavior",
   "requiredMigrationPatterns": [
     {
       "description": "replace only the queue wrapper",
       "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_queue_marker_232\\s*\\(\\s*\\)"
+    },
+    {
+      "description": "emit the v2 queue marker",
+      "pattern": "\\bselect\\s+'v2'::text\\b"
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -24,6 +28,14 @@
     {
       "description": "do not drop pgmq",
       "pattern": "\\bdrop\\s+extension\\b"
+    },
+    {
+      "description": "do not mutate physical queue data",
+      "pattern": "\\b(?:insert\\s+into|update|delete\\s+from|truncate(?:\\s+table)?)\\s+pgmq\\.(?:q|a)_transition_232\\b"
+    },
+    {
+      "description": "do not replace queue relations or wrapper ACLs",
+      "pattern": "\\b(?:drop\\s+(?:table|function)\\b[\\s\\S]{0,120}\\b(?:transition_232|transition_queue_marker_232)\\b|(?:grant|revoke)\\b[\\s\\S]{0,140}\\b(?:transition_232|transition_queue_marker_232)\\b)"
     }
   ]
 }

@@ -1,0 +1,40 @@
+# Safety: this fixed ID addresses only the runner-owned local Supabase stack.
+project_id = "ds-shared-runtime"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55000
+shadow_port = 55100
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+jwt_expiry = 3600
+enable_signup = true
+
+[experimental.pgdelta]
+enabled = true
+declarative_schema_path = "./database"
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[analytics]
+enabled = false

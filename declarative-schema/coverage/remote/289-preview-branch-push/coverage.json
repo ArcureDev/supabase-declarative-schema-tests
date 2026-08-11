@@ -1,0 +1,66 @@
+{
+  "description": "List branches for the parent project, link the environment-selected disposable preview project, and dry-run its pending migration push.",
+  "plane": "remote",
+  "requirements": [
+    "C3"
+  ],
+  "requiredEnvironment": [
+    "SUPABASE_ACCESS_TOKEN",
+    "SUPABASE_PROJECT_ID",
+    "SUPABASE_PREVIEW_PROJECT_ID",
+    "SUPABASE_DB_PASSWORD"
+  ],
+  "phases": [
+    {
+      "id": "list-branches",
+      "title": "Capture preview branch evidence",
+      "kind": "supabase",
+      "args": [
+        "branches",
+        "list",
+        "--project-ref",
+        "{{ENV:SUPABASE_PROJECT_ID}}",
+        "--output-format",
+        "json",
+        "--debug"
+      ]
+    },
+    {
+      "id": "link-preview",
+      "title": "Link the disposable preview project",
+      "kind": "supabase",
+      "args": [
+        "link",
+        "--project-ref",
+        "{{ENV:SUPABASE_PREVIEW_PROJECT_ID}}",
+        "--password",
+        "{{ENV:SUPABASE_DB_PASSWORD}}",
+        "--debug"
+      ],
+      "dependsOn": [
+        "list-branches"
+      ]
+    },
+    {
+      "id": "dry-run-push",
+      "title": "Plan preview branch migration push",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "push",
+        "--linked",
+        "--dry-run",
+        "--include-all",
+        "--password",
+        "{{ENV:SUPABASE_DB_PASSWORD}}",
+        "--debug"
+      ],
+      "dependsOn": [
+        "link-preview"
+      ],
+      "requiredOutputPatterns": [
+        "20260101000000"
+      ]
+    }
+  ]
+}

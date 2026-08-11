@@ -1,0 +1,136 @@
+{
+  "description": "exercise Storage API writes while verifying managed object metadata through SQL",
+  "plane": "service",
+  "requirements": [
+    "S3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create the runtime-only Storage bucket",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:error|panic)\\b"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve local service endpoints",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "upload",
+      "title": "Upload through the local Storage API",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "upload a representative local object",
+        "method": "POST",
+        "path": "/storage/v1/object/coverage-257/runtime.txt",
+        "credential": "service-role",
+        "headers": {
+          "content-type": "text/plain",
+          "x-upsert": "true"
+        },
+        "body": "case-257-object",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"(?:Key|key|Id|id)\""
+      },
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|stack trace)\\b"
+      ]
+    },
+    {
+      "id": "verify-data",
+      "title": "Verify Storage-managed metadata",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "upload"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "download",
+      "title": "Read the object through the local Storage API",
+      "kind": "http",
+      "dependsOn": [
+        "verify-data"
+      ],
+      "request": {
+        "description": "download the service-role protected object",
+        "method": "GET",
+        "path": "/storage/v1/object/coverage-257/runtime.txt",
+        "credential": "service-role",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "^case-257-object$",
+        "expectedHeaderPatterns": {
+          "content-type": "text/plain"
+        }
+      }
+    }
+  ]
+}

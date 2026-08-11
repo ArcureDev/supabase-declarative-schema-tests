@@ -64,6 +64,7 @@ export function loadRunnerConfig(scriptDirectory: string, args: string[]): Runne
     supabaseChecksum: pinnedChecksum.slice(0, 7),
     migrationsDirectory: join(scriptDirectory, "migrations"),
     transitionsDirectory: join(scriptDirectory, "transitions"),
+    coverageDirectory: join(scriptDirectory, "coverage"),
     runtimeTemplateDirectory,
     localDatabaseContainer: `supabase_db_${runtimeProjectId}`,
     localWorkRoot: join(scriptDirectory, ".tmp"),

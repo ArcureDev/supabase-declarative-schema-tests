@@ -1,0 +1,169 @@
+{
+  "description": "verify configured Data API schema exposure, RLS, views, computed fields, and RPC behavior",
+  "plane": "service",
+  "requirements": [
+    "X6"
+  ],
+  "sensitiveValues": [
+    "PGDELTA_DATA_API_SECRET_281"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the configured Data API runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset the Data API exposure fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Populate runtime API and private data",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "verify-catalog",
+      "title": "Verify exposed catalog data and ACLs",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve local runtime credentials",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "verify-catalog"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "table-read",
+      "title": "Require RLS-filtered table exposure",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "read only the published row",
+        "method": "GET",
+        "path": "/rest/v1/exposure_items_281?select=id,label&order=id",
+        "credential": "anon",
+        "headers": {
+          "Accept-Profile": "api_281"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\\[\\{\"id\":1,\"label\":\"visible-281\"\\}\\]",
+        "expectedHeaderPatterns": {
+          "content-profile": "api_281",
+          "content-type": "application/json"
+        }
+      },
+      "forbiddenOutputPatterns": [
+        "hidden-281",
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "view-read",
+      "title": "Require security-invoker view exposure",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "read an exposed security-invoker view",
+        "method": "GET",
+        "path": "/rest/v1/exposure_view_281?select=id,label,display_label_281&order=id",
+        "credential": "anon",
+        "headers": {
+          "Accept-Profile": "api_281"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"display_label_281\":\"VISIBLE-281\""
+      },
+      "forbiddenOutputPatterns": [
+        "hidden-281",
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    },
+    {
+      "id": "rpc-read",
+      "title": "Require invoker-safe RPC exposure",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "invoke an RLS-aware exposed RPC",
+        "method": "POST",
+        "path": "/rest/v1/rpc/exposure_summary_281",
+        "credential": "anon",
+        "headers": {
+          "Content-Profile": "api_281"
+        },
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"visible_count\"\\s*:\\s*1"
+      },
+      "forbiddenOutputPatterns": [
+        "hidden-281",
+        "PGDELTA_DATA_API_SECRET_281"
+      ]
+    }
+  ]
+}

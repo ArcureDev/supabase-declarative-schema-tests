@@ -1,0 +1,132 @@
+{
+  "description": "Apply the same declaration with pg-delta next and legacy in isolated reset states, proving the phase-level engine override.",
+  "plane": "config",
+  "requirements": [
+    "C5"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset pg-delta flag fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "next-sync",
+      "title": "Apply declaration with pg-delta next",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "Using pg-delta next implementation"
+      ],
+      "forbiddenOutputPatterns": [
+        "Using pg-delta legacy implementation"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Assert pg-delta next result",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "next-sync"
+      ]
+    },
+    {
+      "id": "clear-next-migration",
+      "title": "Remove next-engine migration before legacy comparison",
+      "kind": "script",
+      "file": "clear-generated.mts",
+      "dependsOn": [
+        "verify"
+      ]
+    },
+    {
+      "id": "legacy-reset",
+      "title": "Reset before the legacy comparison",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "clear-next-migration"
+      ]
+    },
+    {
+      "id": "legacy-sync",
+      "title": "Apply declaration with pg-delta legacy",
+      "kind": "supabase",
+      "engine": "legacy",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "legacy-reset"
+      ],
+      "requiredOutputPatterns": [
+        "Using pg-delta legacy implementation"
+      ],
+      "forbiddenOutputPatterns": [
+        "Using pg-delta next implementation"
+      ]
+    },
+    {
+      "id": "verify-legacy",
+      "title": "Assert pg-delta legacy result",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "legacy-sync"
+      ]
+    }
+  ]
+}

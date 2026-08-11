@@ -1,11 +1,19 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "pg-net-webhook-replacement.sql",
-  "description": "replace a pg_net webhook function without invoking an external endpoint",
+  "description": "replace a pg_net wrapper while preserving function, trigger, table, and ACL identity",
   "requiredMigrationPatterns": [
     {
       "description": "replace only the webhook function",
       "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.notify_transition_229\\s*\\(\\s*\\)"
+    },
+    {
+      "description": "emit the v2 webhook target",
+      "pattern": "transition-229-v2"
+    },
+    {
+      "description": "emit the new timeout",
+      "pattern": "\\btimeout_milliseconds\\s*(?::=|=>)\\s*2000\\b"
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -20,6 +28,10 @@
     {
       "description": "do not create, alter, or drop the net schema",
       "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?net\\b"
+    },
+    {
+      "description": "do not alter trigger state or object ACLs",
+      "pattern": "\\b(?:alter\\s+trigger|(?:enable|disable)\\s+trigger|(?:grant|revoke)\\b[\\s\\S]{0,140}\\b(?:notify_transition_229|webhook_events_229)\\b)"
     }
   ]
 }

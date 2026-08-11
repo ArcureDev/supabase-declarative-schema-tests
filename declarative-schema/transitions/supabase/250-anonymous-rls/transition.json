@@ -1,0 +1,22 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "anonymous-rls.sql",
+  "description": "add an explicit anonymous-user policy without weakening registered-user isolation",
+  "requirements": ["A1"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "creates the anonymous owned-draft policy",
+      "pattern": "\\bcreate\\s+policy\\s+anonymous_owned_drafts_250\\s+on\\s+public\\.anonymous_drafts_250\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter Auth-managed objects",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bauth\\s*\\."
+    },
+    {
+      "description": "does not remove registered-user protection",
+      "pattern": "\\b(?:drop\\s+policy|disable\\s+row\\s+level\\s+security|drop\\s+table)\\b"
+    }
+  ]
+}

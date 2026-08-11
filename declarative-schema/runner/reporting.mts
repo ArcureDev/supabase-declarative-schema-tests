@@ -1,6 +1,6 @@
 import { existsSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
-import { sensitiveRepresentations } from "./sensitive.mts";
+import { redactSensitiveText } from "./sensitive.mts";
 import { legacyProjectStatus, projectStatus, requiresFallback, versionResultStatus } from "./status.mts";
 import type {
   CommandResult,
@@ -24,12 +24,7 @@ export function createReportPath(reportsDirectory: string, now = new Date()): st
 }
 
 export function redactSensitiveValues(text: string, sensitiveValues: string[]): string {
-  return [...new Set(sensitiveValues.flatMap(sensitiveRepresentations))]
-    .sort((left, right) => right.length - left.length)
-    .reduce((redacted, value) => {
-      const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      return redacted.replace(new RegExp(escaped, "gi"), "[REDACTED]");
-    }, text);
+  return redactSensitiveText(text, sensitiveValues);
 }
 
 export function markdownForCommand(result: CommandResult): string[] {
@@ -88,6 +83,7 @@ function projectCommandResults(result: ProjectResult): CommandResult[] {
     result.syncVerification,
     result.legacySync,
     result.legacySyncVerification,
+    ...(result.phaseResults ?? []).map((phase) => phase.commandResult),
   ].filter((commandResult) => commandResult !== undefined);
   return result.legacyTransition
     ? [...commands, ...projectCommandResults(result.legacyTransition)]
@@ -194,6 +190,13 @@ export function renderReport(
 
   for (const result of results) {
     lines.push(`## Case: ${result.name}`, "");
+    if (result.kind === "coverage") {
+      lines.push(
+        `- Coverage: ${result.coverageDescription ?? result.name}`,
+        `- Requirements: ${(result.coverageRequirements ?? []).map((requirement) => `\`${requirement}\``).join(", ")}`,
+        "",
+      );
+    }
     const hasIssue = [
       result.runtimeStart,
       result.reset,
@@ -213,6 +216,7 @@ export function renderReport(
       result.syncVerification,
       result.legacySync,
       result.legacySyncVerification,
+      ...(result.phaseResults ?? []).map((phase) => phase.commandResult),
     ].some((commandResult) => commandResult && requiresFallback(commandResult));
 
     if (result.kind === "transition") {
@@ -281,7 +285,7 @@ export function renderReport(
           "",
         );
       }
-    } else if (hasIssue) {
+    } else if (result.kind === "snapshot" && hasIssue) {
       lines.push("### Fixture migration SQL", "", "```sql", result.migrationSql, "```", "");
     }
 
@@ -334,14 +338,16 @@ export function renderReport(
     if (result.baselineState) {
       lines.push("### Baseline state capture", "", ...markdownForCommand(result.baselineState), "");
     }
-    lines.push(
-      "",
-      "### Sync (pg-delta next)",
-      "",
-      ...markdownForCommand(result.sync),
-      commandResultMarker(result.name, "next", "sync", result.sync),
-      "",
-    );
+    if (result.kind !== "coverage") {
+      lines.push(
+        "",
+        "### Sync (pg-delta next)",
+        "",
+        ...markdownForCommand(result.sync),
+        commandResultMarker(result.name, "next", "sync", result.sync),
+        "",
+      );
+    }
     if (result.transitionRepeatSync) {
       lines.push(
         "### Repeat sync and deterministic comparison",
@@ -429,6 +435,16 @@ export function renderReport(
         ),
         "",
       );
+    }
+    if (result.phaseResults) {
+      for (const phase of result.phaseResults) {
+        lines.push(
+          `### ${phase.title} (${phase.plane} plane)`,
+          "",
+          ...markdownForCommand(phase.commandResult),
+          "",
+        );
+      }
     }
     if (result.legacyTransition) {
       lines.push(...markdownForLegacyTransition(result.name, result.legacyTransition));

@@ -1,0 +1,62 @@
+{
+  "description": "prove repeated local startup and platform configuration leave a converged application declaration and managed identities unchanged",
+  "plane": "config",
+  "requirements": ["M3"],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop the prior shared runtime",
+      "kind": "supabase",
+      "args": ["stop", "--no-backup"]
+    },
+    {
+      "id": "start",
+      "title": "Start the configured local platform",
+      "kind": "supabase",
+      "args": ["start", "--debug"],
+      "dependsOn": ["stop"]
+    },
+    {
+      "id": "reset",
+      "title": "Reset platform-managed state",
+      "kind": "supabase",
+      "args": ["db", "reset", "--local", "--no-seed", "--debug"],
+      "dependsOn": ["start"]
+    },
+    {
+      "id": "apply",
+      "title": "Apply the application declaration",
+      "kind": "supabase",
+      "args": ["db", "schema", "declarative", "sync", "--apply", "--name", "config_drift_247", "--debug"],
+      "dependsOn": ["reset"]
+    },
+    {
+      "id": "snapshot",
+      "title": "Capture managed and application identities",
+      "kind": "sql",
+      "file": "snapshot.sql",
+      "dependsOn": ["apply"]
+    },
+    {
+      "id": "restart",
+      "title": "Repeat startup as a configuration no-op",
+      "kind": "supabase",
+      "args": ["start", "--debug"],
+      "dependsOn": ["snapshot"]
+    },
+    {
+      "id": "converge",
+      "title": "Require an empty declarative diff",
+      "kind": "supabase",
+      "args": ["db", "schema", "declarative", "sync", "--no-apply", "--debug"],
+      "dependsOn": ["restart"]
+    },
+    {
+      "id": "verify",
+      "title": "Verify identities and configured database version",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": ["converge"]
+    }
+  ]
+}

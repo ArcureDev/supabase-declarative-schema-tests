@@ -1,0 +1,34 @@
+{
+  "description": "Capture the pinned Supabase CLI version and the declarative command surface as report evidence without starting services.",
+  "plane": "config",
+  "requirements": [
+    "C5"
+  ],
+  "phases": [
+    {
+      "id": "version",
+      "title": "Capture Supabase CLI version",
+      "kind": "supabase",
+      "args": [
+        "--version"
+      ],
+      "requiredOutputPatterns": [
+        "\\d+\\.\\d+\\.\\d+(?:-[A-Za-z0-9.]+)?"
+      ]
+    },
+    {
+      "id": "declarative-help",
+      "title": "Capture declarative command surface",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "--help"
+      ],
+      "dependsOn": [
+        "version"
+      ]
+    }
+  ]
+}

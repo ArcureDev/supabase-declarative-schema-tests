@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "storage-reference-helpers.sql",
+  "description": "evolve an ACL-safe wrapper around Storage path reference helpers",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the helper wrapper in place",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.storage_path_facts_256\\s*\\(\\s*(?:path\\s+)?text\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the wrapper identity",
+      "pattern": "\\bdrop\\s+function\\s+(?:if\\s+exists\\s+)?public\\.storage_path_facts_256\\b"
+    },
+    {
+      "description": "does not mutate managed Storage helpers",
+      "pattern": "\\b(?:create|alter|drop)\\s+function\\s+storage\\.(?:filename|foldername|extension)\\b"
+    },
+    {
+      "description": "does not replace preserved data tables",
+      "pattern": "\\b(?:drop|create)\\s+table\\s+public\\.(?:transition_anchor|storage_helper_probe_256)\\b"
+    }
+  ]
+}

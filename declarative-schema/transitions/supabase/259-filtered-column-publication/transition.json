@@ -1,0 +1,33 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "filtered-column-publication.sql",
+  "description": "narrow a Realtime publication membership to selected columns and rows",
+  "requiredMigrationPatterns": [
+    {
+      "description": "changes the managed publication membership",
+      "pattern": "\\balter\\s+publication\\s+supabase_realtime\\b"
+    },
+    {
+      "description": "emits the publication column list",
+      "pattern": "\\(\\s*id\\s*,\\s*tenant_id\\s*\\)"
+    },
+    {
+      "description": "emits the publication row filter",
+      "pattern": "\\bwhere\\s*\\(\\s*tenant_id\\s*>\\s*0\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the managed publication",
+      "pattern": "\\b(?:drop|create)\\s+publication\\s+supabase_realtime\\b"
+    },
+    {
+      "description": "does not replace the populated source table",
+      "pattern": "\\b(?:drop|create)\\s+table\\s+public\\.realtime_filtered_259\\b"
+    },
+    {
+      "description": "does not delete filtered-out source rows",
+      "pattern": "\\b(?:delete|truncate)\\b[\\s\\S]{0,100}\\bpublic\\.realtime_filtered_259\\b"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "description": "surface a deterministic unavailable-remote HTTP diagnostic without making a network request",
+  "plane": "service",
+  "requirements": [
+    "X4"
+  ],
+  "sensitiveValues": [
+    "PGDELTA_REMOTE_TOKEN_279"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local API runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_REMOTE_TOKEN_279"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset the unavailable-remote fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_REMOTE_TOKEN_279"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Install the no-network diagnostic fixture",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_REMOTE_TOKEN_279",
+        "https?://"
+      ]
+    },
+    {
+      "id": "verify-catalog",
+      "title": "Verify diagnostic ACL and runtime data",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_REMOTE_TOKEN_279"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve local runtime credentials",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "verify-catalog"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_REMOTE_TOKEN_279"
+      ]
+    },
+    {
+      "id": "unavailable",
+      "title": "Require the stable unavailable diagnostic",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "invoke the controlled no-network remote probe",
+        "method": "POST",
+        "path": "/rest/v1/rpc/probe_remote_279",
+        "credential": "anon",
+        "body": {},
+        "expectedStatus": 503,
+        "expectedBodyPattern": "\"code\":\"PT503\"[\\s\\S]*\"message\":\"REMOTE_UNAVAILABLE_279\"",
+        "expectedHeaderPatterns": {
+          "content-type": "application/json"
+        }
+      },
+      "requiredOutputPatterns": [
+        "REMOTE_UNAVAILABLE_279"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_REMOTE_TOKEN_279",
+        "connection refused",
+        "name or service not known"
+      ]
+    }
+  ]
+}

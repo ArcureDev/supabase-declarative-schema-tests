@@ -1,0 +1,47 @@
+{
+  "description": "Dry-run a linked database push with no local migrations. Requires SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_ID, and SUPABASE_DB_PASSWORD for a disposable project; never mutates the target.",
+  "plane": "remote",
+  "requirements": [
+    "C3"
+  ],
+  "requiredEnvironment": [
+    "SUPABASE_ACCESS_TOKEN",
+    "SUPABASE_PROJECT_ID",
+    "SUPABASE_DB_PASSWORD"
+  ],
+  "phases": [
+    {
+      "id": "link",
+      "title": "Link the disposable remote project",
+      "kind": "supabase",
+      "args": [
+        "link",
+        "--project-ref",
+        "{{ENV:SUPABASE_PROJECT_ID}}",
+        "--password",
+        "{{ENV:SUPABASE_DB_PASSWORD}}",
+        "--debug"
+      ]
+    },
+    {
+      "id": "dry-run",
+      "title": "Verify linked remote is a no-op",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "push",
+        "--linked",
+        "--dry-run",
+        "--password",
+        "{{ENV:SUPABASE_DB_PASSWORD}}",
+        "--debug"
+      ],
+      "dependsOn": [
+        "link"
+      ],
+      "requiredOutputPatterns": [
+        "up to date|no migrations|finished supabase db push"
+      ]
+    }
+  ]
+}

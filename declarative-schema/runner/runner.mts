@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { runCommandTask, runSupabase } from "./commands.mts";
+import { runCoverageCase } from "./coverage-case.mts";
 import { discoverCases, requirePathInside } from "./files.mts";
 import { createReportPath, writeReport } from "./reporting.mts";
 import {
@@ -143,7 +144,27 @@ export async function runDeclarativeSchema(
   if (availableCases.length === 0) {
     throw new Error("Expected at least one schema case.");
   }
-  const selectedCases = selectCases(config, args, availableCases);
+  const planeArgument = args.find((argument) => argument.startsWith("--plane="));
+  const requestedPlane = planeArgument?.slice("--plane=".length);
+  const validPlanes = new Set(["ddl", "service", "functions", "config", "remote"]);
+  if (requestedPlane && !validPlanes.has(requestedPlane)) {
+    throw new Error(`Invalid coverage plane: ${requestedPlane}.`);
+  }
+  // Remote cases are deliberately invisible unless the caller opts in; a
+  // normal all-cases run must never mutate a linked project by accident.
+  let selectableCases = args.includes("--remote")
+    ? availableCases
+    : availableCases.filter(
+        (testCase) => testCase.kind !== "coverage" || !testCase.remote,
+      );
+  if (requestedPlane) {
+    selectableCases = selectableCases.filter((testCase) =>
+      requestedPlane === "ddl"
+        ? testCase.kind !== "coverage"
+        : testCase.kind === "coverage" && testCase.plane === requestedPlane
+    );
+  }
+  const selectedCases = selectCases(config, args, selectableCases);
 
   mkdirSync(config.localWorkRoot, { recursive: true });
   const runDirectory = mkdtempSync(join(config.localWorkRoot, "run-"));
@@ -178,6 +199,8 @@ export async function runDeclarativeSchema(
       let result: ProjectResult;
       if (testCase.kind === "snapshot") {
         result = await runSnapshotCase(testCase, context);
+      } else if (testCase.kind === "coverage") {
+        result = await runCoverageCase(testCase, context);
       } else {
         result = await runTransitionCase(testCase, context);
         if (projectFailed(result)) {

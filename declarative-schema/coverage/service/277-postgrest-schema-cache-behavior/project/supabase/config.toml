@@ -1,0 +1,33 @@
+project_id = "ds-shared-runtime"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55000
+shadow_port = 55100
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[analytics]
+enabled = false
+
+[experimental.pgdelta]
+enabled = true
+declarative_schema_path = "./database"

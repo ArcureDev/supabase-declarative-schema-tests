@@ -1,0 +1,43 @@
+{
+  "description": "Capture local CLI evidence, then connect to the reserved closed loopback port and require a fast, explicit offline diagnostic.",
+  "plane": "config",
+  "requirements": [
+    "C5"
+  ],
+  "phases": [
+    {
+      "id": "version",
+      "title": "Capture offline CLI evidence",
+      "kind": "supabase",
+      "args": [
+        "--version"
+      ]
+    },
+    {
+      "id": "offline-diagnostic",
+      "title": "Capture unreachable database diagnostic",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "generate",
+        "--db-url",
+        "postgresql://127.0.0.1:1/postgres",
+        "--output",
+        "./offline-output",
+        "--overwrite",
+        "--debug"
+      ],
+      "dependsOn": [
+        "version"
+          ],
+          "acceptStatuses": [
+            "ERROR"
+          ],
+          "requiredOutputPatterns": [
+            "ECONNREFUSED|connection refused|dial error"
+      ]
+    }
+  ]
+}

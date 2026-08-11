@@ -1,11 +1,11 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "auth-uid-policy-hardening.sql",
-  "description": "harden an auth.uid policy and add update access without modifying Auth-managed objects",
+  "description": "preserve policy identity while hardening auth.uid checks and adding only update access",
   "requiredMigrationPatterns": [
     {
       "description": "alter the Auth-facing policy",
-      "pattern": "\\balter\\s+policy\\s+auth_owned_documents_226\\s+on\\s+public\\.auth_documents_226\\b"
+      "pattern": "\\balter\\s+policy\\s+auth_owned_documents_226\\s+on\\s+public\\.auth_documents_226\\b[\\s\\S]{0,500}\\barchived\\b"
     },
     {
       "description": "grant update access",
@@ -23,7 +23,11 @@
     },
     {
       "description": "do not weaken or recreate security",
-      "pattern": "\\b(?:drop\\s+policy|disable\\s+row\\s+level\\s+security|revoke|drop\\s+table)\\b"
+      "pattern": "\\b(?:create\\s+policy|drop\\s+policy|disable\\s+row\\s+level\\s+security|revoke|drop\\s+table)\\b"
+    },
+    {
+      "description": "do not replace or change ownership of the application table",
+      "pattern": "\\b(?:create\\s+table\\s+public\\.auth_documents_226|alter\\s+table\\s+public\\.auth_documents_226\\s+owner)\\b"
     }
   ]
 }

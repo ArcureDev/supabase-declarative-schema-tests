@@ -1,0 +1,22 @@
+{
+  "expectation": "expected-unsupported",
+  "declarativeFile": "extension-absence-version-diagnostic.sql",
+  "description": "report an unavailable extension version without dropping the installed extension or application state",
+  "requirements": ["M4"],
+  "requiredDiagnosticPatterns": [
+    {
+      "description": "identifies the unavailable hstore version",
+      "pattern": "\\b(?:hstore|extension)\\b[\\s\\S]{0,200}\\b(?:version|update path|installation script|available)\\b"
+    }
+  ],
+  "forbiddenDiagnosticPatterns": [
+    {
+      "description": "does not emit destructive recovery SQL",
+      "pattern": "\\bdrop\\s+(?:extension|table|schema)\\b|\\bcascade\\b"
+    },
+    {
+      "description": "does not panic",
+      "pattern": "\\b(?:panic|segmentation fault)\\b"
+    }
+  ]
+}

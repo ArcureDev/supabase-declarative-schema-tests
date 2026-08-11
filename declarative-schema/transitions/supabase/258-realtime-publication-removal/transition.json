@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "realtime-publication-removal.sql",
+  "description": "remove a populated table from Supabase Realtime without replacing it",
+  "requiredMigrationPatterns": [
+    {
+      "description": "removes only the table membership",
+      "pattern": "\\balter\\s+publication\\s+supabase_realtime\\s+drop\\s+table\\s+public\\.realtime_feed_258\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace the managed publication",
+      "pattern": "\\b(?:drop|create)\\s+publication\\s+supabase_realtime\\b"
+    },
+    {
+      "description": "does not replace the populated table",
+      "pattern": "\\b(?:drop|create)\\s+table\\s+public\\.realtime_feed_258\\b"
+    },
+    {
+      "description": "does not change replica identity",
+      "pattern": "\\balter\\s+table\\s+public\\.realtime_feed_258\\s+replica\\s+identity\\b"
+    }
+  ]
+}

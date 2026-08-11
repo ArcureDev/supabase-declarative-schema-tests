@@ -1,0 +1,117 @@
+{
+  "description": "exercise deterministic default and requested versions in a local Edge Function",
+  "plane": "functions",
+  "requirements": [
+    "E4"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Record the expected function contract",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Functions gateway",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "default-version",
+      "title": "Request the default function version",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "invoke the default local function behavior",
+        "method": "GET",
+        "path": "/functions/v1/version-boundary-267",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"version\"\\s*:\\s*\"267-v1\"",
+        "expectedHeaderPatterns": {
+          "x-function-version": "^267-v1$"
+        }
+      }
+    },
+    {
+      "id": "requested-version",
+      "title": "Request the explicit v2 behavior",
+      "kind": "http",
+      "dependsOn": [
+        "default-version"
+      ],
+      "request": {
+        "description": "invoke the explicit local v2 behavior",
+        "method": "GET",
+        "path": "/functions/v1/version-boundary-267",
+        "headers": {
+          "x-case-version": "267-v2"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"version\"\\s*:\\s*\"267-v2\"",
+        "expectedHeaderPatterns": {
+          "x-function-version": "^267-v2$"
+        }
+      }
+    }
+  ]
+}

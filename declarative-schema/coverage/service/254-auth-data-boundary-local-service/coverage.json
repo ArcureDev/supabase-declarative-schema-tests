@@ -1,0 +1,81 @@
+{
+  "description": "create email and anonymous Auth records through local HTTP behavior and assert provider state remains service data",
+  "plane": "service",
+  "requirements": ["A5"],
+  "sensitiveValues": ["ServicePassword-254!"],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop the prior configured runtime",
+      "kind": "supabase",
+      "args": ["stop", "--no-backup"]
+    },
+    {
+      "id": "start",
+      "title": "Start local Auth with anonymous sign-in",
+      "kind": "supabase",
+      "args": ["start", "--debug"],
+      "dependsOn": ["stop"]
+    },
+    {
+      "id": "reset",
+      "title": "Reset Auth service data",
+      "kind": "supabase",
+      "args": ["db", "reset", "--local", "--no-seed", "--debug"],
+      "dependsOn": ["start"]
+    },
+    {
+      "id": "setup",
+      "title": "Create an application boundary anchor",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": ["reset"]
+    },
+    {
+      "id": "status",
+      "title": "Resolve local Auth endpoint and keys",
+      "kind": "runtime-status",
+      "dependsOn": ["setup"]
+    },
+    {
+      "id": "email-signup",
+      "title": "Create an email identity through Auth",
+      "kind": "http",
+      "dependsOn": ["status"],
+      "request": {
+        "description": "sign up a local email user",
+        "method": "POST",
+        "path": "/auth/v1/signup",
+        "credential": "anon",
+        "body": {
+          "email": "service-user-254@example.test",
+          "password": "ServicePassword-254!"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"email\"\\s*:\\s*\"service-user-254@example\\.test\""
+      }
+    },
+    {
+      "id": "anonymous-signup",
+      "title": "Create an anonymous Auth identity",
+      "kind": "http",
+      "dependsOn": ["email-signup"],
+      "request": {
+        "description": "sign up a local anonymous user",
+        "method": "POST",
+        "path": "/auth/v1/signup",
+        "credential": "anon",
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"is_anonymous\"\\s*:\\s*true"
+      }
+    },
+    {
+      "id": "verify",
+      "title": "Assert Auth records and provider boundary",
+      "kind": "sql",
+      "file": "verify-auth-data.sql",
+      "dependsOn": ["anonymous-signup"]
+    }
+  ]
+}

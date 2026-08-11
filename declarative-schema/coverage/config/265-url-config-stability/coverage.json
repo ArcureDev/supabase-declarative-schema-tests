@@ -1,0 +1,113 @@
+{
+  "description": "hold local API URL configuration stable across status and Data API phases",
+  "plane": "config",
+  "requirements": [
+    "E3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create a config-visible Data API probe",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "status-before",
+      "title": "Capture configured local URLs",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL",
+        "127\\.0\\.0\\.1:54321"
+      ],
+      "forbiddenOutputPatterns": [
+        "invalid\\.example"
+      ]
+    },
+    {
+      "id": "read",
+      "title": "Read through the configured API URL",
+      "kind": "http",
+      "dependsOn": [
+        "status-before"
+      ],
+      "request": {
+        "description": "read the config probe through PostgREST",
+        "method": "GET",
+        "path": "/rest/v1/config_probe_265?select=id,value&id=eq.265",
+        "credential": "anon",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"value\"\\s*:\\s*\"configured-url\""
+      }
+    },
+    {
+      "id": "status-after",
+      "title": "Confirm URL output remains stable",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "read"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL",
+        "127\\.0\\.0\\.1:54321"
+      ],
+      "forbiddenOutputPatterns": [
+        "invalid\\.example"
+      ]
+    }
+  ]
+}

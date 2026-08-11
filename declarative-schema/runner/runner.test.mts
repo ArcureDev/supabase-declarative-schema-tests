@@ -44,6 +44,7 @@ function testConfig(root: string): RunnerConfig {
     supabaseChecksum: "abcdef0",
     migrationsDirectory: join(scriptDirectory, "migrations"),
     transitionsDirectory: join(scriptDirectory, "transitions"),
+    coverageDirectory: join(scriptDirectory, "coverage"),
     runtimeTemplateDirectory: join(scriptDirectory, "runtime"),
     localDatabaseContainer: "supabase_db_test",
     localWorkRoot: join(scriptDirectory, ".tmp"),

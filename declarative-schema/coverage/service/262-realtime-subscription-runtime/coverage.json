@@ -1,0 +1,122 @@
+{
+  "description": "verify a publication-backed Realtime subscription boundary and local tenant health",
+  "plane": "service",
+  "requirements": [
+    "R4"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create a publication-backed subscription source",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Realtime gateway",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "health",
+      "title": "Probe the authenticated Realtime tenant",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "query the local Realtime tenant health route",
+        "method": "GET",
+        "path": "/realtime/v1/api/tenants/realtime-dev/health",
+        "credential": "anon",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "(?:healthy|ok)"
+      },
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|stack trace)\\b"
+      ]
+    },
+    {
+      "id": "subscription",
+      "title": "Receive an inserted row over Realtime",
+      "kind": "script",
+      "file": "subscribe.mts",
+      "dependsOn": [
+        "health"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true",
+        "\"event\"\\s*:\\s*\"INSERT\""
+      ]
+    },
+    {
+      "id": "verify-publication",
+      "title": "Verify subscription metadata remains eligible",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "subscription"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    }
+  ]
+}

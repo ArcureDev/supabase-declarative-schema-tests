@@ -38,6 +38,7 @@ export function projectStatus(result: ProjectResult): ProjectStatus {
       result.transitionRetry,
       result.transitionVerification,
       result.syncVerification,
+      ...(result.phaseResults ?? []).map((phase) => phase.commandResult),
     ].filter((commandResult) => commandResult !== undefined),
   );
 }

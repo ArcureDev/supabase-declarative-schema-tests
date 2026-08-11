@@ -58,6 +58,31 @@ unchanged. These profiles keep production, advanced PostgreSQL, managed-boundary
 and compound project cases data-driven instead of adding one runner branch per
 fixture.
 
+Supabase coverage beyond portable DDL uses numbered cases under `coverage/`.
+These cases share the same selection and reporting flow but execute an ordered
+set of typed phases in one explicit plane:
+
+- `service` for local Auth, Storage, Realtime, PostgREST, and other HTTP behavior;
+- `functions` for local Edge Function serving and invocation behavior;
+- `config` for `config.toml`, seeds, multi-file input, and CLI lifecycle behavior;
+- `remote` for explicitly opted-in linked or hosted disposable projects.
+
+The checked-in catalog contains 296 cases: 180 snapshots, 86 transitions, and
+30 multi-plane coverage cases. Cases 245–296 implement the Supabase requirement
+map across DDL and companion product behavior.
+
+The phase pipeline is an internal runner abstraction, not CI. A phase declares
+its dependencies so a failed prerequisite skips only its consumers while
+independent evidence and cleanup can still run. Local coverage projects must
+reuse the shared runtime `project_id`; this prevents a case from leaving an
+untracked Supabase stack running. Remote cases are excluded unless `--remote`
+is supplied. A Supabase phase can also select `next` or `legacy` explicitly when
+a feature-flag comparison requires both engines in one case.
+
+`supabase-requirements.json` maps the 35 Supabase roadmap requirements to their
+case IDs and required planes. Its status is evidence, not inventory: creating a
+fixture does not by itself mark a requirement complete.
+
 A command that exits with code 0 but emits `code=unmodeled_kind` is recorded as
 a warning rather than an error. Because pg-delta explicitly omitted an
 unsupported object from the exported declarative schema, the safety behavior is
@@ -203,6 +228,25 @@ Options can be combined:
 ```powershell
 npm run declarative-schema -- --case=18 --verbose
 ```
+
+To run one coverage plane:
+
+```powershell
+npm run declarative-schema:ddl
+npm run declarative-schema:behavior
+npm run declarative-schema:functions
+npm run declarative-schema:config
+```
+
+Remote cases require both an explicit opt-in and the environment variables
+declared by their manifests:
+
+```powershell
+npm run declarative-schema:remote
+```
+
+Never point remote coverage cases at production. They are designed for
+disposable projects or preview branches with deterministic teardown.
 
 Command output remains captured in that run's timestamped file under `reports/`
 so errors can be reviewed later without overwriting earlier results. The exact

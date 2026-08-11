@@ -1,0 +1,107 @@
+{
+  "description": "schedule and diagnose a pg_cron job as runtime-only state",
+  "plane": "service",
+  "requirements": [
+    "V2"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create the runtime-only Cron schedule",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Data API",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "diagnose",
+      "title": "Read the service-only Cron diagnostic",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "query the scheduled job without waiting for execution",
+        "method": "POST",
+        "path": "/rest/v1/rpc/cron_diagnostic_269",
+        "credential": "service-role",
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"jobname\"\\s*:\\s*\"coverage-269\""
+      }
+    },
+    {
+      "id": "cleanup",
+      "title": "Remove runtime-only Cron state",
+      "kind": "sql",
+      "file": "cleanup.sql",
+      "dependsOn": [
+        "diagnose"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "vault-backed-webhook-redaction.sql",
+  "description": "evolve a Vault-backed pg_net webhook without exporting secret data",
+  "sensitiveValues": [
+    "VAULT_WEBHOOK_SECRET_264"
+  ],
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces only the Vault-backed webhook helper",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.dispatch_vault_webhook_264\\s*\\(\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "never emits the decrypted secret",
+      "pattern": "vault_webhook_secret_264"
+    },
+    {
+      "description": "does not manage Vault data",
+      "pattern": "\\b(?:insert|update|delete)\\b[\\s\\S]{0,100}\\bvault\\.(?:secrets|decrypted_secrets)\\b"
+    },
+    {
+      "description": "does not recreate webhook or source identities",
+      "pattern": "\\b(?:drop\\s+(?:trigger|function|table)|create\\s+trigger)\\b"
+    },
+    {
+      "description": "does not use an external endpoint",
+      "pattern": "https?://(?!127\\.0\\.0\\.1)"
+    }
+  ]
+}

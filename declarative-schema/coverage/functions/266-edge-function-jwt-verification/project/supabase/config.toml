@@ -1,0 +1,46 @@
+project_id = "ds-shared-runtime"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+
+[db]
+port = 55000
+shadow_port = 55100
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:54321/local-only"
+additional_redirect_urls = ["http://127.0.0.1:54321/mock-callback"]
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[analytics]
+enabled = false
+
+
+[functions.jwt-boundary-266]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/jwt-boundary-266/index.ts"

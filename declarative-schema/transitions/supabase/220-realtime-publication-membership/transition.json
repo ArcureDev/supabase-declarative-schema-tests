@@ -1,7 +1,7 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "realtime-publication-membership.sql",
-  "description": "add a populated table to Supabase Realtime with full replica identity",
+  "description": "preserve a populated table and publication identity while enabling full-row Realtime replication",
   "requiredMigrationPatterns": [
     {
       "description": "set full replica identity",
@@ -20,6 +20,14 @@
     {
       "description": "do not recreate the managed publication",
       "pattern": "\\bcreate\\s+publication\\s+supabase_realtime\\b"
+    },
+    {
+      "description": "do not remove tables from the managed publication",
+      "pattern": "\\balter\\s+publication\\s+supabase_realtime\\s+drop\\s+table\\b"
+    },
+    {
+      "description": "do not change table ownership or ACLs",
+      "pattern": "\\b(?:alter\\s+table\\s+public\\.realtime_feed_220\\s+owner|(?:grant|revoke)\\b[\\s\\S]{0,120}\\bpublic\\.realtime_feed_220\\b)"
     }
   ]
 }

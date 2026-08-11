@@ -1,11 +1,11 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "realtime-message-policy-hardening.sql",
-  "description": "scope Realtime private-channel authorization to the authenticated user",
+  "description": "preserve Realtime policy and relation identity while scoping private channels to auth.uid",
   "requiredMigrationPatterns": [
     {
       "description": "alter the supported Realtime policy",
-      "pattern": "\\balter\\s+policy\\s+transition_realtime_receive_228\\s+on\\s+realtime\\.messages\\b"
+      "pattern": "\\balter\\s+policy\\s+transition_realtime_receive_228\\s+on\\s+realtime\\.messages\\b[\\s\\S]{0,500}\\brealtime\\.topic\\b[\\s\\S]{0,300}\\bauth\\.uid\\b"
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -18,8 +18,16 @@
       "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?realtime\\b"
     },
     {
-      "description": "do not drop the policy",
-      "pattern": "\\bdrop\\s+policy\\b"
+      "description": "do not recreate or drop the policy",
+      "pattern": "\\b(?:create|drop)\\s+policy\\b"
+    },
+    {
+      "description": "do not mutate Realtime service data",
+      "pattern": "\\b(?:insert\\s+into|update|delete\\s+from)\\s+realtime\\.messages\\b"
+    },
+    {
+      "description": "do not change Realtime ownership or ACLs",
+      "pattern": "\\b(?:alter\\s+table\\s+realtime\\.messages\\s+owner|(?:grant|revoke)\\b[\\s\\S]{0,120}\\brealtime\\.messages\\b)"
     }
   ]
 }

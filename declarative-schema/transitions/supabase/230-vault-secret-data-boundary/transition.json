@@ -1,12 +1,20 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "vault-secret-data-boundary.sql",
-  "description": "replace a Vault-backed wrapper without exporting or changing secret data",
+  "description": "preserve Vault secret and wrapper identity while adding a non-secret bearer prefix",
   "sensitiveValues": ["PGDELTA_VAULT_SECRET_230"],
   "requiredMigrationPatterns": [
     {
       "description": "replace only the Vault wrapper",
       "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_vault_header_230\\s*\\(\\s*\\)"
+    },
+    {
+      "description": "retain the Vault lookup in the wrapper",
+      "pattern": "\\bvault\\.decrypted_secrets\\b"
+    },
+    {
+      "description": "add only the bearer prefix",
+      "pattern": "'bearer\\s+'"
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -29,6 +37,10 @@
     {
       "description": "do not drop Vault or expose the wrapper",
       "pattern": "\\bdrop\\s+extension\\b|\\bgrant\\s+execute\\b[\\s\\S]*\\bto\\s+(?:public|anon|authenticated)\\b"
+    },
+    {
+      "description": "do not replace the wrapper or change its owner",
+      "pattern": "\\b(?:drop\\s+function\\s+public\\.transition_vault_header_230|alter\\s+function\\s+public\\.transition_vault_header_230\\b[\\s\\S]{0,80}\\bowner)\\b"
     }
   ]
 }

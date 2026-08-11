@@ -4,10 +4,16 @@
   "private": true,
   "scripts": {
     "declarative-schema": "node --experimental-strip-types declarative-schema/run.mts",
-    "declarative-schema:unit": "node --experimental-strip-types --test declarative-schema/runner/assertions.test.mts declarative-schema/runner/fixture-catalog.test.mts declarative-schema/runner/help.test.mts declarative-schema/runner/runner.test.mts declarative-schema/runner/selection.test.mts",
+    "declarative-schema:ddl": "npm run declarative-schema -- --plane=ddl",
+    "declarative-schema:behavior": "npm run declarative-schema -- --plane=service",
+    "declarative-schema:functions": "npm run declarative-schema -- --plane=functions",
+    "declarative-schema:config": "npm run declarative-schema -- --plane=config",
+    "declarative-schema:remote": "npm run declarative-schema -- --plane=remote --remote",
+    "declarative-schema:unit": "node --experimental-strip-types --test declarative-schema/runner/*.test.mts",
     "typecheck": "tsc --project tsconfig.json"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^2.112.3",
     "@types/node": "^26.2.0",
     "listr2": "^9.0.5",
     "supabase": "https://pkg.pr.new/supabase/cli/supabase@f9bd2890b73b6084ac64753accabd34d97454eb3",

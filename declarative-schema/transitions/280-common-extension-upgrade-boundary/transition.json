@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "common-extension-upgrade-boundary.sql",
+  "description": "evolve application objects across common extensions without changing installed extension versions",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replace the normalization wrapper",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.normalize_label_280\\s*\\("
+    },
+    {
+      "description": "add the trigram GIN index",
+      "pattern": "\\bcreate\\s+index\\s+transition_extension_trgm_280\\b[\\s\\S]*\\busing\\s+gin\\b[\\s\\S]*\\bgin_trgm_ops\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not install, update, relocate, or drop extensions",
+      "pattern": "\\b(?:create|drop)\\s+extension\\b|\\balter\\s+extension\\b"
+    },
+    {
+      "description": "do not replace populated application data",
+      "pattern": "\\bdrop\\s+(?:table|column)\\b|\\btruncate\\b"
+    },
+    {
+      "description": "do not weaken the wrapper ACL",
+      "pattern": "\\bgrant\\s+execute\\b[\\s\\S]*\\bto\\s+(?:public|anon)\\b"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ import {
   rmSync,
 } from "node:fs";
 import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { discoverCoverageCases } from "./coverage-files.mts";
 import { compareCaseNames } from "./selection.mts";
 import type {
   ApplicableTransition,
@@ -274,6 +275,7 @@ function discoverTransitionCases(config: RunnerConfig): TransitionCase[] {
         requiredDiagnosticPatterns?: unknown;
         forbiddenDiagnosticPatterns?: unknown;
         sensitiveValues?: unknown;
+        requirements?: unknown;
       };
       if (
         typeof manifest.declarativeFile !== "string" ||
@@ -320,6 +322,21 @@ function discoverTransitionCases(config: RunnerConfig): TransitionCase[] {
       if (sensitiveValues === undefined) {
         throw new Error(`Invalid sensitiveValues in ${manifestPath}.`);
       }
+      const requirements =
+        manifest.requirements === undefined
+          ? []
+          : Array.isArray(manifest.requirements) &&
+              manifest.requirements.every(
+                (value) =>
+                  typeof value === "string" &&
+                  /^[A-Z][A-Z0-9]*$/.test(value),
+              ) &&
+              new Set(manifest.requirements).size === manifest.requirements.length
+            ? manifest.requirements as string[]
+            : undefined;
+      if (requirements === undefined) {
+        throw new Error(`Invalid requirements in ${manifestPath}.`);
+      }
       const fixture = {
         name: basename(directory),
         directory,
@@ -329,6 +346,7 @@ function discoverTransitionCases(config: RunnerConfig): TransitionCase[] {
         dataSetupPath,
         verificationPath,
         sensitiveValues,
+        requirements,
       };
 
       if (manifest.expectation === "rename-ambiguity-warning-or-refusal") {
@@ -582,7 +600,11 @@ export function discoverCases(config: RunnerConfig): TestCase[] {
       fileName: entry.name,
       name: entry.name.slice(0, -4),
     }));
-  return [...snapshots, ...discoverTransitionCases(config)].sort((left, right) =>
+  return [
+    ...snapshots,
+    ...discoverTransitionCases(config),
+    ...discoverCoverageCases(config),
+  ].sort((left, right) =>
     compareCaseNames(left.name, right.name),
   );
 }

@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pgvector-dimension-change-safety.sql",
+  "description": "constrain a populated unbounded vector column to a compatible dimension in place",
+  "requiredMigrationPatterns": [
+    {
+      "description": "constrain the embedding column to four dimensions",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.vector_dimensions_272\\b[\\s\\S]*\\balter\\s+(?:column\\s+)?embedding\\s+(?:set\\s+data\\s+)?type\\s+extensions\\.vector\\s*\\(\\s*4\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not replace populated vector state",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b|\\btruncate\\b"
+    },
+    {
+      "description": "do not recreate the populated table",
+      "pattern": "\\bcreate\\s+table\\s+public\\.vector_dimensions_272\\b"
+    }
+  ]
+}

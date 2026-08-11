@@ -1,0 +1,26 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "managed-boundary-retention.sql",
+  "description": "evolve an application wrapper and index while retaining managed identities and least-privilege grants",
+  "requirements": ["M2"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the Auth boundary wrapper in place",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.active_auth_user_246\\b"
+    },
+    {
+      "description": "adds the application alias index",
+      "pattern": "\\bcreate\\s+(?:unique\\s+)?index\\s+managed_profile_alias_246_idx\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not own managed schemas or tables",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,120}\\b(?:auth|storage)\\s*\\."
+    },
+    {
+      "description": "does not expose or drop the wrapper",
+      "pattern": "\\bgrant\\s+execute\\b[\\s\\S]{0,120}\\bto\\s+(?:public|anon|authenticated)\\b|\\bdrop\\s+function\\b"
+    }
+  ]
+}

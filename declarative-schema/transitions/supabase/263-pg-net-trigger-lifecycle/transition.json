@@ -1,0 +1,33 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pg-net-trigger-lifecycle.sql",
+  "description": "recreate a pg_net trigger for expanded events while preserving table and helper identities",
+  "requiredMigrationPatterns": [
+    {
+      "description": "replaces the webhook function body",
+      "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.dispatch_webhook_263\\s*\\(\\s*\\)"
+    },
+    {
+      "description": "drops the old trigger only",
+      "pattern": "\\bdrop\\s+trigger\\s+(?:if\\s+exists\\s+)?webhook_lifecycle_263\\s+on\\s+public\\.webhook_events_263\\b"
+    },
+    {
+      "description": "creates the expanded trigger",
+      "pattern": "\\bcreate\\s+trigger\\s+webhook_lifecycle_263\\b[\\s\\S]*\\bafter\\s+insert\\s+or\\s+update\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace table or function identity",
+      "pattern": "\\bdrop\\s+(?:table\\s+public\\.webhook_events_263|function\\s+public\\.dispatch_webhook_263)\\b"
+    },
+    {
+      "description": "does not mutate pg_net managed relations",
+      "pattern": "\\b(?:insert|update|delete|truncate)\\b[\\s\\S]{0,100}\\bnet\\."
+    },
+    {
+      "description": "does not use an external HTTPS endpoint",
+      "pattern": "https?://(?!127\\.0\\.0\\.1)"
+    }
+  ]
+}

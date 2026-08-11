@@ -1,0 +1,9 @@
+# Safety: this fixture performs no local or hosted database mutation.
+project_id = "ds-shared-runtime"
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false

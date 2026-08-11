@@ -1,0 +1,29 @@
+{
+  "expectation": "expected-unsupported",
+  "declarativeFile": "postgis-version-availability-diagnostic.sql",
+  "description": "reject a requested optional PostGIS component version that is unavailable in the local extension catalog",
+  "requiredDiagnosticPatterns": [
+    {
+      "description": "identify the unavailable PostGIS Raster extension version",
+      "pattern": "\\bextension\\s+postgis_raster\\b[\\s\\S]{0,200}\\b(?:no\\s+(?:installation\\s+script|update\\s+path)|not\\s+available)\\b"
+    },
+    {
+      "description": "identify the requested fixture version",
+      "pattern": "\\b99\\.99\\.275\\b"
+    }
+  ],
+  "forbiddenDiagnosticPatterns": [
+    {
+      "description": "do not emit destructive application or extension SQL",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b|\\btruncate\\b"
+    },
+    {
+      "description": "do not drop the populated anchor",
+      "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?public\\.postgis_availability_anchor_275\\b"
+    },
+    {
+      "description": "do not panic or attempt a remote download",
+      "pattern": "\\b(?:panic|segmentation\\s+fault)\\b|https?://"
+    }
+  ]
+}

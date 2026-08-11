@@ -1,0 +1,141 @@
+{
+  "description": "exercise pgmq create, send, read, archive, and drop lifecycle boundaries",
+  "plane": "service",
+  "requirements": [
+    "V3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create a runtime-only queue",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Data API",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "enqueue",
+      "title": "Enqueue through a service-only RPC",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "send a representative queue message",
+        "method": "POST",
+        "path": "/rest/v1/rpc/queue_enqueue_270",
+        "credential": "service-role",
+        "body": {
+          "payload": {
+            "case": 270,
+            "state": "queued"
+          }
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "[0-9]+"
+      }
+    },
+    {
+      "id": "verify-queued",
+      "title": "Read and archive the queued message",
+      "kind": "sql",
+      "file": "archive.sql",
+      "dependsOn": [
+        "enqueue"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "inspect-archive",
+      "title": "Inspect queue lifecycle counts",
+      "kind": "http",
+      "dependsOn": [
+        "verify-queued"
+      ],
+      "request": {
+        "description": "read queue and archive counts",
+        "method": "POST",
+        "path": "/rest/v1/rpc/queue_status_270",
+        "credential": "service-role",
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"archived\"\\s*:\\s*1"
+      }
+    },
+    {
+      "id": "drop",
+      "title": "Drop the runtime queue",
+      "kind": "sql",
+      "file": "drop.sql",
+      "dependsOn": [
+        "inspect-archive"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    }
+  ]
+}

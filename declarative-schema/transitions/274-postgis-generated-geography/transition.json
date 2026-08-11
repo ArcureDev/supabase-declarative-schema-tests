@@ -1,0 +1,21 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "postgis-generated-geography.sql",
+  "description": "add a stored generated geography point to populated coordinate rows",
+  "requiredMigrationPatterns": [
+    {
+      "description": "add the stored generated geography column",
+      "pattern": "\\balter\\s+table\\s+(?:only\\s+)?public\\.generated_places_274\\b[\\s\\S]*\\badd\\s+(?:column\\s+)?location\\b[\\s\\S]*\\bgeography\\b[\\s\\S]*\\bgenerated\\s+always\\s+as\\b[\\s\\S]*\\bstored\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not replace populated spatial state",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b|\\btruncate\\b"
+    },
+    {
+      "description": "do not relocate or update PostGIS",
+      "pattern": "\\balter\\s+extension\\s+postgis\\s+(?:set\\s+schema|update)\\b"
+    }
+  ]
+}

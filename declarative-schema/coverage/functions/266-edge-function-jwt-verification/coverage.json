@@ -1,0 +1,121 @@
+{
+  "description": "enforce JWT verification before invoking an actual local Edge Function",
+  "plane": "functions",
+  "requirements": [
+    "E4"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Verify function runtime database context",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Functions gateway",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "reject",
+      "title": "Reject a request without a JWT",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "invoke the JWT-protected function anonymously",
+        "method": "POST",
+        "path": "/functions/v1/jwt-boundary-266",
+        "body": {
+          "case": 266
+        },
+        "expectedStatus": 401,
+        "expectedBodyPattern": "(?:authorization|jwt|api\\s*key|apikey)"
+      },
+      "forbiddenOutputPatterns": [
+        "\"boundary\"\\s*:\\s*\"jwt-verified\""
+      ]
+    },
+    {
+      "id": "allow",
+      "title": "Allow a valid local anon JWT",
+      "kind": "http",
+      "dependsOn": [
+        "reject"
+      ],
+      "request": {
+        "description": "invoke the protected function with the local anon JWT",
+        "method": "POST",
+        "path": "/functions/v1/jwt-boundary-266",
+        "credential": "anon",
+        "body": {
+          "case": 266
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"boundary\"\\s*:\\s*\"jwt-verified\"",
+        "expectedHeaderPatterns": {
+          "x-case": "^266$"
+        }
+      }
+    }
+  ]
+}

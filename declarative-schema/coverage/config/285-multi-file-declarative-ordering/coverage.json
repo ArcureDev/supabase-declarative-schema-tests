@@ -1,0 +1,70 @@
+{
+  "description": "Resolve dependencies across deliberately reverse-named declarative files and apply them in catalog-safe order.",
+  "plane": "config",
+  "requirements": [
+    "C2"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset multi-file fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "sync",
+      "title": "Apply ordered multi-file declaration",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "reset"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Assert cross-file dependencies",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "sync"
+      ]
+    }
+  ]
+}

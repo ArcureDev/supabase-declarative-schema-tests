@@ -1,0 +1,71 @@
+{
+  "description": "Apply an optional extension declaration against the configured PostgreSQL major and assert its schema and operators.",
+  "plane": "config",
+  "requirements": [
+    "C1",
+    "C5"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset extension fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "sync",
+      "title": "Apply extension declaration",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "reset"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Assert extension availability",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "sync"
+      ]
+    }
+  ]
+}

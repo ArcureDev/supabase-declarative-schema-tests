@@ -1,0 +1,91 @@
+{
+  "description": "Interrupt a real declarative sync during its apply transaction, remove the fixture delay, retry, and assert complete recovery.",
+  "plane": "config",
+  "requirements": [
+    "C5"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Restore simulated interrupted checkpoint",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "interrupt-sync",
+      "title": "Interrupt declarative sync during apply",
+      "kind": "script",
+      "file": "interrupt-sync.mts",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "INTERRUPTED_SUPABASE_COMMAND"
+      ]
+    },
+    {
+      "id": "remove-delay",
+      "title": "Remove the fixture-only DDL delay",
+      "kind": "sql",
+      "file": "cleanup-delay.sql",
+      "dependsOn": [
+        "interrupt-sync"
+      ]
+    },
+    {
+      "id": "recover",
+      "title": "Converge partial checkpoint",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "remove-delay"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Assert recovered complete state",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "recover"
+      ]
+    }
+  ]
+}

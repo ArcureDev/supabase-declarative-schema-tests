@@ -1,0 +1,81 @@
+{
+  "description": "Validate that config.toml exposes an explicitly granted custom API schema and that anon can read it.",
+  "plane": "service",
+  "requirements": [
+    "C1"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset API exposure fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "catalog",
+      "title": "Assert exposed schema catalog state",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "reset"
+      ]
+    },
+    {
+      "id": "runtime-status",
+      "title": "Capture local service endpoints",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "catalog"
+      ]
+    },
+    {
+      "id": "read-custom-schema",
+      "title": "Read configured custom API schema",
+      "kind": "http",
+      "dependsOn": [
+        "runtime-status"
+      ],
+      "request": {
+        "description": "Read the custom PostgREST schema with anon credentials",
+        "method": "GET",
+        "path": "/rest/v1/exposed_items?select=id,label",
+        "credential": "anon",
+        "headers": {
+          "Accept-Profile": "coverage_api"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "config-exposed"
+      }
+    }
+  ]
+}

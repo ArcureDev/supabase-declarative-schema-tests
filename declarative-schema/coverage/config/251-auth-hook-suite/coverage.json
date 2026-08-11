@@ -1,0 +1,91 @@
+{
+  "description": "exercise configured Postgres Auth hooks with exact grants, direct contracts, and local signup/sign-in behavior",
+  "plane": "config",
+  "requirements": ["A2"],
+  "sensitiveValues": ["HookPassword-251!"],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop the shared runtime before hook configuration",
+      "kind": "supabase",
+      "args": ["stop", "--no-backup"]
+    },
+    {
+      "id": "start",
+      "title": "Start Auth with hook configuration",
+      "kind": "supabase",
+      "args": ["start", "--debug"],
+      "dependsOn": ["stop"]
+    },
+    {
+      "id": "reset",
+      "title": "Reset hook database state",
+      "kind": "supabase",
+      "args": ["db", "reset", "--local", "--no-seed", "--debug"],
+      "dependsOn": ["start"]
+    },
+    {
+      "id": "setup",
+      "title": "Install hardened Auth hook functions",
+      "kind": "sql",
+      "file": "setup-hooks.sql",
+      "dependsOn": ["reset"]
+    },
+    {
+      "id": "status",
+      "title": "Resolve local Auth endpoint and keys",
+      "kind": "runtime-status",
+      "dependsOn": ["setup"]
+    },
+    {
+      "id": "contracts",
+      "title": "Assert hook return values and privileges",
+      "kind": "sql",
+      "file": "assert-hooks.sql",
+      "dependsOn": ["setup"]
+    },
+    {
+      "id": "signup",
+      "title": "Issue a token through the configured access hook",
+      "kind": "http",
+      "dependsOn": ["status", "contracts"],
+      "request": {
+        "description": "sign up an email user through local Auth",
+        "method": "POST",
+        "path": "/auth/v1/signup",
+        "credential": "anon",
+        "body": {
+          "email": "hook-user-251@example.test",
+          "password": "HookPassword-251!"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"access_token\"\\s*:"
+      }
+    },
+    {
+      "id": "password",
+      "title": "Run the password verification hook",
+      "kind": "http",
+      "dependsOn": ["signup"],
+      "request": {
+        "description": "sign in through local Auth password grant",
+        "method": "POST",
+        "path": "/auth/v1/token?grant_type=password",
+        "credential": "anon",
+        "body": {
+          "email": "hook-user-251@example.test",
+          "password": "HookPassword-251!"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"access_token\"\\s*:"
+      }
+    },
+    {
+      "id": "verify-service",
+      "title": "Verify Auth invoked configured database hooks",
+      "kind": "sql",
+      "file": "assert-service-hooks.sql",
+      "dependsOn": ["password"]
+    }
+  ]
+}

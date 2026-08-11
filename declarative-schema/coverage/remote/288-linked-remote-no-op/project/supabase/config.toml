@@ -1,0 +1,10 @@
+# Safety: credentials and the disposable project ref must come from environment.
+# Required: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_ID, SUPABASE_DB_PASSWORD.
+project_id = "coverage-remote-noop"
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false

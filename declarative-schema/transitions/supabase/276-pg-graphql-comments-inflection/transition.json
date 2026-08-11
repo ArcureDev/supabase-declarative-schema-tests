@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pg-graphql-comments-inflection.sql",
+  "description": "change pg_graphql comment directives and verify table and column inflection",
+  "requiredMigrationPatterns": [
+    {
+      "description": "set the table GraphQL name directive",
+      "pattern": "\\bcomment\\s+on\\s+table\\s+public\\.graphql_notes_276\\s+is\\s+'@graphql"
+    },
+    {
+      "description": "set the column GraphQL name directive",
+      "pattern": "\\bcomment\\s+on\\s+column\\s+public\\.graphql_notes_276\\.label\\s+is\\s+'@graphql"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not alter pg_graphql-owned objects",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table|function|type)\\b[\\s\\S]{0,100}\\b(?:graphql|graphql_public)\\s*\\."
+    },
+    {
+      "description": "do not replace populated application state",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b|\\btruncate\\b"
+    },
+    {
+      "description": "do not weaken table ACLs",
+      "pattern": "\\brevoke\\b[\\s\\S]*\\bfrom\\s+(?:anon|authenticated)\\b"
+    }
+  ]
+}

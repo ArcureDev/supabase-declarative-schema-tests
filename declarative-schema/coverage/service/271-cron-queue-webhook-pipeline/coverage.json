@@ -1,0 +1,132 @@
+{
+  "description": "exercise a local Cron to pgmq to pg_net webhook pipeline without external traffic",
+  "plane": "service",
+  "requirements": [
+    "V4"
+  ],
+  "sensitiveValues": [
+    "PIPELINE_LOCAL_TOKEN_271"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the isolated local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "acceptStatuses": [
+        "OK",
+        "WARNING"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset runtime state",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "\\b(?:panic|segmentation fault)\\b"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create the cross-feature runtime pipeline",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PIPELINE_LOCAL_TOKEN_271"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve the local Data API",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "requiredOutputPatterns": [
+        "API_URL"
+      ]
+    },
+    {
+      "id": "dispatch",
+      "title": "Invoke the pipeline through a service-only RPC",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "enqueue work and a local-invalid webhook request",
+        "method": "POST",
+        "path": "/rest/v1/rpc/pipeline_dispatch_271",
+        "credential": "service-role",
+        "body": {},
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"queued\"\\s*:\\s*true"
+      },
+      "forbiddenOutputPatterns": [
+        "PIPELINE_LOCAL_TOKEN_271",
+        "https?://(?!127\\.0\\.0\\.1)"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Verify all pipeline boundaries",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "dispatch"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PIPELINE_LOCAL_TOKEN_271"
+      ]
+    },
+    {
+      "id": "cleanup",
+      "title": "Remove runtime schedule and queue state",
+      "kind": "sql",
+      "file": "cleanup.sql",
+      "dependsOn": [
+        "verify"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ]
+    }
+  ]
+}

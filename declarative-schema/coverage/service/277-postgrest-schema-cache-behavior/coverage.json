@@ -1,0 +1,198 @@
+{
+  "description": "verify explicit schema-cache reload behavior through PostgREST and pg_graphql",
+  "plane": "service",
+  "requirements": [
+    "X3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop any prior shared runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start the local Data API runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset the schema-cache fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "setup",
+      "title": "Create the initial cached API shape",
+      "kind": "sql",
+      "file": "setup.sql",
+      "dependsOn": [
+        "reset"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "status",
+      "title": "Resolve local runtime credentials",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "setup"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "initial-read",
+      "title": "Read the initial cached relation",
+      "kind": "http",
+      "dependsOn": [
+        "status"
+      ],
+      "request": {
+        "description": "read the initial PostgREST shape",
+        "method": "GET",
+        "path": "/rest/v1/cache_items_277?select=id,label&order=id",
+        "credential": "anon",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\\[\\{\"id\":1,\"label\":\"cache-row-277\"\\}\\]"
+      },
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "initial-graphql",
+      "title": "Read the initial pg_graphql relation shape",
+      "kind": "http",
+      "dependsOn": [
+        "initial-read"
+      ],
+      "request": {
+        "description": "query the initial GraphQL collection",
+        "method": "POST",
+        "path": "/graphql/v1",
+        "credential": "anon",
+        "body": {
+          "query": "query { cacheItems277Collection(first: 1) { edges { node { id label } } } }"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"label\":\"cache-row-277\""
+      },
+      "forbiddenOutputPatterns": [
+        "\"errors\"",
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "mutate",
+      "title": "Add a column and request cache reload",
+      "kind": "sql",
+      "file": "mutate.sql",
+      "dependsOn": [
+        "initial-graphql"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "verify-catalog",
+      "title": "Verify catalog data and ACL state",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "mutate"
+      ],
+      "requiredOutputPatterns": [
+        "\"valid\"\\s*:\\s*true"
+      ],
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "refreshed-read",
+      "title": "Read the reloaded PostgREST shape",
+      "kind": "http",
+      "dependsOn": [
+        "verify-catalog",
+        "status"
+      ],
+      "request": {
+        "description": "read the newly cached column",
+        "method": "GET",
+        "path": "/rest/v1/cache_items_277?select=id,label,cache_marker&order=id",
+        "credential": "anon",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"cache_marker\":\"reloaded-277\"",
+        "expectedHeaderPatterns": {
+          "content-type": "application/json"
+        }
+      },
+      "forbiddenOutputPatterns": [
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    },
+    {
+      "id": "refreshed-graphql",
+      "title": "Read the reloaded pg_graphql relation shape",
+      "kind": "http",
+      "dependsOn": [
+        "refreshed-read"
+      ],
+      "request": {
+        "description": "query the newly reflected GraphQL field",
+        "method": "POST",
+        "path": "/graphql/v1",
+        "credential": "anon",
+        "body": {
+          "query": "query { cacheItems277Collection(first: 1) { edges { node { id label cacheMarker } } } }"
+        },
+        "expectedStatus": 200,
+        "expectedBodyPattern": "\"cacheMarker\":\"reloaded-277\""
+      },
+      "forbiddenOutputPatterns": [
+        "\"errors\"",
+        "PGDELTA_CACHE_SECRET_277"
+      ]
+    }
+  ],
+  "sensitiveValues": [
+    "PGDELTA_CACHE_SECRET_277"
+  ]
+}

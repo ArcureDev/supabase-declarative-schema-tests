@@ -1,7 +1,7 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "managed-schema-boundary.sql",
-  "description": "alter application state without touching Supabase-managed schemas or object identities",
+  "description": "evolve an application table while preserving managed relations, ACLs, and publication identity",
   "requiredMigrationPatterns": [
     {
       "description": "add only the application column",
@@ -20,6 +20,14 @@
     {
       "description": "do not drop application state",
       "pattern": "\\bdrop\\s+(?:table|column)\\b"
+    },
+    {
+      "description": "do not recreate preserved application tables",
+      "pattern": "\\bcreate\\s+table\\s+public\\.(?:managed_probe_225|boundary_app_225)\\b"
+    },
+    {
+      "description": "do not change managed object ownership or ACLs",
+      "pattern": "\\b(?:alter\\s+(?:table|publication)\\b[\\s\\S]{0,100}\\bowner|(?:grant|revoke)\\b[\\s\\S]{0,160}\\b(?:auth|storage|realtime)\\.)"
     }
   ]
 }

@@ -1,0 +1,59 @@
+# Safety: this fixed ID addresses only the runner-owned local Supabase stack.
+project_id = "ds-shared-runtime"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 55000
+shadow_port = 55100
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = false
+
+
+[realtime]
+enabled = true
+
+[storage]
+enabled = true
+file_size_limit = "8MiB"
+
+[storage.image_transformation]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3000"
+additional_redirect_urls = ["http://localhost:3000/callback"]
+jwt_expiry = 1800
+enable_signup = true
+enable_anonymous_sign_ins = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = false
+enable_confirmations = false
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+[auth.external.github]
+# Provider credentials stay environment-backed if this variant is enabled later.
+enabled = false
+client_id = "env(SUPABASE_AUTH_GITHUB_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GITHUB_SECRET)"
+
+
+[studio]
+enabled = false

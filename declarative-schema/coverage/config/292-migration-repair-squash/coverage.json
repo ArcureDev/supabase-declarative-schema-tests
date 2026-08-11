@@ -1,0 +1,105 @@
+{
+  "description": "Repair one local migration-history entry, restore it, squash the local chain, and verify application catalog state remains intact.",
+  "plane": "config",
+  "requirements": [
+    "C3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Apply migration chain",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "mark-reverted",
+      "title": "Mark latest migration reverted",
+      "kind": "supabase",
+      "args": [
+        "migration",
+        "repair",
+        "20260101000001",
+        "--status",
+        "reverted",
+        "--local",
+        "--debug"
+      ],
+      "dependsOn": [
+        "reset"
+      ]
+    },
+    {
+      "id": "mark-applied",
+      "title": "Restore latest migration history",
+      "kind": "supabase",
+      "args": [
+        "migration",
+        "repair",
+        "20260101000001",
+        "--status",
+        "applied",
+        "--local",
+        "--debug"
+      ],
+      "dependsOn": [
+        "mark-reverted"
+      ]
+    },
+    {
+      "id": "squash",
+      "title": "Squash repaired migration chain",
+      "kind": "supabase",
+      "args": [
+        "migration",
+        "squash",
+        "--local",
+        "--version",
+        "20260101000001",
+        "--yes",
+        "--debug"
+      ],
+      "dependsOn": [
+        "mark-applied"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Assert catalog after repair and squash",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "squash"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { Listr } from "listr2";
+import { localDatabaseContainerForProject } from "./project-config.mts";
 import type {
   CommandResult,
   PgDeltaEngine,
@@ -62,7 +63,7 @@ export function runDatabaseQuery(
   const dockerArguments = [
     "exec",
     "--interactive",
-    config.localDatabaseContainer,
+    localDatabaseContainerForProject(config, workProject),
     "psql",
     "--username",
     "postgres",
@@ -84,6 +85,34 @@ export function runDatabaseQuery(
       command,
       cwd: workProject,
       input: sql,
+      timeoutMilliseconds: config.commandTimeoutMilliseconds,
+    },
+    (result) => ({
+      ...result,
+      status: result.exitCode === 0 ? "OK" : "ERROR",
+    }),
+  );
+}
+
+export function runNodeScript(
+  config: RunnerConfig,
+  workProject: string,
+  scriptPath: string,
+  args: string[] = [],
+  environment: NodeJS.ProcessEnv = {},
+): Promise<CommandResult> {
+  const nodeArguments = [
+    "--experimental-strip-types",
+    scriptPath,
+    ...args,
+  ];
+  return runProcess(
+    process.execPath,
+    nodeArguments,
+    {
+      command: `node --experimental-strip-types ${scriptPath} ${args.join(" ")}`.trim(),
+      cwd: workProject,
+      env: { ...process.env, ...environment },
       timeoutMilliseconds: config.commandTimeoutMilliseconds,
     },
     (result) => ({

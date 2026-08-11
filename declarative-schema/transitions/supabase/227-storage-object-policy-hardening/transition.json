@@ -1,11 +1,11 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "storage-object-policy-hardening.sql",
-  "description": "restrict Storage uploads to the authenticated caller folder",
+  "description": "preserve Storage policy and relation identity while restricting uploads to the caller folder",
   "requiredMigrationPatterns": [
     {
       "description": "alter the supported Storage policy",
-      "pattern": "\\balter\\s+policy\\s+transition_storage_insert_227\\s+on\\s+storage\\.objects\\b"
+      "pattern": "\\balter\\s+policy\\s+transition_storage_insert_227\\s+on\\s+storage\\.objects\\b[\\s\\S]{0,500}\\bstorage\\.foldername\\b[\\s\\S]{0,300}\\bauth\\.jwt\\b"
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -18,8 +18,16 @@
       "pattern": "\\b(?:create|alter|drop)\\s+schema\\s+(?:if\\s+(?:not\\s+)?exists\\s+)?storage\\b"
     },
     {
-      "description": "do not drop the policy",
-      "pattern": "\\bdrop\\s+policy\\b"
+      "description": "do not recreate or drop the policy",
+      "pattern": "\\b(?:create|drop)\\s+policy\\b"
+    },
+    {
+      "description": "do not mutate Storage service data",
+      "pattern": "\\b(?:insert\\s+into|update|delete\\s+from)\\s+storage\\.(?:buckets|objects)\\b"
+    },
+    {
+      "description": "do not change Storage ownership or ACLs",
+      "pattern": "\\b(?:alter\\s+table\\s+storage\\.objects\\s+owner|(?:grant|revoke)\\b[\\s\\S]{0,120}\\bstorage\\.objects\\b)"
     }
   ]
 }

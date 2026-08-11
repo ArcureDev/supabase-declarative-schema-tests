@@ -1,0 +1,32 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "wrappers-vault-credential-redaction.sql",
+  "description": "change a Wrappers endpoint while preserving a Vault-backed runtime credential",
+  "sensitiveValues": [
+    "PGDELTA_WRAPPER_VAULT_SECRET_278"
+  ],
+  "requiredMigrationPatterns": [
+    {
+      "description": "set only the changed wrapper endpoint",
+      "pattern": "\\balter\\s+server\\s+transition_vault_server_278\\s+options\\s*\\(\\s*set\\s+base_url\\s+'https://vault-wrapper\\.invalid/v2'\\s*\\)"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "never emit the fake Vault plaintext",
+      "pattern": "pgdelta_wrapper_vault_secret_278"
+    },
+    {
+      "description": "never emit or remove the runtime credential reference",
+      "pattern": "\\balter\\s+server\\s+transition_vault_server_278\\b[\\s\\S]*\\bapi_key_id\\b"
+    },
+    {
+      "description": "do not manage Vault data",
+      "pattern": "\\b(?:insert|update|delete)\\b[\\s\\S]{0,120}\\bvault\\.(?:secrets|decrypted_secrets)\\b"
+    },
+    {
+      "description": "do not replace Wrappers or Vault objects",
+      "pattern": "\\bdrop\\s+(?:server|foreign\\s+data\\s+wrapper|extension|table)\\b"
+    }
+  ]
+}

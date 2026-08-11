@@ -12,14 +12,17 @@ const scriptDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 test("checked-in fixture catalog is contiguous and internally valid", () => {
   const config = loadRunnerConfig(scriptDirectory, []);
   const cases = discoverCases(config);
-  assert.equal(cases.length, 244);
+  assert.equal(cases.length, 296);
   assert.deepEqual(
     cases.map((fixture) => caseNumberFromName(fixture.name)),
-    Array.from({ length: 244 }, (_, index) => index + 1),
+    Array.from({ length: 296 }, (_, index) => index + 1),
   );
 
-  const transitions = cases.filter((fixture) => fixture.kind !== "snapshot");
-  assert.equal(transitions.length, 64);
+  const transitions = cases.filter(
+    (fixture) => fixture.kind !== "snapshot" && fixture.kind !== "coverage",
+  );
+  assert.equal(transitions.length, 86);
+  assert.equal(cases.filter((fixture) => fixture.kind === "coverage").length, 30);
   const supabaseTransitionNames = [
     "220-realtime-publication-membership",
     "225-managed-schema-boundary",
@@ -35,6 +38,23 @@ test("checked-in fixture catalog is contiguous and internally valid", () => {
     "237-tenant-modular-graphql-release",
     "239-realtime-social-managed-boundaries",
     "241-geospatial-analytics-integration",
+    "245-managed-schema-negative-probe",
+    "246-managed-boundary-retention",
+    "248-extension-absence-version-diagnostic",
+    "249-jwt-custom-claims-mfa-rls",
+    "250-anonymous-rls",
+    "252-auth-users-trigger-hardening",
+    "253-supabase-role-boundaries",
+    "255-storage-policy-matrix",
+    "256-storage-reference-helpers",
+    "258-realtime-publication-removal",
+    "259-filtered-column-publication",
+    "260-broadcast-presence-policies",
+    "261-database-broadcast-helper-evolution",
+    "263-pg-net-trigger-lifecycle",
+    "264-vault-backed-webhook-redaction",
+    "276-pg-graphql-comments-inflection",
+    "278-wrappers-vault-credential-redaction",
   ];
   assert.deepEqual(
     transitions

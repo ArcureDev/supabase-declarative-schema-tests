@@ -1,0 +1,76 @@
+{
+  "description": "Run configured seed SQL through repeated local resets and assert reference data converges to one deterministic row.",
+  "plane": "config",
+  "requirements": [
+    "C3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "first-reset",
+      "title": "Reset and seed local database",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "first-verify",
+      "title": "Assert first seed result",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "first-reset"
+      ]
+    },
+    {
+      "id": "second-reset",
+      "title": "Repeat reset and seed",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--debug"
+      ],
+      "dependsOn": [
+        "first-verify"
+      ]
+    },
+    {
+      "id": "second-verify",
+      "title": "Assert repeated seed result",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "second-reset"
+      ]
+    }
+  ]
+}

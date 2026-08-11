@@ -1,0 +1,25 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "pgvector-ivfflat-options.sql",
+  "description": "replace an IVFFlat index to change its list count without rebuilding vector data",
+  "requiredMigrationPatterns": [
+    {
+      "description": "drop the old IVFFlat index definition",
+      "pattern": "\\bdrop\\s+index\\s+(?:if\\s+exists\\s+)?public\\.transition_vector_ivfflat_273\\b"
+    },
+    {
+      "description": "recreate IVFFlat with cosine operators and eight lists",
+      "pattern": "\\bcreate\\s+index\\s+transition_vector_ivfflat_273\\b[\\s\\S]*\\busing\\s+ivfflat\\b[\\s\\S]*\\bvector_cosine_ops\\b[\\s\\S]*\\blists\\s*=\\s*8\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "do not rebuild vector data or extensions",
+      "pattern": "\\bdrop\\s+(?:table|column|extension)\\b|\\btruncate\\b"
+    },
+    {
+      "description": "do not change the embedding type",
+      "pattern": "\\balter\\s+(?:column\\s+)?embedding\\s+(?:set\\s+data\\s+)?type\\b"
+    }
+  ]
+}

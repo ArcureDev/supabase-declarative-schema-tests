@@ -1,0 +1,22 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "jwt-custom-claims-mfa-rls.sql",
+  "description": "require tenant custom claims, auth.uid ownership, and AAL2 for protected records",
+  "requirements": ["A1"],
+  "requiredMigrationPatterns": [
+    {
+      "description": "hardens the protected-record policy in place",
+      "pattern": "\\balter\\s+policy\\s+jwt_tenant_records_249\\s+on\\s+public\\.protected_records_249\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not alter Auth-managed objects",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\bauth\\s*\\."
+    },
+    {
+      "description": "does not weaken or recreate RLS state",
+      "pattern": "\\b(?:drop\\s+policy|disable\\s+row\\s+level\\s+security|drop\\s+table)\\b"
+    }
+  ]
+}

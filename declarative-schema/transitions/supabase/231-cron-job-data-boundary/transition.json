@@ -1,11 +1,15 @@
 {
   "expectation": "applicable-transition",
   "declarativeFile": "cron-job-data-boundary.sql",
-  "description": "replace a scheduled function while preserving runtime Cron job data",
+  "description": "preserve function and Cron job identity while replacing only scheduled behavior",
   "requiredMigrationPatterns": [
     {
       "description": "replace only the scheduled function",
       "pattern": "\\bcreate\\s+or\\s+replace\\s+function\\s+public\\.transition_cron_task_231\\s*\\(\\s*\\)"
+    },
+    {
+      "description": "emit the v2 scheduled result",
+      "pattern": "\\bselect\\s+'v2'::text\\b"
     }
   ],
   "forbiddenMigrationPatterns": [
@@ -24,6 +28,10 @@
     {
       "description": "do not drop pg_cron",
       "pattern": "\\bdrop\\s+extension\\b"
+    },
+    {
+      "description": "do not replace or expose the scheduled function",
+      "pattern": "\\b(?:drop\\s+function\\s+public\\.transition_cron_task_231|(?:grant|revoke)\\b[\\s\\S]{0,120}\\btransition_cron_task_231\\b)"
     }
   ]
 }

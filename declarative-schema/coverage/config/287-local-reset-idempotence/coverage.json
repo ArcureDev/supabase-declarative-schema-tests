@@ -1,0 +1,111 @@
+{
+  "description": "Reset a mutated local database twice and assert each reset restores exactly the migration-defined baseline.",
+  "plane": "config",
+  "requirements": [
+    "C3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "first-reset",
+      "title": "Apply first local reset",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "first-baseline",
+      "title": "Assert first reset baseline",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "first-reset"
+      ]
+    },
+    {
+      "id": "mutate",
+      "title": "Add disposable runtime data",
+      "kind": "sql",
+      "file": "mutate.sql",
+      "dependsOn": [
+        "first-baseline"
+      ]
+    },
+    {
+      "id": "second-reset",
+      "title": "Apply second local reset",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "mutate"
+      ]
+    },
+    {
+      "id": "second-baseline",
+      "title": "Assert second reset baseline",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "second-reset"
+      ]
+    },
+    {
+      "id": "third-reset",
+      "title": "Apply third local reset",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "second-baseline"
+      ]
+    },
+    {
+      "id": "third-baseline",
+      "title": "Assert third reset baseline",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "third-reset"
+      ]
+    }
+  ]
+}

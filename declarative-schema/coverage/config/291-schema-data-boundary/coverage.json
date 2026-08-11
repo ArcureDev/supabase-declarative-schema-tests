@@ -1,0 +1,96 @@
+{
+  "description": "Apply declarative schema twice around runtime data and assert schema convergence neither emits nor removes table rows.",
+  "plane": "config",
+  "requirements": [
+    "C2",
+    "C3"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset schema-data fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "first-sync",
+      "title": "Apply declarative schema",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "reset"
+      ]
+    },
+    {
+      "id": "insert-data",
+      "title": "Insert runtime-only data",
+      "kind": "sql",
+      "file": "insert.sql",
+      "dependsOn": [
+        "first-sync"
+      ]
+    },
+    {
+      "id": "second-sync",
+      "title": "Reapply converged declarative schema",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "insert-data"
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Assert runtime data boundary",
+      "kind": "sql",
+      "file": "verify.sql",
+      "dependsOn": [
+        "second-sync"
+      ]
+    }
+  ]
+}

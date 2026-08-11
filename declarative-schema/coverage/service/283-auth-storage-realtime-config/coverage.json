@@ -1,0 +1,82 @@
+{
+  "description": "Boot non-default Auth, Storage, and Realtime local configuration and probe the enabled Auth and Storage services.",
+  "plane": "service",
+  "requirements": [
+    "C1"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "runtime-status",
+      "title": "Capture local service endpoints",
+      "kind": "runtime-status",
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "auth-health",
+      "title": "Probe configured Auth service",
+      "kind": "http",
+      "dependsOn": [
+        "runtime-status"
+      ],
+      "request": {
+        "description": "Check Auth health after applying config variants",
+        "method": "GET",
+        "path": "/auth/v1/health",
+        "expectedStatus": 200
+      }
+    },
+    {
+      "id": "storage-health",
+      "title": "Probe configured Storage service",
+      "kind": "http",
+      "dependsOn": [
+        "runtime-status"
+      ],
+      "request": {
+        "description": "Check Storage health after applying config variants",
+        "method": "GET",
+        "path": "/storage/v1/status",
+        "expectedStatus": 200
+      }
+    },
+    {
+      "id": "realtime-health",
+      "title": "Probe configured Realtime service",
+      "kind": "http",
+      "dependsOn": [
+        "runtime-status"
+      ],
+      "request": {
+        "description": "Check the configured local Realtime tenant",
+        "method": "GET",
+        "path": "/realtime/v1/api/tenants/realtime-dev/health",
+        "credential": "anon",
+        "expectedStatus": 200,
+        "expectedBodyPattern": "(?:healthy|ok)"
+      }
+    }
+  ]
+}

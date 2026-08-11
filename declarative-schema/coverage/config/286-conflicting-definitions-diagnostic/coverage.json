@@ -1,0 +1,68 @@
+{
+  "description": "Intentionally plan conflicting duplicate table definitions and require a stable nonzero parser diagnostic.",
+  "plane": "config",
+  "requirements": [
+    "C2",
+    "C5"
+  ],
+  "phases": [
+    {
+      "id": "stop",
+      "title": "Stop prior local runtime",
+      "kind": "supabase",
+      "args": [
+        "stop",
+        "--no-backup"
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Start fixture local runtime",
+      "kind": "supabase",
+      "args": [
+        "start",
+        "--debug"
+      ],
+      "dependsOn": [
+        "stop"
+      ]
+    },
+    {
+      "id": "reset",
+      "title": "Reset conflict diagnostic fixture",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "reset",
+        "--local",
+        "--no-seed",
+        "--debug"
+      ],
+      "dependsOn": [
+        "start"
+      ]
+    },
+    {
+      "id": "conflict-diagnostic",
+      "title": "Capture duplicate definition diagnostic",
+      "kind": "supabase",
+      "args": [
+        "db",
+        "schema",
+        "declarative",
+        "sync",
+        "--no-apply",
+        "--debug"
+      ],
+      "dependsOn": [
+        "reset"
+      ],
+      "acceptStatuses": [
+        "ERROR"
+      ],
+      "requiredOutputPatterns": [
+        "duplicate|conflict|already (?:exists|defined)|multiple definitions"
+      ]
+    }
+  ]
+}

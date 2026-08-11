@@ -1,0 +1,29 @@
+{
+  "expectation": "applicable-transition",
+  "declarativeFile": "broadcast-presence-policies.sql",
+  "description": "scope Realtime Broadcast and Presence policies to the caller team",
+  "requiredMigrationPatterns": [
+    {
+      "description": "alters the receive policy in place",
+      "pattern": "\\balter\\s+policy\\s+realtime_receive_260\\s+on\\s+realtime\\.messages\\b"
+    },
+    {
+      "description": "alters the send policy in place",
+      "pattern": "\\balter\\s+policy\\s+realtime_send_260\\s+on\\s+realtime\\.messages\\b"
+    }
+  ],
+  "forbiddenMigrationPatterns": [
+    {
+      "description": "does not replace Realtime policies",
+      "pattern": "\\b(?:drop|create)\\s+policy\\s+realtime_(?:receive|send)_260\\b"
+    },
+    {
+      "description": "does not own the managed Realtime schema",
+      "pattern": "\\b(?:create|alter|drop)\\s+(?:schema|table)\\b[\\s\\S]{0,100}\\brealtime\\s*\\."
+    },
+    {
+      "description": "does not broaden policies to anon or public",
+      "pattern": "\\bto\\s+(?:public|anon)\\b"
+    }
+  ]
+}
