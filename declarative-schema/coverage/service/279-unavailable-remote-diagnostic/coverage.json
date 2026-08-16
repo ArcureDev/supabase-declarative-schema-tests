@@ -4,6 +4,9 @@
   "requirements": [
     "X4"
   ],
+  "catalogueAtoms": [
+    "PG-CAT-EXT-05::fdw.unavailable"
+  ],
   "sensitiveValues": [
     "PGDELTA_REMOTE_TOKEN_279"
   ],

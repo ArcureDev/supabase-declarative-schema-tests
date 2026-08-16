@@ -7,7 +7,14 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { caseAnchor } from "./reporting.mts";
+import {
+  caseReportRelativePath,
+  isRunRecapRelativePath,
+  listReportRelativePaths,
+  reportDisplayName,
+  reportRunKey,
+  versionReportHref,
+} from "./reporting.mts";
 import { compareCaseNames } from "./selection.mts";
 import { versionRowSeverity } from "./status.mts";
 import type {
@@ -19,17 +26,15 @@ import type {
   VersionResultStatus,
 } from "./types.mts";
 
-export function parseVersionReport(
-  reportsDirectory: string,
-  reportName: string,
-): ParsedVersionReport | undefined {
-  const report = readFileSync(join(reportsDirectory, reportName), "utf8");
-  const checksum = /^- Checksum: `([0-9a-f]{7})`$/im.exec(report)?.[1];
-  const cliVersion = /^- Supabase CLI version: `([^`]+)`$/m.exec(report)?.[1];
-  const generated = /^- Generated: (.+)$/m.exec(report)?.[1];
-  if (!checksum || !cliVersion || !generated) return undefined;
+function reportAbsolutePath(reportsDirectory: string, reportRelativePath: string): string {
+  return join(reportsDirectory, ...reportRelativePath.split("/"));
+}
 
-  const caseResults = new Map<string, Map<string, VersionResultStatus>>();
+function parseMarkersFromText(report: string): {
+  commandResults: Map<string, Map<string, VersionResultStatus>>;
+  caseStatuses: Map<string, VersionResultStatus>;
+} {
+  const commandResults = new Map<string, Map<string, VersionResultStatus>>();
   const markerPattern =
     /<!-- declarative-schema-command-result case="([^"]+)" engine="(next|legacy)" command="(generate|sync|sync-verification)" status="(OK|WARNING|ERROR)" -->/g;
   for (const marker of report.matchAll(markerPattern)) {
@@ -38,20 +43,90 @@ export function parseVersionReport(
     const command = marker[3];
     const status = marker[4] as VersionResultStatus | undefined;
     if (!caseName || !engine || !command || !status) continue;
-    const results = caseResults.get(caseName) ?? new Map<string, VersionResultStatus>();
+    const results = commandResults.get(caseName) ?? new Map<string, VersionResultStatus>();
     results.set(`${engine}:${command}`, status);
-    caseResults.set(caseName, results);
+    commandResults.set(caseName, results);
   }
-  // Coverage (and any future) reports may only emit case-result markers. Fold
-  // those into the version matrix so every evaluated case updates the checksum
-  // file, even when generate/sync/sync-verification never ran.
+
+  const caseStatuses = new Map<string, VersionResultStatus>();
   const caseMarkerPattern =
     /<!-- declarative-schema-case-result name="([^"]+)" status="(OK|WARNING|FAILED)" -->/g;
   for (const marker of report.matchAll(caseMarkerPattern)) {
     const caseName = marker[1];
     const caseStatus = marker[2];
-    if (!caseName || !caseStatus || caseResults.has(caseName)) continue;
-    const status: VersionResultStatus = caseStatus === "FAILED" ? "ERROR" : caseStatus;
+    if (!caseName || !caseStatus) continue;
+    caseStatuses.set(
+      caseName,
+      caseStatus === "FAILED" ? "ERROR" : caseStatus === "WARNING" ? "WARNING" : "OK",
+    );
+  }
+  return { commandResults, caseStatuses };
+}
+
+function caseNamesFromReportText(report: string): Set<string> {
+  const names = new Set<string>();
+  for (const marker of report.matchAll(
+    /<!-- declarative-schema-case-result name="([^"]+)" status="(?:OK|WARNING|FAILED)" -->/g,
+  )) {
+    if (marker[1]) names.add(marker[1]);
+  }
+  for (const marker of report.matchAll(
+    /<!-- declarative-schema-command-result case="([^"]+)" /g,
+  )) {
+    if (marker[1]) names.add(marker[1]);
+  }
+  for (const heading of report.matchAll(/^#{1,2} Case: (.+)$/gm)) {
+    const value = heading[1]?.trimEnd();
+    if (value) names.add(value);
+  }
+  return names;
+}
+
+export function parseVersionReport(
+  reportsDirectory: string,
+  reportRelativePath: string,
+): ParsedVersionReport | undefined {
+  const absolutePath = reportAbsolutePath(reportsDirectory, reportRelativePath);
+  const report = readFileSync(absolutePath, "utf8");
+  const checksum = /^- Checksum: `([0-9a-f]{7})`$/im.exec(report)?.[1];
+  const cliVersion = /^- Supabase CLI version: `([^`]+)`$/m.exec(report)?.[1];
+  const generated = /^- Generated: (.+)$/m.exec(report)?.[1];
+  if (!checksum || !cliVersion || !generated) return undefined;
+
+  const caseResults = new Map<string, Map<string, VersionResultStatus>>();
+  const caseReportNames = new Map<string, string>();
+  const { commandResults, caseStatuses } = parseMarkersFromText(report);
+  for (const [caseName, results] of commandResults) {
+    caseResults.set(caseName, results);
+    caseReportNames.set(caseName, reportRelativePath);
+  }
+
+  if (isRunRecapRelativePath(reportRelativePath)) {
+    const runDirectory = join(absolutePath, "..");
+    for (const fileName of readdirSync(runDirectory)) {
+      if (!fileName.endsWith(".md") || fileName === "0-recap.md") continue;
+      const siblingRelativePath = reportRelativePath.replace(/0-recap\.md$/, fileName);
+      const caseText = readFileSync(join(runDirectory, fileName), "utf8");
+      const parsedCase = parseMarkersFromText(caseText);
+      for (const [caseName, results] of parsedCase.commandResults) {
+        const merged = caseResults.get(caseName) ?? new Map<string, VersionResultStatus>();
+        for (const [key, status] of results) merged.set(key, status);
+        caseResults.set(caseName, merged);
+        caseReportNames.set(caseName, siblingRelativePath);
+      }
+      for (const caseName of caseNamesFromReportText(caseText)) {
+        if (!caseReportNames.has(caseName)) {
+          caseReportNames.set(caseName, siblingRelativePath);
+        }
+      }
+    }
+  }
+
+  // Coverage (and any future) reports may only emit case-result markers. Fold
+  // those into the version matrix so every evaluated case updates the checksum
+  // file, even when generate/sync/sync-verification never ran.
+  for (const [caseName, status] of caseStatuses) {
+    if (caseResults.has(caseName)) continue;
     caseResults.set(
       caseName,
       new Map([
@@ -60,9 +135,30 @@ export function parseVersionReport(
         ["next:sync-verification", status],
       ]),
     );
+    if (!caseReportNames.has(caseName)) {
+      caseReportNames.set(
+        caseName,
+        isRunRecapRelativePath(reportRelativePath)
+          ? caseReportRelativePath(reportRelativePath, caseName)
+          : reportRelativePath,
+      );
+    }
   }
   if (caseResults.size === 0) return undefined;
-  return { checksum, cliVersion, generated, reportName, caseResults };
+  const reportName = reportRelativePath.includes("/")
+    ? reportRelativePath
+    : `${checksum}/${reportRelativePath}`;
+  return { checksum, cliVersion, generated, reportName, caseResults, caseReportNames };
+}
+
+function normalizeReportName(checksum: string, reportName: string): string {
+  if (reportName.includes("/")) return reportName;
+  return `${checksum}/${reportName}`;
+}
+
+function reportNamesMatch(left: string, right: string): boolean {
+  if (left === right || left.endsWith(`/${right}`) || right.endsWith(`/${left}`)) return true;
+  return reportRunKey(left) === reportRunKey(right);
 }
 
 function existingVersionSnapshots(config: RunnerConfig, checksum: string): Map<string, CaseSnapshot> {
@@ -83,7 +179,7 @@ function existingVersionSnapshots(config: RunnerConfig, checksum: string): Map<s
 
   const versionReport = readFileSync(join(config.versionsDirectory, versionName), "utf8");
   const rowPattern =
-    /^\| `([^`]+)` \| (generate|sync|sync-verification) \| \*\*(OK|WARNING|ERROR|—)\*\* \| \*\*(OK|WARNING|ERROR|—)\*\* \| \[`(report-[^`]+\.md)`\]/gm;
+    /^\| `([^`]+)` \| (generate|sync|sync-verification) \| \*\*(OK|WARNING|ERROR|—)\*\* \| \*\*(OK|WARNING|ERROR|—)\*\* \| \[[^\]]+\]\(\.\.\/reports\/([^)#]+)/gm;
   for (const row of versionReport.matchAll(rowPattern)) {
     const caseName = row[1];
     const command = row[2];
@@ -91,10 +187,12 @@ function existingVersionSnapshots(config: RunnerConfig, checksum: string): Map<s
     const legacyStatus = row[4];
     const reportName = row[5];
     if (!caseName || !command || !nextStatus || !legacyStatus || !reportName) continue;
+    const normalizedReportName = normalizeReportName(checksum, reportName);
     const snapshot = snapshots.get(caseName) ?? {
-      reportName,
+      reportName: normalizedReportName,
       results: new Map<string, VersionResultStatus>(),
     };
+    snapshot.reportName = normalizedReportName;
     if (nextStatus !== "—") {
       snapshot.results.set(`next:${command}`, nextStatus as VersionResultStatus);
     }
@@ -104,31 +202,58 @@ function existingVersionSnapshots(config: RunnerConfig, checksum: string): Map<s
     snapshots.set(caseName, snapshot);
   }
 
-  const reportCandidates = readdirSync(config.reportsDirectory)
-    .filter((reportName) => /^report-.*\.md$/.test(reportName))
+  const reportCandidates = listReportRelativePaths(config.reportsDirectory)
     .sort()
     .reverse()
-    .map((reportName) => {
-      const report = readFileSync(join(config.reportsDirectory, reportName), "utf8");
+    .map((reportRelativePath) => {
+      const report = readFileSync(
+        reportAbsolutePath(config.reportsDirectory, reportRelativePath),
+        "utf8",
+      );
+      const reportChecksum = /^- Checksum: `([0-9a-f]{7})`$/im.exec(report)?.[1];
+      const reportName = reportRelativePath.includes("/")
+        ? reportRelativePath
+        : reportChecksum
+          ? `${reportChecksum}/${reportRelativePath}`
+          : reportRelativePath;
+      const caseNames = caseNamesFromReportText(report);
+      if (isRunRecapRelativePath(reportRelativePath)) {
+        const runDirectory = join(
+          reportAbsolutePath(config.reportsDirectory, reportRelativePath),
+          "..",
+        );
+        for (const fileName of readdirSync(runDirectory)) {
+          if (!fileName.endsWith(".md") || fileName === "0-recap.md") continue;
+          for (const caseName of caseNamesFromReportText(
+            readFileSync(join(runDirectory, fileName), "utf8"),
+          )) {
+            caseNames.add(caseName);
+          }
+        }
+      }
       return {
         reportName,
-        checksum: /^- Checksum: `([0-9a-f]{7})`$/im.exec(report)?.[1],
-        caseNames: new Set(
-          [...report.matchAll(/^## (.+)$/gm)]
-            .map((heading) => heading[1])
-            .filter((heading) => heading !== undefined)
-            .map((heading) => heading.trimEnd().replace(/^Case: /, "")),
-        ),
+        checksum: reportChecksum,
+        caseNames,
       };
     })
     .filter((report) => report.checksum === undefined || report.checksum === checksum);
   for (const [caseName, snapshot] of snapshots) {
-    const linkedReport = reportCandidates.find(
-      (report) => report.reportName === snapshot.reportName,
+    const linkedReport = reportCandidates.find((report) =>
+      reportNamesMatch(report.reportName, snapshot.reportName),
     );
-    if (linkedReport?.caseNames.has(caseName)) continue;
+    if (linkedReport?.caseNames.has(caseName)) {
+      snapshot.reportName = isRunRecapRelativePath(linkedReport.reportName)
+        ? caseReportRelativePath(linkedReport.reportName, caseName)
+        : linkedReport.reportName;
+      continue;
+    }
     const replacementReport = reportCandidates.find((report) => report.caseNames.has(caseName));
-    if (replacementReport) snapshot.reportName = replacementReport.reportName;
+    if (replacementReport) {
+      snapshot.reportName = isRunRecapRelativePath(replacementReport.reportName)
+        ? caseReportRelativePath(replacementReport.reportName, caseName)
+        : replacementReport.reportName;
+    }
   }
   return snapshots;
 }
@@ -170,12 +295,12 @@ export function renderVersionReport(
       .filter((row) => versionRowSeverity(row.nextStatus, row.legacyStatus) === severity)
       .map(
         (row) =>
-          `| \`${row.caseName}\` | ${row.command} | **${row.nextStatus}** | **${row.legacyStatus}** | [\`${row.reportName}\`](../reports/${row.reportName}#${caseAnchor(row.caseName)}) |`,
+          `| \`${row.caseName}\` | ${row.command} | **${row.nextStatus}** | **${row.legacyStatus}** | [\`${reportDisplayName(row.reportName)}\`](${versionReportHref(row.reportName, row.caseName)}) |`,
       ),
     "",
   ]);
   const sourceReportCount = new Set(
-    [...snapshots.values()].map((snapshot) => snapshot.reportName),
+    [...snapshots.values()].map((snapshot) => reportRunKey(snapshot.reportName)),
   ).size;
   const recordedResults = resultRows.reduce(
     (count, row) => count + Number(row.nextStatus !== "—") + Number(row.legacyStatus !== "—"),
@@ -200,9 +325,8 @@ export function updateVersionReportsFromReports(
   config: RunnerConfig,
   updatedAt = new Date(),
 ): void {
-  const parsedReports = readdirSync(config.reportsDirectory)
-    .filter((reportName) => /^report-.*\.md$/.test(reportName))
-    .map((reportName) => parseVersionReport(config.reportsDirectory, reportName))
+  const parsedReports = listReportRelativePaths(config.reportsDirectory)
+    .map((reportRelativePath) => parseVersionReport(config.reportsDirectory, reportRelativePath))
     .filter((report) => report !== undefined)
     .sort(
       (left, right) =>
@@ -221,7 +345,10 @@ export function updateVersionReportsFromReports(
     const snapshots = existingVersionSnapshots(config, checksum);
     for (const report of reports) {
       for (const [caseName, results] of report.caseResults) {
-        snapshots.set(caseName, { reportName: report.reportName, results });
+        snapshots.set(caseName, {
+          reportName: report.caseReportNames.get(caseName) ?? report.reportName,
+          results,
+        });
       }
     }
     const latestReport = reports.at(-1);

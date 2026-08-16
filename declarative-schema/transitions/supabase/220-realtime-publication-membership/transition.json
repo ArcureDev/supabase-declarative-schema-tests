@@ -2,6 +2,10 @@
   "expectation": "applicable-transition",
   "declarativeFile": "realtime-publication-membership.sql",
   "description": "preserve a populated table and publication identity while enabling full-row Realtime replication",
+  "catalogueAtoms": [
+    "PG-CAT-PUB-02::realtime.membership",
+    "PG-CAT-PUB-02::realtime.replica-identity"
+  ],
   "requiredMigrationPatterns": [
     {
       "description": "set full replica identity",

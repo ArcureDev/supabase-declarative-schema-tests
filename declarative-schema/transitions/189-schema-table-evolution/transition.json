@@ -2,6 +2,11 @@
   "expectation": "applicable-transition",
   "declarativeFile": "schema-table-evolution.sql",
   "description": "create a schema and identity-bearing table from an anchor-only baseline",
+  "catalogueAtoms": [
+    "PG-CAT-STC-01::create.schema",
+    "PG-CAT-STC-02::create.table",
+    "PG-CAT-STC-02::kind.identity"
+  ],
   "requiredMigrationPatterns": [
     {
       "description": "creates the application schema",

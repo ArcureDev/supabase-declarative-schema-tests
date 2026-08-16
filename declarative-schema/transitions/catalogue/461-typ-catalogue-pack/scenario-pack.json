@@ -1,0 +1,712 @@
+{
+  "version": 1,
+  "description": "Types, domains, ranges, and casts catalogue scenarios",
+  "comment": "Table-driven pack for Types, domains, ranges, and casts. Shared project template; each scenario overlays one declarative file.",
+  "firstCaseNumber": 461,
+  "scenarios": [
+    {
+      "id": "enum-create",
+      "caseNumber": 461,
+      "expectation": "applicable-transition",
+      "description": "apply enum.create with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-01::enum.create. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.create"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "enum-drop",
+      "caseNumber": 462,
+      "expectation": "applicable-transition",
+      "description": "apply enum.drop with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-01::enum.drop. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.drop"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "enum-rename",
+      "caseNumber": 463,
+      "expectation": "rename-ambiguity-warning-or-refusal",
+      "description": "treat enum.rename as an identity-unsafe drop/create pair without a rename hint",
+      "comment": "Covers PG-CAT-TYP-01::enum.rename. Keep public.transition_anchor identity stable. PostgreSQL RENAME/SET SCHEMA preserves OIDs; an unhinted declarative pair must not silently drop data.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.rename"
+      ],
+      "sourceIdentifier": "public.catalogue_rename_source"
+    },
+    {
+      "id": "enum-add-value",
+      "caseNumber": 464,
+      "expectation": "applicable-transition",
+      "description": "apply enum.add-value with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-01::enum.add-value. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.add-value"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "enum-rename-value",
+      "caseNumber": 465,
+      "expectation": "rename-ambiguity-warning-or-refusal",
+      "description": "treat enum.rename-value as an identity-unsafe drop/create pair without a rename hint",
+      "comment": "Covers PG-CAT-TYP-01::enum.rename-value. Keep public.transition_anchor identity stable. PostgreSQL RENAME/SET SCHEMA preserves OIDs; an unhinted declarative pair must not silently drop data.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.rename-value"
+      ],
+      "sourceIdentifier": "public.catalogue_rename_source"
+    },
+    {
+      "id": "enum-delete-value",
+      "caseNumber": 466,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for enum.delete-value",
+      "comment": "Covers PG-CAT-TYP-01::enum.delete-value. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.delete-value"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "enum-reorder",
+      "caseNumber": 467,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for enum.reorder",
+      "comment": "Covers PG-CAT-TYP-01::enum.reorder. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-01::enum.reorder"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "domain-default",
+      "caseNumber": 468,
+      "expectation": "applicable-transition",
+      "description": "apply domain.default with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-02::domain.default. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-02::domain.default"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "domain-not-null",
+      "caseNumber": 469,
+      "expectation": "applicable-transition",
+      "description": "apply domain.not-null with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-02::domain.not-null. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-02::domain.not-null"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "domain-check",
+      "caseNumber": 470,
+      "expectation": "applicable-transition",
+      "description": "apply domain.check with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-02::domain.check. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-02::domain.check"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "domain-collation",
+      "caseNumber": 471,
+      "expectation": "applicable-transition",
+      "description": "apply domain.collation with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-02::domain.collation. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-02::domain.collation"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "composite-add-attribute",
+      "caseNumber": 472,
+      "expectation": "applicable-transition",
+      "description": "apply composite.add-attribute with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-03::composite.add-attribute. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-03::composite.add-attribute"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "composite-drop-attribute",
+      "caseNumber": 473,
+      "expectation": "applicable-transition",
+      "description": "apply composite.drop-attribute with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-03::composite.drop-attribute. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-03::composite.drop-attribute"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "composite-rename-attribute",
+      "caseNumber": 474,
+      "expectation": "rename-ambiguity-warning-or-refusal",
+      "description": "treat composite.rename-attribute as an identity-unsafe drop/create pair without a rename hint",
+      "comment": "Covers PG-CAT-TYP-03::composite.rename-attribute. Keep public.transition_anchor identity stable. PostgreSQL RENAME/SET SCHEMA preserves OIDs; an unhinted declarative pair must not silently drop data.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-03::composite.rename-attribute"
+      ],
+      "sourceIdentifier": "public.catalogue_rename_source"
+    },
+    {
+      "id": "range-create",
+      "caseNumber": 475,
+      "expectation": "applicable-transition",
+      "description": "apply range.create with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-04::range.create. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-04::range.create"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "range-rename",
+      "caseNumber": 476,
+      "expectation": "rename-ambiguity-warning-or-refusal",
+      "description": "treat range.rename as an identity-unsafe drop/create pair without a rename hint",
+      "comment": "Covers PG-CAT-TYP-04::range.rename. Keep public.transition_anchor identity stable. PostgreSQL RENAME/SET SCHEMA preserves OIDs; an unhinted declarative pair must not silently drop data.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-04::range.rename"
+      ],
+      "sourceIdentifier": "public.catalogue_rename_source"
+    },
+    {
+      "id": "multirange-create",
+      "caseNumber": 477,
+      "expectation": "applicable-transition",
+      "description": "apply multirange.create with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-04::multirange.create. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-04::multirange.create"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "base-type-create",
+      "caseNumber": 478,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for base-type.create",
+      "comment": "Covers PG-CAT-TYP-05::base-type.create. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-05::base-type.create"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "shell-type-create",
+      "caseNumber": 479,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for shell-type.create",
+      "comment": "Covers PG-CAT-TYP-05::shell-type.create. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-05::shell-type.create"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "cast-create",
+      "caseNumber": 480,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for cast.create",
+      "comment": "Covers PG-CAT-TYP-06::cast.create. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-06::cast.create"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "cast-drop",
+      "caseNumber": 481,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for cast.drop",
+      "comment": "Covers PG-CAT-TYP-06::cast.drop. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-06::cast.drop"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "operator-create",
+      "caseNumber": 482,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for operator.create",
+      "comment": "Covers PG-CAT-TYP-07::operator.create. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-07::operator.create"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "opclass-create",
+      "caseNumber": 483,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for opclass.create",
+      "comment": "Covers PG-CAT-TYP-07::opclass.create. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-07::opclass.create"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "aggregate-dependency",
+      "caseNumber": 484,
+      "expectation": "applicable-transition",
+      "description": "apply aggregate.dependency with a native in-place operation",
+      "comment": "Covers PG-CAT-TYP-07::aggregate.dependency. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-07::aggregate.dependency"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "transform-create",
+      "caseNumber": 485,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for transform.create",
+      "comment": "Covers PG-CAT-TYP-08::transform.create. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-08::transform.create"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "transform-drop",
+      "caseNumber": 486,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for transform.drop",
+      "comment": "Covers PG-CAT-TYP-08::transform.drop. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-TYP-08::transform.drop"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    }
+  ]
+}

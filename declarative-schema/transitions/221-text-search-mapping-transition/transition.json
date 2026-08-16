@@ -2,6 +2,9 @@
   "expectation": "expected-unsupported",
   "declarativeFile": "text-search-mapping-transition.sql",
   "description": "replace a text-search configuration mapping without recreating the configuration",
+  "catalogueAtoms": [
+    "PG-CAT-FTS-01::textsearch.mapping"
+  ],
   "requiredDiagnosticPatterns": [
     {
       "description": "reports the stable unmodeled-kind capability code",

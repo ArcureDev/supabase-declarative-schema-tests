@@ -232,7 +232,7 @@ export function describeCommandFailure(result: CommandResult): string {
     : `The command exited with code ${result.exitCode}.`;
 }
 
-function formatDuration(durationMilliseconds: number): string {
+export function formatDuration(durationMilliseconds: number): string {
   return `${(durationMilliseconds / 1000).toFixed(1)}s`;
 }
 

@@ -2,6 +2,10 @@
   "expectation": "applicable-transition",
   "declarativeFile": "fdw-option-redaction.sql",
   "description": "change a foreign-server host while preserving and redacting a user-mapping password",
+  "catalogueAtoms": [
+    "PG-CAT-EXT-04::fdw.options",
+    "PG-CAT-EXT-04::fdw.redaction"
+  ],
   "sensitiveValues": ["PGDELTA_SECRET_224"],
   "requiredMigrationPatterns": [
     {

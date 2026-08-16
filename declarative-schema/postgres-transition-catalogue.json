@@ -1,0 +1,4636 @@
+{
+  "version": 1,
+  "source": {
+    "document": "TEST-MATRIX.md",
+    "section": "PostgreSQL transition catalogue"
+  },
+  "rows": [
+    {
+      "id": "PG-CAT-STC-01",
+      "section": "STC",
+      "ordinal": 1,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Create, drop, rename, move, authorize, and change ownership of schemas.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-01::create.schema",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-01::drop.schema",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-01::rename.schema",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-01::move.schema",
+          "verbs": [
+            "move"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-01::authorize.schema",
+          "verbs": [
+            "authorize"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-01::ownership.schema",
+          "verbs": [
+            "ownership"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-02",
+      "section": "STC",
+      "ordinal": 2,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Create, drop, rename, move, persist/unpersist, and change ownership of tables; cover ordinary, unlogged, temporary-boundary, partitioned, inherited, typed, foreign, and identity-bearing tables where in scope.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-02::create.table",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::drop.table",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::rename.table",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::move.table",
+          "verbs": [
+            "move"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::persist.unlogged",
+          "verbs": [
+            "persist"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::ownership.table",
+          "verbs": [
+            "ownership"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::kind.partitioned",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::kind.inherited",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::kind.typed",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::kind.foreign",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::kind.identity",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-02::boundary.temporary",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [
+            "@diagnostic"
+          ],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-03",
+      "section": "STC",
+      "ordinal": 3,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Add, drop, rename, reorder-only, and batch columns on empty and populated tables.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-03::add.column@empty",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [
+            "@empty"
+          ],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::add.column@populated",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [
+            "@populated"
+          ],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::drop.column@empty",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [
+            "@empty"
+          ],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::drop.column@populated",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [
+            "@populated"
+          ],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::rename.column",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::reorder.column",
+          "verbs": [
+            "reorder"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::batch.columns@empty",
+          "verbs": [
+            "batch"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [
+            "@empty"
+          ],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-03::batch.columns@populated",
+          "verbs": [
+            "batch"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [
+            "@populated"
+          ],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-04",
+      "section": "STC",
+      "ordinal": 4,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Change data type with implicit cast, assignment cast, explicit USING, lossy conversion, incompatible conversion, arrays, domains, enums, and collation changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-04::cast.implicit",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.assignment",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.using",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.lossy",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.incompatible",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.array",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.domain",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.enum",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-04::cast.collation",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-05",
+      "section": "STC",
+      "ordinal": 5,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Add/change/drop defaults, including volatile defaults and expression defaults; verify existing rows are not rewritten incorrectly.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-05::default.add",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "default"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-05::default.change",
+          "verbs": [
+            "change"
+          ],
+          "objects": [
+            "default"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-05::default.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "default"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-05::default.volatile",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "default"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-05::default.expression",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "default"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-05::default.no-rewrite",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-06",
+      "section": "STC",
+      "ordinal": 6,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Add/drop NOT NULL with and without valid data and with staged validation.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-06::notnull.add.valid",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "not-null"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-06::notnull.add.invalid",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "not-null"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-06::notnull.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "not-null"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-06::notnull.staged",
+          "verbs": [
+            "validate"
+          ],
+          "objects": [
+            "not-null"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-07",
+      "section": "STC",
+      "ordinal": 7,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Add/change/drop identity and generated expressions; switch identity ALWAYS/BY DEFAULT; restart and change sequence options.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-07::identity.add",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "identity"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::identity.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "identity"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::identity.always",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "identity"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::identity.by-default",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "identity"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::identity.restart",
+          "verbs": [
+            "restart"
+          ],
+          "objects": [
+            "identity"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::generated.add",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "generated"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::generated.change",
+          "verbs": [
+            "change"
+          ],
+          "objects": [
+            "generated"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-07::generated.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "generated"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-08",
+      "section": "STC",
+      "ordinal": 8,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Change compression, storage, statistics target, column options, and per-column privileges.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-08::compression",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-08::storage",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-08::statistics-target",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-08::column-options",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-08::column-privileges",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "column"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-09",
+      "section": "STC",
+      "ordinal": 9,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Sequence create/drop/rename/move; type, increment, min/max, cache, cycle, restart, owned-by, and ownership changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-09::create.sequence",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::drop.sequence",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::rename.sequence",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::move.sequence",
+          "verbs": [
+            "move"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.type",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.increment",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.bounds",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.cache",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.cycle",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.restart",
+          "verbs": [
+            "restart"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.owned-by",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-09::sequence.ownership",
+          "verbs": [
+            "ownership"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-10",
+      "section": "STC",
+      "ordinal": 10,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Table access method, tablespace, persistence, storage parameters, replica identity, row-security flags, clustering, and inheritance changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-10::access-method",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::tablespace",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::persistence",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::storage-params",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::replica-identity",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::rls-flags",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::clustering",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-10::inheritance",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-STC-11",
+      "section": "STC",
+      "ordinal": 11,
+      "heading": "Schemas, tables, columns, and sequences",
+      "text": "Preserve rows containing NULLs, defaults, arrays, JSON, bytea, large text, generated values, identity values, and boundary numeric/time values.",
+      "atoms": [
+        {
+          "id": "PG-CAT-STC-11::preserve.null",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.default",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.array",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.json",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.bytea",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.large-text",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.generated",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.identity",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.numeric",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-STC-11::preserve.time",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "row"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-01",
+      "section": "CIX",
+      "ordinal": 1,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Primary key, unique, foreign key, check, exclusion, and NOT NULL constraint create/drop/rename and property changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-01::pk.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "primary-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::pk.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "primary-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::unique.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "unique"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::fk.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::check.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "check"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::exclusion.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "exclusion"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::notnull.constraint",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "not-null"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-01::rename.constraint",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "constraint"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-02",
+      "section": "CIX",
+      "ordinal": 2,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Composite keys; self, cyclic, multi-column, cross-schema, partitioned, and deferrable foreign keys; action and match-mode changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-02::fk.composite",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-02::fk.self",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-02::fk.cross-schema",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-02::fk.deferrable",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-02::fk.action",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-02::fk.match",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-03",
+      "section": "CIX",
+      "ordinal": 3,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "NOT VALID creation followed by VALIDATE CONSTRAINT, including invalid existing data.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-03::not-valid.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "constraint"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-03::validate.constraint",
+          "verbs": [
+            "validate"
+          ],
+          "objects": [
+            "constraint"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-03::validate.invalid",
+          "verbs": [
+            "validate"
+          ],
+          "objects": [
+            "constraint"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-04",
+      "section": "CIX",
+      "ordinal": 4,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Attach an existing unique index as a constraint and detach or replace it without needless rebuilds.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-04::index.attach-constraint",
+          "verbs": [
+            "attach"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-04::index.replace-constraint",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "constraint"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-05",
+      "section": "CIX",
+      "ordinal": 5,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Index create/drop/rename/move and changes to uniqueness, method, columns, expressions, sort order, NULLS order, INCLUDE, predicate, collation, operator class, options, tablespace, and validity.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-05::index.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.move",
+          "verbs": [
+            "move"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.unique",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.method",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.expression",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.include",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.predicate",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-05::index.sort",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-06",
+      "section": "CIX",
+      "ordinal": 6,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Partial, expression, covering, multicolumn, partitioned, hash, GiST, SP-GiST, GIN, BRIN, and extension-provided indexes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-06::index.partial",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.covering",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.multicolumn",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.hash",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.gin",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.gist",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.brin",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-06::index.extension",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-07",
+      "section": "CIX",
+      "ordinal": 7,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Concurrent-index policy, invalid indexes, clustered indexes, replica identity indexes, and duplicate-equivalent definitions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-07::index.concurrent",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-07::index.invalid",
+          "verbs": [
+            "repair"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-07::index.clustered",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-07::index.replica-identity",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-07::index.duplicate",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-08",
+      "section": "CIX",
+      "ordinal": 8,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Extended statistics create/drop/rename and changes to columns, kinds, target, owner, and schema.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-08::statistics.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "statistics"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-08::statistics.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "statistics"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-08::statistics.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "statistics"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-CIX-09",
+      "section": "CIX",
+      "ordinal": 9,
+      "heading": "Constraints, indexes, statistics, and rules",
+      "text": "Rewrite rules create/replace/drop/enable/disable and interaction with views, triggers, and RLS.",
+      "atoms": [
+        {
+          "id": "PG-CAT-CIX-09::rule.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "rule"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-09::rule.replace",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "rule"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-09::rule.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "rule"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-CIX-09::rule.enable",
+          "verbs": [
+            "enable"
+          ],
+          "objects": [
+            "rule"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PRT-01",
+      "section": "PRT",
+      "ordinal": 1,
+      "heading": "Partitions and inheritance",
+      "text": "RANGE, LIST, HASH, DEFAULT, multilevel, and subpartitioned hierarchies.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PRT-01::partition.range",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-01::partition.list",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-01::partition.hash",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-01::partition.default",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-01::partition.multilevel",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PRT-02",
+      "section": "PRT",
+      "ordinal": 2,
+      "heading": "Partitions and inheritance",
+      "text": "Add, detach, finalize detach, attach, rename, move, and drop partitions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PRT-02::partition.add",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-02::partition.detach",
+          "verbs": [
+            "detach"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-02::partition.finalize-detach",
+          "verbs": [
+            "detach"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-02::partition.attach",
+          "verbs": [
+            "attach"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-02::partition.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-02::partition.move",
+          "verbs": [
+            "move"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-02::partition.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PRT-03",
+      "section": "PRT",
+      "ordinal": 3,
+      "heading": "Partitions and inheritance",
+      "text": "Change bounds, default-partition constraints, partition keys, and strategy through safe staged operations or explicit refusal.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PRT-03::partition.bounds",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-03::partition.key",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-03::partition.strategy",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PRT-04",
+      "section": "PRT",
+      "ordinal": 4,
+      "heading": "Partitions and inheritance",
+      "text": "Attach populated tables with validated constraints and reject overlapping or invalid data.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PRT-04::partition.attach-populated",
+          "verbs": [
+            "attach"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-04::partition.attach-invalid",
+          "verbs": [
+            "attach"
+          ],
+          "objects": [
+            "partition"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PRT-05",
+      "section": "PRT",
+      "ordinal": 5,
+      "heading": "Partitions and inheritance",
+      "text": "Local versus partitioned indexes, attached indexes, constraints, sequences, triggers, RLS, publications, and foreign keys.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PRT-05::partition.local-index",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "index"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-05::partition.constraint",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "constraint"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-05::partition.trigger",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-05::partition.rls",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-05::partition.fk",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-key"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PRT-06",
+      "section": "PRT",
+      "ordinal": 6,
+      "heading": "Partitions and inheritance",
+      "text": "Traditional inheritance add/drop parent, multiple inheritance, NO INHERIT, and inherited column/constraint behavior.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PRT-06::inherit.add",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "inheritance"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-06::inherit.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "inheritance"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-06::inherit.multiple",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "inheritance"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PRT-06::inherit.no-inherit",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "inheritance"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-01",
+      "section": "TYP",
+      "ordinal": 1,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Enum create/drop/rename/move; add value before/after, rename value, reorder request, delete request, and transactional/version limitations.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-01::enum.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-01::enum.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-01::enum.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-01::enum.add-value",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-01::enum.rename-value",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-01::enum.delete-value",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-01::enum.reorder",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "enum"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-02",
+      "section": "TYP",
+      "ordinal": 2,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Domain base type, default, NOT NULL, collation, and named check-constraint transitions with populated dependent columns.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-02::domain.default",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "domain"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-02::domain.not-null",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "domain"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-02::domain.check",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "domain"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-02::domain.collation",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "domain"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-03",
+      "section": "TYP",
+      "ordinal": 3,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Composite type attributes add/drop/rename/type/collation changes and dependent tables/functions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-03::composite.add-attribute",
+          "verbs": [
+            "add"
+          ],
+          "objects": [
+            "composite"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-03::composite.drop-attribute",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "composite"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-03::composite.rename-attribute",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "composite"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-04",
+      "section": "TYP",
+      "ordinal": 4,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Range and multirange creation, rename, move, subtype/opclass/canonical/diff changes, and dependencies.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-04::range.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "range"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-04::range.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "range"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-04::multirange.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "multirange"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-05",
+      "section": "TYP",
+      "ordinal": 5,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Base and shell types, input/output/receive/send/analyze/subscript functions, storage/alignment/category/preference/collatability changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-05::base-type.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "base-type"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-05::shell-type.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "shell-type"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-06",
+      "section": "TYP",
+      "ordinal": 6,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Cast create/drop and changes to function, context, and method.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-06::cast.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "cast"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-06::cast.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "cast"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-07",
+      "section": "TYP",
+      "ordinal": 7,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Operator, operator class, operator family, aggregate, and support-function dependency transitions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-07::operator.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "operator"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-07::opclass.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "opclass"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-07::aggregate.dependency",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "aggregate"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-TYP-08",
+      "section": "TYP",
+      "ordinal": 8,
+      "heading": "Types, domains, ranges, and casts",
+      "text": "Positive CREATE TRANSFORM coverage plus replace/drop and language/type dependencies.",
+      "atoms": [
+        {
+          "id": "PG-CAT-TYP-08::transform.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "transform"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-TYP-08::transform.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "transform"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-VIW-01",
+      "section": "VIW",
+      "ordinal": 1,
+      "heading": "Views and materialized views",
+      "text": "Create/replace/drop/rename/move and ownership, comment, ACL, security barrier/invoker, check option, and column-name changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-VIW-01::view.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-01::view.replace",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-01::view.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-01::view.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-01::view.security-invoker",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-01::view.check-option",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-VIW-02",
+      "section": "VIW",
+      "ordinal": 2,
+      "heading": "Views and materialized views",
+      "text": "Compatible and incompatible output-column changes; nested, recursive, lateral, aggregate, window, set-operation, and cross-schema views.",
+      "atoms": [
+        {
+          "id": "PG-CAT-VIW-02::view.compatible",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-02::view.incompatible",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-02::view.recursive",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-02::view.cross-schema",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-VIW-03",
+      "section": "VIW",
+      "ordinal": 3,
+      "heading": "Views and materialized views",
+      "text": "Dependency-safe ordering when base objects and view chains change together.",
+      "atoms": [
+        {
+          "id": "PG-CAT-VIW-03::view.dependency-order",
+          "verbs": [
+            "order"
+          ],
+          "objects": [
+            "view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-VIW-04",
+      "section": "VIW",
+      "ordinal": 4,
+      "heading": "Views and materialized views",
+      "text": "Materialized-view query, options, tablespace, access method, index, owner, populated/unpopulated state, refresh, and concurrent-refresh eligibility.",
+      "atoms": [
+        {
+          "id": "PG-CAT-VIW-04::matview.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "materialized-view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-04::matview.replace",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "materialized-view"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-04::matview.refresh",
+          "verbs": [
+            "refresh"
+          ],
+          "objects": [
+            "materialized-view"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-VIW-04::matview.concurrent-refresh",
+          "verbs": [
+            "refresh"
+          ],
+          "objects": [
+            "materialized-view"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-01",
+      "section": "RTN",
+      "ordinal": 1,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "SQL, PL/pgSQL, and supported extension-language routines.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-01::routine.sql",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-01::routine.plpgsql",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-01::routine.extension-language",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-02",
+      "section": "RTN",
+      "ordinal": 2,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Create/replace/drop/rename/move; signature, argument name/mode/default, return type/table, language, body, volatility, strictness, leakproofness, parallel safety, security mode, support function, cost, rows, configuration, owner, ACL, and dependency changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-02::routine.replace",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-02::routine.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-02::routine.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-02::routine.volatility",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-02::routine.security",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-02::routine.parallel",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-03",
+      "section": "RTN",
+      "ordinal": 3,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Overloads, variadic/polymorphic arguments, quoted bodies, dollar-tag variants, comments, whitespace, and CRLF-versus-LF normalization.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-03::routine.overload",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-03::routine.variadic",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-03::routine.normalization",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-04",
+      "section": "RTN",
+      "ordinal": 4,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Procedure transaction behavior and IN/OUT signature transitions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-04::procedure.replace",
+          "verbs": [
+            "replace"
+          ],
+          "objects": [
+            "procedure"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-04::procedure.signature",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "procedure"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-05",
+      "section": "RTN",
+      "ordinal": 5,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Ordinary, ordered-set, and hypothetical-set aggregate transitions, including state/combine/serial/deserial/final/moving functions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-05::aggregate.ordinary",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "aggregate"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-05::aggregate.ordered-set",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "aggregate"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-06",
+      "section": "RTN",
+      "ordinal": 6,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Row, statement, constraint, INSTEAD OF, transition-table, deferred, partitioned-table, enabled/disabled, and replica/always triggers.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-06::trigger.row",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-06::trigger.statement",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-06::trigger.instead-of",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-06::trigger.disable",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-06::trigger.constraint",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-07",
+      "section": "RTN",
+      "ordinal": 7,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Event-trigger create/drop/rename/enable changes for ddl_command_start, ddl_command_end, table_rewrite, and sql_drop, with tag filtering.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-07::event-trigger.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "event-trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-07::event-trigger.enable",
+          "verbs": [
+            "enable"
+          ],
+          "objects": [
+            "event-trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-07::event-trigger.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "event-trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-07::event-trigger.tag-filter",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "event-trigger"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-RTN-08",
+      "section": "RTN",
+      "ordinal": 8,
+      "heading": "Functions, procedures, aggregates, and triggers",
+      "text": "Safe ordering when a routine is used by a default, generated column, index, constraint, policy, trigger, view, operator, cast, or publication filter.",
+      "atoms": [
+        {
+          "id": "PG-CAT-RTN-08::routine.used-by-default",
+          "verbs": [
+            "order"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-RTN-08::routine.used-by-view",
+          "verbs": [
+            "order"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-01",
+      "section": "ROL",
+      "ordinal": 1,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "Role create/drop/rename and LOGIN, SUPERUSER, CREATEDB, CREATEROLE, REPLICATION, BYPASSRLS, connection limit, validity, password-redaction, and membership/admin/inherit/set option transitions.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-01::role.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-01::role.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-01::role.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-01::role.membership",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-01::role.password-redaction",
+          "verbs": [
+            "redact"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-02",
+      "section": "ROL",
+      "ordinal": 2,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "Object ownership changes and DROP OWNED/REASSIGN OWNED boundaries.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-02::ownership.object",
+          "verbs": [
+            "ownership"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-02::ownership.reassign",
+          "verbs": [
+            "reassign"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-03",
+      "section": "ROL",
+      "ordinal": 3,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "GRANT/REVOKE for schemas, tables, columns, sequences, routines, types, databases, tablespaces, foreign objects, large objects, and parameters.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-03::grant.table",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-03::grant.schema",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-03::grant.routine",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "function"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-03::grant.database",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "database"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-03::grant.parameter",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "parameter"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-04",
+      "section": "ROL",
+      "ordinal": 4,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "Grant option, PUBLIC, default privileges, grantor identity, duplicate grants, and revoke cascade/restrict.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-04::grant.option",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "privilege"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-04::grant.public",
+          "verbs": [
+            "grant"
+          ],
+          "objects": [
+            "privilege"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-04::grant.default-privileges",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "privilege"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-04::revoke.cascade",
+          "verbs": [
+            "revoke"
+          ],
+          "objects": [
+            "privilege"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-05",
+      "section": "ROL",
+      "ordinal": 5,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "RLS enable/disable/force/no-force; policy create/drop/rename and changes to command, permissive/restrictive mode, roles, USING, and WITH CHECK.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-05::rls.enable",
+          "verbs": [
+            "enable"
+          ],
+          "objects": [
+            "rls"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-05::rls.force",
+          "verbs": [
+            "force"
+          ],
+          "objects": [
+            "rls"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-05::policy.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-05::policy.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-05::policy.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-05::policy.restrictive",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-06",
+      "section": "ROL",
+      "ordinal": 6,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "Policies using auth.uid(), auth.jwt(), security-definer helpers, views, joins, custom claims, anonymous/authenticated/service roles, and recursive policy hazards.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-06::policy.auth-uid",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-06::policy.auth-jwt",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-ROL-06::policy.helper",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-ROL-07",
+      "section": "ROL",
+      "ordinal": 7,
+      "heading": "Roles, ownership, grants, and row-level security",
+      "text": "Ensure routine security, search_path, ownership, privileges, and RLS are changed in a non-exploitable order.",
+      "atoms": [
+        {
+          "id": "PG-CAT-ROL-07::security.order",
+          "verbs": [
+            "order"
+          ],
+          "objects": [
+            "policy"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PUB-01",
+      "section": "PUB",
+      "ordinal": 1,
+      "heading": "Publications and logical replication",
+      "text": "Publication create/drop/rename/owner, FOR ALL TABLES, selected tables, schema membership, column lists, row filters, publish operations, partition root, and membership add/drop.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PUB-01::publication.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "publication"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PUB-01::publication.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "publication"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PUB-01::publication.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "publication"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-PUB-01::publication.membership",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "publication"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PUB-01::publication.row-filter",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "publication"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PUB-02",
+      "section": "PUB",
+      "ordinal": 2,
+      "heading": "Publications and logical replication",
+      "text": "Supabase Realtime publication membership and replica-identity requirements.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PUB-02::realtime.membership",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "publication"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-PUB-02::realtime.replica-identity",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PUB-03",
+      "section": "PUB",
+      "ordinal": 3,
+      "heading": "Publications and logical replication",
+      "text": "Subscription definitions, connection-string redaction, enabled state, slot/publication changes, origin, streaming, binary, two-phase, failover, refresh, skip, and DROP cleanup when a safe test environment supports them.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PUB-03::subscription.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "subscription"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-PUB-03::subscription.redaction",
+          "verbs": [
+            "redact"
+          ],
+          "objects": [
+            "subscription"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-PUB-04",
+      "section": "PUB",
+      "ordinal": 4,
+      "heading": "Publications and logical replication",
+      "text": "Slot/origin/runtime replication state is asserted separately from declarative DDL.",
+      "atoms": [
+        {
+          "id": "PG-CAT-PUB-04::replication.runtime-state",
+          "verbs": [
+            "assert"
+          ],
+          "objects": [
+            "slot"
+          ],
+          "facets": [],
+          "evidence": [
+            "runtime-boundary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-FTS-01",
+      "section": "FTS",
+      "ordinal": 1,
+      "heading": "Text search, collations, conversions, and languages",
+      "text": "Text-search parser, template, dictionary, and configuration lifecycle; token mappings and dependency ordering.",
+      "atoms": [
+        {
+          "id": "PG-CAT-FTS-01::textsearch.config.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "text-search"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-01::textsearch.mapping",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "text-search"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-FTS-02",
+      "section": "FTS",
+      "ordinal": 2,
+      "heading": "Text search, collations, conversions, and languages",
+      "text": "Collation create/drop/rename/move, provider, locale/rules, deterministic flag, encoding, version refresh, ICU/libc availability, and OS drift.",
+      "atoms": [
+        {
+          "id": "PG-CAT-FTS-02::collation.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "collation"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-02::collation.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "collation"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-02::collation.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "collation"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-02::collation.version",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "collation"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-FTS-03",
+      "section": "FTS",
+      "ordinal": 3,
+      "heading": "Text search, collations, conversions, and languages",
+      "text": "Conversion create/drop/rename/move/default and source/destination encoding/function changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-FTS-03::conversion.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "conversion"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-03::conversion.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "conversion"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-03::conversion.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "conversion"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-FTS-04",
+      "section": "FTS",
+      "ordinal": 4,
+      "heading": "Text search, collations, conversions, and languages",
+      "text": "Procedural-language create/drop/rename/owner/handler/validator/inline transitions and trusted/untrusted boundaries.",
+      "atoms": [
+        {
+          "id": "PG-CAT-FTS-04::language.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "language"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-FTS-04::language.trusted",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "language"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-EXT-01",
+      "section": "EXT",
+      "ordinal": 1,
+      "heading": "Extensions, FDWs, and external boundaries",
+      "text": "Extension create/drop, version upgrade/downgrade request, schema move, cascade policy, relocatable/non-relocatable behavior, and configuration-table membership.",
+      "atoms": [
+        {
+          "id": "PG-CAT-EXT-01::extension.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "extension"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-01::extension.drop",
+          "verbs": [
+            "drop"
+          ],
+          "objects": [
+            "extension"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-01::extension.upgrade",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "extension"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-01::extension.schema-move",
+          "verbs": [
+            "move"
+          ],
+          "objects": [
+            "extension"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-EXT-02",
+      "section": "EXT",
+      "ordinal": 2,
+      "heading": "Extensions, FDWs, and external boundaries",
+      "text": "Extension-owned objects are neither duplicated nor accidentally dropped; user modifications and upgrade conflicts produce useful diagnostics.",
+      "atoms": [
+        {
+          "id": "PG-CAT-EXT-02::extension.owned-objects",
+          "verbs": [
+            "preserve"
+          ],
+          "objects": [
+            "extension"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-02::extension.conflict",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "extension"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-EXT-03",
+      "section": "EXT",
+      "ordinal": 3,
+      "heading": "Extensions, FDWs, and external boundaries",
+      "text": "Foreign-data wrapper, server, user mapping, and foreign-table create/drop/rename/move plus handler/validator/options/owner/ACL changes.",
+      "atoms": [
+        {
+          "id": "PG-CAT-EXT-03::fdw.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "fdw"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-03::server.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "server"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-03::foreign-table.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "foreign-table"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-03::server.rename",
+          "verbs": [
+            "rename"
+          ],
+          "objects": [
+            "server"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-EXT-04",
+      "section": "EXT",
+      "ordinal": 4,
+      "heading": "Extensions, FDWs, and external boundaries",
+      "text": "Add/change/drop options with correct SET/ADD/DROP syntax and redact passwords, tokens, URLs, and connection strings from reports.",
+      "atoms": [
+        {
+          "id": "PG-CAT-EXT-04::fdw.options",
+          "verbs": [
+            "alter"
+          ],
+          "objects": [
+            "server"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-04::fdw.redaction",
+          "verbs": [
+            "redact"
+          ],
+          "objects": [
+            "server"
+          ],
+          "facets": [],
+          "evidence": [
+            "transition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-EXT-05",
+      "section": "EXT",
+      "ordinal": 5,
+      "heading": "Extensions, FDWs, and external boundaries",
+      "text": "IMPORT FOREIGN SCHEMA, unavailable endpoints, changed remote schemas, local test servers, and failure recovery.",
+      "atoms": [
+        {
+          "id": "PG-CAT-EXT-05::fdw.import-schema",
+          "verbs": [
+            "import"
+          ],
+          "objects": [
+            "foreign-schema"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-05::fdw.unavailable",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "server"
+          ],
+          "facets": [],
+          "evidence": [
+            "runtime-boundary"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-EXT-06",
+      "section": "EXT",
+      "ordinal": 6,
+      "heading": "Extensions, FDWs, and external boundaries",
+      "text": "Security labels and providers, including pgsodium availability and unsupported-provider diagnostics.",
+      "atoms": [
+        {
+          "id": "PG-CAT-EXT-06::seclabel.create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "security-label"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-EXT-06::seclabel.provider",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "security-label"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-BND-01",
+      "section": "BND",
+      "ordinal": 1,
+      "heading": "Explicit PostgreSQL boundaries",
+      "text": "Access methods, transforms, extended statistics, rules, event triggers, subscriptions, large objects, database-level settings, and parameter grants.",
+      "atoms": [
+        {
+          "id": "PG-CAT-BND-01::boundary.access-method",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "access-method"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-BND-01::boundary.large-object",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "large-object"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-BND-01::boundary.database-settings",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "database"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-BND-02",
+      "section": "BND",
+      "ordinal": 2,
+      "heading": "Explicit PostgreSQL boundaries",
+      "text": "Database and tablespace creation, which may require connections, privileges, and transaction boundaries outside a normal project migration.",
+      "atoms": [
+        {
+          "id": "PG-CAT-BND-02::boundary.database-create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "database"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-BND-02::boundary.tablespace-create",
+          "verbs": [
+            "create"
+          ],
+          "objects": [
+            "tablespace"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-BND-03",
+      "section": "BND",
+      "ordinal": 3,
+      "heading": "Explicit PostgreSQL boundaries",
+      "text": "Temporary/session objects, runtime sequence values, materialized-view contents, replication slots, prepared transactions, and statistics, which are state rather than portable schema.",
+      "atoms": [
+        {
+          "id": "PG-CAT-BND-03::boundary.temp-objects",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "temporary"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-BND-03::boundary.sequence-value",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "sequence"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-BND-03::boundary.prepared-xact",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "transaction"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-BND-04",
+      "section": "BND",
+      "ordinal": 4,
+      "heading": "Explicit PostgreSQL boundaries",
+      "text": "Cluster-level roles/settings and superuser-only features.",
+      "atoms": [
+        {
+          "id": "PG-CAT-BND-04::boundary.cluster-role",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        },
+        {
+          "id": "PG-CAT-BND-04::boundary.superuser",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "role"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PG-CAT-BND-05",
+      "section": "BND",
+      "ordinal": 5,
+      "heading": "Explicit PostgreSQL boundaries",
+      "text": "Unsupported object kinds fail with a stable, actionable diagnostic and do not silently disappear from the declarative export.",
+      "atoms": [
+        {
+          "id": "PG-CAT-BND-05::boundary.stable-diagnostic",
+          "verbs": [
+            "diagnose"
+          ],
+          "objects": [
+            "unmodeled"
+          ],
+          "facets": [],
+          "evidence": [
+            "diagnostic"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { listReportRelativePaths, reportSortKey } from "./reporting.mts";
 import type { CaseSelection } from "./types.mts";
 
 type VersionSelectionOption = "--not-ok" | "--not-done";
@@ -112,13 +113,20 @@ export function latestReportPath(reportsDirectory: string): string {
   if (!existsSync(reportsDirectory)) {
     throw new Error("Cannot use --failed because no previous report exists.");
   }
-  const reportFileName = readdirSync(reportsDirectory)
-    .filter((fileName) => /^report-.*\.md$/.test(fileName))
-    .sort((left, right) => right.localeCompare(left))[0];
-  if (!reportFileName) {
+  const reportRelativePath = listReportRelativePaths(reportsDirectory)
+    .map((relativePath) => ({
+      relativePath,
+      sortKey: reportSortKey(relativePath),
+    }))
+    .sort(
+      (left, right) =>
+        right.sortKey.localeCompare(left.sortKey) ||
+        right.relativePath.localeCompare(left.relativePath),
+    )[0]?.relativePath;
+  if (!reportRelativePath) {
     throw new Error("Cannot use --failed because no previous report exists.");
   }
-  return join(reportsDirectory, reportFileName);
+  return join(reportsDirectory, ...reportRelativePath.split("/"));
 }
 
 export function latestVersionPath(

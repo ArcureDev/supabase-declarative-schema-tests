@@ -13,7 +13,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { describeCommandFailure } from "./commands.mts";
 import { discoverCases } from "./files.mts";
-import { renderReport, writeReport } from "./reporting.mts";
+import { renderCaseReport, writeReport } from "./reporting.mts";
 import type {
   CommandResult,
   ProjectResult,
@@ -338,14 +338,8 @@ test("reports raw evidence for a successfully classified unsupported diagnostic"
     transitionSafetySummary: "Stable unsupported diagnostic observed.",
     transitionAssertionTitle: "Expected-unsupported diagnostic assertion",
   };
-  const report = renderReport(
-    testConfig(root),
-    [result],
-    join(root, ".tmp", "run"),
-    undefined,
-    new Date("2026-01-01T00:00:00.000Z"),
-  );
-  assert.match(report, /^### Raw transition diagnostic evidence$/m);
+  const report = renderCaseReport(result);
+  assert.match(report, /^## Raw transition diagnostic evidence$/m);
   assert.match(report, /code=unmodeled_kind/);
 });
 
@@ -358,8 +352,14 @@ test("writes reports and updates one version file per checksum while preserving 
   mkdirSync(runDirectory, { recursive: true });
 
   try {
-    const snapshotReportName = "report-2026-01-02T03-04-05-000Z.md";
-    const snapshotReportPath = join(config.reportsDirectory, snapshotReportName);
+    const snapshotRunStamp = "2026-01-02T03-04-05-000Z";
+    const snapshotReportDirectory = join(
+      config.reportsDirectory,
+      config.supabaseChecksum,
+      snapshotRunStamp,
+    );
+    const snapshotCaseRelativePath = `${config.supabaseChecksum}/${snapshotRunStamp}/case-1.md`;
+    mkdirSync(snapshotReportDirectory, { recursive: true });
     const snapshotResult: ProjectResult = {
       kind: "snapshot",
       name: "01-basic-table",
@@ -370,29 +370,34 @@ test("writes reports and updates one version file per checksum while preserving 
     };
     writeReport(
       config,
-      snapshotReportPath,
+      snapshotReportDirectory,
       [snapshotResult],
       runDirectory,
       undefined,
       new Date("2026-01-02T03:04:05.000Z"),
     );
 
-    assert.equal(existsSync(snapshotReportPath), true);
-    const snapshotReport = readFileSync(snapshotReportPath, "utf8");
-    assert.match(snapshotReport, /^# Supabase declarative schema CLI report$/m);
-    assert.match(snapshotReport, /^- Cases: 1$/m);
+    const snapshotRecapPath = join(snapshotReportDirectory, "0-recap.md");
+    const snapshotCasePath = join(snapshotReportDirectory, "case-1.md");
+    assert.equal(existsSync(snapshotRecapPath), true);
+    assert.equal(existsSync(snapshotCasePath), true);
+    const snapshotRecap = readFileSync(snapshotRecapPath, "utf8");
+    const snapshotCase = readFileSync(snapshotCasePath, "utf8");
+    assert.match(snapshotRecap, /^# Supabase declarative schema CLI report$/m);
+    assert.match(snapshotRecap, /^- Cases: 1$/m);
     assert.match(
-      snapshotReport,
-      /^\| `01-basic-table` \| \*\*OK\*\* \| \*\*NOT RUN\*\* \|$/m,
+      snapshotRecap,
+      /^\| `01-basic-table` \| \*\*OK\*\* \| \*\*NOT RUN\*\* \| \[`case-1\.md`\]\(\.\/case-1\.md\) \|$/m,
     );
     assert.match(
-      snapshotReport,
+      snapshotRecap,
       /<!-- declarative-schema-case-result name="01-basic-table" status="OK" -->/,
     );
     assert.match(
-      snapshotReport,
+      snapshotCase,
       /<!-- declarative-schema-command-result case="01-basic-table" engine="next" command="sync" status="OK" -->/,
     );
+    assert.match(snapshotCase, /^- Duration: `0\.1s`$/m);
 
     const datedVersionPath = join(
       config.versionsDirectory,
@@ -408,8 +413,14 @@ test("writes reports and updates one version file per checksum while preserving 
     assert.equal(existsSync(datedVersionPath), false);
     assert.deepEqual(readdirSync(config.versionsDirectory), ["version-abcdef0.md"]);
 
-    const transitionReportName = "report-2026-01-03T03-04-05-000Z.md";
-    const transitionReportPath = join(config.reportsDirectory, transitionReportName);
+    const transitionRunStamp = "2026-01-03T03-04-05-000Z";
+    const transitionReportDirectory = join(
+      config.reportsDirectory,
+      config.supabaseChecksum,
+      transitionRunStamp,
+    );
+    const transitionCaseRelativePath = `${config.supabaseChecksum}/${transitionRunStamp}/case-181.md`;
+    mkdirSync(transitionReportDirectory, { recursive: true });
     const legacyTransitionResult: ProjectResult = {
       kind: "transition",
       name: "181-rename-ambiguity",
@@ -460,29 +471,33 @@ test("writes reports and updates one version file per checksum while preserving 
     };
     writeReport(
       config,
-      transitionReportPath,
+      transitionReportDirectory,
       [transitionResult],
       runDirectory,
       undefined,
       new Date("2026-01-03T03:04:05.000Z"),
     );
 
-    assert.equal(existsSync(transitionReportPath), true);
-    const transitionReport = readFileSync(transitionReportPath, "utf8");
-    assert.match(transitionReport, /^### Baseline state A$/m);
-    assert.match(transitionReport, /^### Desired state B$/m);
-    assert.match(transitionReport, /^### CLI-generated baseline migration files$/m);
-    assert.match(transitionReport, /^### Generated transition migration files$/m);
-    assert.match(transitionReport, /^### Transition fallback \(legacy\)$/m);
+    const transitionRecapPath = join(transitionReportDirectory, "0-recap.md");
+    const transitionCasePath = join(transitionReportDirectory, "case-181.md");
+    assert.equal(existsSync(transitionRecapPath), true);
+    assert.equal(existsSync(transitionCasePath), true);
+    const transitionRecap = readFileSync(transitionRecapPath, "utf8");
+    const transitionCase = readFileSync(transitionCasePath, "utf8");
+    assert.match(transitionCase, /^## Baseline state A$/m);
+    assert.match(transitionCase, /^## Desired state B$/m);
+    assert.match(transitionCase, /^## CLI-generated baseline migration files$/m);
+    assert.match(transitionCase, /^## Generated transition migration files$/m);
+    assert.match(transitionCase, /^### Transition fallback \(legacy\)$/m);
     assert.match(
-      transitionReport,
+      transitionCase,
       /<!-- declarative-schema-command-result case="181-rename-ambiguity" engine="legacy" command="sync" status="OK" -->/,
     );
-    assert.doesNotMatch(transitionReport, /REPORT(?:''|')S_SECRET/);
-    assert.match(transitionReport, /\[REDACTED\]/);
+    assert.doesNotMatch(transitionCase, /REPORT(?:''|')S_SECRET/);
+    assert.match(transitionCase, /\[REDACTED\]/);
     assert.match(
-      transitionReport,
-      /^\| `181-rename-ambiguity` \| \*\*WARNING\*\* \| \*\*OK\*\* \|$/m,
+      transitionRecap,
+      /^\| `181-rename-ambiguity` \| \*\*WARNING\*\* \| \*\*OK\*\* \| \[`case-181\.md`\]\(\.\/case-181\.md\) \|$/m,
     );
 
     updateVersionReportsFromReports(config, new Date("2026-01-03T04:00:00.000Z"));
@@ -494,18 +509,24 @@ test("writes reports and updates one version file per checksum while preserving 
     assert.match(
       latestVersion,
       new RegExp(
-        String.raw`\| \`01-basic-table\` \| sync \| \*\*OK\*\* \| \*\*—\*\* \| \[\`${snapshotReportName}\`\]\(\.\.\/reports\/${snapshotReportName}#case-01-basic-table\) \|`,
+        String.raw`\| \`01-basic-table\` \| sync \| \*\*OK\*\* \| \*\*—\*\* \| \[\`case-1\.md\`\]\(\.\.\/reports\/${snapshotCaseRelativePath}\) \|`,
       ),
     );
     assert.match(
       latestVersion,
       new RegExp(
-        String.raw`\| \`181-rename-ambiguity\` \| sync \| \*\*WARNING\*\* \| \*\*OK\*\* \| \[\`${transitionReportName}\`\]\(\.\.\/reports\/${transitionReportName}#case-181-rename-ambiguity\) \|`,
+        String.raw`\| \`181-rename-ambiguity\` \| sync \| \*\*WARNING\*\* \| \*\*OK\*\* \| \[\`case-181\.md\`\]\(\.\.\/reports\/${transitionCaseRelativePath}\) \|`,
       ),
     );
 
-    const coverageReportName = "report-2026-01-04T03-04-05-000Z.md";
-    const coverageReportPath = join(config.reportsDirectory, coverageReportName);
+    const coverageRunStamp = "2026-01-04T03-04-05-000Z";
+    const coverageReportDirectory = join(
+      config.reportsDirectory,
+      config.supabaseChecksum,
+      coverageRunStamp,
+    );
+    const coverageCaseRelativePath = `${config.supabaseChecksum}/${coverageRunStamp}/case-251.md`;
+    mkdirSync(coverageReportDirectory, { recursive: true });
     const coverageResult: ProjectResult = {
       kind: "coverage",
       name: "251-auth-hook-suite",
@@ -530,19 +551,19 @@ test("writes reports and updates one version file per checksum while preserving 
     };
     writeReport(
       config,
-      coverageReportPath,
+      coverageReportDirectory,
       [coverageResult],
       runDirectory,
       undefined,
       new Date("2026-01-04T03:04:05.000Z"),
     );
-    const coverageReport = readFileSync(coverageReportPath, "utf8");
+    const coverageCase = readFileSync(join(coverageReportDirectory, "case-251.md"), "utf8");
     assert.match(
-      coverageReport,
+      coverageCase,
       /<!-- declarative-schema-command-result case="251-auth-hook-suite" engine="next" command="sync" status="ERROR" -->/,
     );
     assert.match(
-      coverageReport,
+      coverageCase,
       /<!-- declarative-schema-command-result case="251-auth-hook-suite" engine="next" command="generate" status="ERROR" -->/,
     );
 
@@ -553,7 +574,7 @@ test("writes reports and updates one version file per checksum while preserving 
     assert.match(
       versionWithCoverage,
       new RegExp(
-        String.raw`\| \`251-auth-hook-suite\` \| sync \| \*\*ERROR\*\* \| \*\*—\*\* \| \[\`${coverageReportName}\`\]\(\.\.\/reports\/${coverageReportName}#case-251-auth-hook-suite\) \|`,
+        String.raw`\| \`251-auth-hook-suite\` \| sync \| \*\*ERROR\*\* \| \*\*—\*\* \| \[\`case-251\.md\`\]\(\.\.\/reports\/${coverageCaseRelativePath}\) \|`,
       ),
     );
   } finally {

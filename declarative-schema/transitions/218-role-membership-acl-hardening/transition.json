@@ -2,6 +2,10 @@
   "expectation": "expected-unsupported",
   "declarativeFile": "role-membership-acl-hardening.sql",
   "description": "require an explicit database-scope boundary for cluster-global role evolution",
+  "catalogueAtoms": [
+    "PG-CAT-ROL-01::role.create",
+    "PG-CAT-BND-04::boundary.cluster-role"
+  ],
   "requiredDiagnosticPatterns": [
     {
       "description": "reports the cluster-global role scope boundary",

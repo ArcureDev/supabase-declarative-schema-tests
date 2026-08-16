@@ -20,6 +20,7 @@ import type {
   TestPlane,
 } from "./types.mts";
 import { localDatabaseContainerForProject } from "./project-config.mts";
+import { requireCatalogueAtoms } from "./manifest-validation.mts";
 
 function requireInside(parent: string, candidate: string): void {
   const path = relative(resolve(parent), resolve(candidate));
@@ -295,6 +296,10 @@ export function discoverCoverageCases(config: RunnerConfig): CoverageCase[] {
       "requirements",
       /^[A-Z][A-Z0-9]*$/,
     );
+    const catalogueAtoms = requireCatalogueAtoms(
+      manifest["catalogueAtoms"],
+      manifestPath,
+    );
     const sensitiveValues = manifest["sensitiveValues"] === undefined
       ? []
       : stringArray(
@@ -336,6 +341,7 @@ export function discoverCoverageCases(config: RunnerConfig): CoverageCase[] {
       description: manifest["description"].trim(),
       plane,
       requirements,
+      catalogueAtoms,
       sensitiveValues,
       requiredEnvironment,
       phases,

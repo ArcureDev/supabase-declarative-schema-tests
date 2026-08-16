@@ -14,9 +14,14 @@ are tracked in [`TEST-MATRIX.md`](./TEST-MATRIX.md).
 
 For snapshot cases, the runner:
 
-1. Removes any stale shared test runtime from an interrupted earlier run.
-2. Copies the next migration case and the runtime project to an isolated working
-   directory.
+1. Creates a temporary run directory under `.tmp/`, copies the shared runtime
+   template into `shared-runtime-control`, and runs
+   `npx supabase stop --no-backup` from that control project so any leftover
+   local Docker stack from an interrupted earlier run is stopped before cases
+   start.
+2. For each case, copies the runtime template into an isolated working project
+   under that run directory, then places the case's single migration SQL file
+   into `supabase/migrations/` as `20260101000000_case.sql`.
 3. For the first fixture, runs
    `npx supabase db schema declarative generate --local --reset --overwrite --debug`
    to start and initialize the shared local database from its migrations.
@@ -30,9 +35,9 @@ For snapshot cases, the runner:
 6. Runs `npx supabase db schema declarative sync --no-apply --debug` to recreate a
    migration from the generated declarative schema without an interactive apply
    prompt.
-7. Writes a new timestamped report under `reports/`, recording `OK` or the
-   command error for every project. For example:
-   `reports/report-2026-08-08T16-15-27-077Z.md`.
+7. Writes a new timestamped report under `reports/<checksum>/`, recording `OK`
+   or the command error for every project. For example:
+   `reports/f9bd289/report-2026-08-08T16-15-27-077Z.md`.
 8. Stops and removes the shared local database once with
    `npx supabase stop --no-backup`. Cleanup failures are included in the report.
 
@@ -58,6 +63,24 @@ unchanged. These profiles keep production, advanced PostgreSQL, managed-boundary
 and compound project cases data-driven instead of adding one runner branch per
 fixture.
 
+Cases 298–600 live under `transitions/catalogue/` as versioned `scenario-pack.json`
+manifests. A pack shares one `project/` template; each scenario supplies its own
+A/B SQL, setup, verification, expectation, and `catalogueAtoms`. Discovery
+expands a pack into ordinary numbered transition cases (`298-create-schema`,
+and so on), so `--case=298` and the existing reports keep working. Supported
+operations use `applicable-transition`. Unhinted rename/move pairs use
+`rename-ambiguity-warning-or-refusal`. Populated column drops use
+`destructive-change-warning-or-refusal`. Unmodeled or cluster-scoped kinds use
+`expected-unsupported`. Runtime-only atoms such as replication slots and
+unavailable remotes are evidenced by coverage cases 262 and 279, not DDL.
+
+[`postgres-transition-catalogue.json`](./postgres-transition-catalogue.json) is
+the machine-checkable source of truth for the 72 TEST-MATRIX catalogue rows.
+`catalogue-traceability.test.mts` refuses a `[x]` checkbox unless every atom
+has matching executable evidence. Rebuild packs with
+`node --experimental-strip-types declarative-schema/catalogue/build-fixtures.mts`
+after editing atoms.
+
 Supabase coverage beyond portable DDL uses numbered cases under `coverage/`.
 These cases share the same selection and reporting flow but execute an ordered
 set of typed phases in one explicit plane. The runner's `--plane=` filter selects:
@@ -69,9 +92,10 @@ set of typed phases in one explicit plane. The runner's `--plane=` filter select
 - `config` for `config.toml`, seeds, multi-file input, and CLI lifecycle behavior;
 - `remote` for explicitly opted-in linked or hosted disposable projects.
 
-The checked-in catalog contains 297 cases: 180 snapshots, 87 transitions, and
+The checked-in catalog contains 600 cases: 180 snapshots, 390 transitions, and
 30 multi-plane coverage cases. Cases 245–296 implement the Supabase requirement
-map across DDL and companion product behavior.
+map across DDL and companion product behavior. Cases 298–600 are table-driven
+PostgreSQL transition-catalogue scenarios under `transitions/catalogue/`.
 
 The phase pipeline is an internal runner abstraction, not CI. A phase declares
 its dependencies so a failed prerequisite skips only its consumers while
@@ -208,6 +232,7 @@ npm run declarative-schema -- --case=10-20
 npm run declarative-schema -- --case=11,15,24
 npm run declarative-schema -- --case=10-15,24
 npm run declarative-schema -- --case=181
+npm run declarative-schema -- --case=298-310
 ```
 
 To rerun only the failed or warning cases from the newest timestamped report,
@@ -267,9 +292,9 @@ That script runs linked or hosted disposable coverage (`--plane=remote --remote`
 Never point remote coverage cases at production. They are designed for
 disposable projects or preview branches with deterministic teardown.
 
-Command output remains captured in that run's timestamped file under `reports/`
-so errors can be reviewed later without overwriting earlier results. The exact
-path is printed when the runner finishes.
+Command output remains captured in that run's timestamped file under
+`reports/<checksum>/` so errors can be reviewed later without overwriting
+earlier results. The exact path is printed when the runner finishes.
 
 The runner uses `SUPABASE_USE_PG_DELTA_NEXT=true` for its primary commands and
 sets it to `false` only for legacy retries. It executes projects sequentially

@@ -1,0 +1,780 @@
+{
+  "version": 1,
+  "description": "Functions, procedures, aggregates, and triggers catalogue scenarios",
+  "comment": "Table-driven pack for Functions, procedures, aggregates, and triggers. Shared project template; each scenario overlays one declarative file.",
+  "firstCaseNumber": 502,
+  "scenarios": [
+    {
+      "id": "routine-sql",
+      "caseNumber": 502,
+      "expectation": "applicable-transition",
+      "description": "apply routine.sql with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-01::routine.sql. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-01::routine.sql"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-plpgsql",
+      "caseNumber": 503,
+      "expectation": "applicable-transition",
+      "description": "apply routine.plpgsql with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-01::routine.plpgsql. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-01::routine.plpgsql"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-extension-language",
+      "caseNumber": 504,
+      "expectation": "expected-unsupported",
+      "description": "emit a stable diagnostic for routine.extension-language",
+      "comment": "Covers PG-CAT-RTN-01::routine.extension-language. Keep public.transition_anchor identity stable. This atom is an explicit supported/unsupported boundary, not an accidental omission.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-01::routine.extension-language"
+      ],
+      "requiredDiagnosticPatterns": [
+        {
+          "description": "reports a stable capability or scope diagnostic",
+          "pattern": "\\b(?:code=unmodeled_kind|does\\s+not\\s+manage|scope\\s+database|unsupported|cannot)\\b"
+        }
+      ],
+      "forbiddenDiagnosticPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-replace",
+      "caseNumber": 505,
+      "expectation": "applicable-transition",
+      "description": "apply routine.replace with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-02::routine.replace. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-02::routine.replace"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-drop",
+      "caseNumber": 506,
+      "expectation": "applicable-transition",
+      "description": "apply routine.drop with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-02::routine.drop. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-02::routine.drop"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-rename",
+      "caseNumber": 507,
+      "expectation": "rename-ambiguity-warning-or-refusal",
+      "description": "treat routine.rename as an identity-unsafe drop/create pair without a rename hint",
+      "comment": "Covers PG-CAT-RTN-02::routine.rename. Keep public.transition_anchor identity stable. PostgreSQL RENAME/SET SCHEMA preserves OIDs; an unhinted declarative pair must not silently drop data.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-02::routine.rename"
+      ],
+      "sourceIdentifier": "public.catalogue_rename_source"
+    },
+    {
+      "id": "routine-volatility",
+      "caseNumber": 508,
+      "expectation": "applicable-transition",
+      "description": "apply routine.volatility with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-02::routine.volatility. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-02::routine.volatility"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-security",
+      "caseNumber": 509,
+      "expectation": "applicable-transition",
+      "description": "apply routine.security with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-02::routine.security. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-02::routine.security"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-parallel",
+      "caseNumber": 510,
+      "expectation": "applicable-transition",
+      "description": "apply routine.parallel with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-02::routine.parallel. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-02::routine.parallel"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-overload",
+      "caseNumber": 511,
+      "expectation": "applicable-transition",
+      "description": "apply routine.overload with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-03::routine.overload. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-03::routine.overload"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-variadic",
+      "caseNumber": 512,
+      "expectation": "applicable-transition",
+      "description": "apply routine.variadic with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-03::routine.variadic. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-03::routine.variadic"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-normalization",
+      "caseNumber": 513,
+      "expectation": "applicable-transition",
+      "description": "apply routine.normalization with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-03::routine.normalization. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-03::routine.normalization"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "procedure-replace",
+      "caseNumber": 514,
+      "expectation": "applicable-transition",
+      "description": "apply procedure.replace with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-04::procedure.replace. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-04::procedure.replace"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "procedure-signature",
+      "caseNumber": 515,
+      "expectation": "applicable-transition",
+      "description": "apply procedure.signature with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-04::procedure.signature. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-04::procedure.signature"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "aggregate-ordinary",
+      "caseNumber": 516,
+      "expectation": "applicable-transition",
+      "description": "apply aggregate.ordinary with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-05::aggregate.ordinary. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-05::aggregate.ordinary"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "aggregate-ordered-set",
+      "caseNumber": 517,
+      "expectation": "applicable-transition",
+      "description": "apply aggregate.ordered-set with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-05::aggregate.ordered-set. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-05::aggregate.ordered-set"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "trigger-row",
+      "caseNumber": 518,
+      "expectation": "applicable-transition",
+      "description": "apply trigger.row with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-06::trigger.row. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-06::trigger.row"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "trigger-statement",
+      "caseNumber": 519,
+      "expectation": "applicable-transition",
+      "description": "apply trigger.statement with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-06::trigger.statement. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-06::trigger.statement"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "trigger-instead-of",
+      "caseNumber": 520,
+      "expectation": "applicable-transition",
+      "description": "apply trigger.instead-of with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-06::trigger.instead-of. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-06::trigger.instead-of"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "trigger-disable",
+      "caseNumber": 521,
+      "expectation": "applicable-transition",
+      "description": "apply trigger.disable with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-06::trigger.disable. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-06::trigger.disable"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "trigger-constraint",
+      "caseNumber": 522,
+      "expectation": "applicable-transition",
+      "description": "apply trigger.constraint with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-06::trigger.constraint. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-06::trigger.constraint"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "event-trigger-create",
+      "caseNumber": 523,
+      "expectation": "applicable-transition",
+      "description": "apply event-trigger.create with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-07::event-trigger.create. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-07::event-trigger.create"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "event-trigger-enable",
+      "caseNumber": 524,
+      "expectation": "applicable-transition",
+      "description": "apply event-trigger.enable with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-07::event-trigger.enable. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-07::event-trigger.enable"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "event-trigger-rename",
+      "caseNumber": 525,
+      "expectation": "rename-ambiguity-warning-or-refusal",
+      "description": "treat event-trigger.rename as an identity-unsafe drop/create pair without a rename hint",
+      "comment": "Covers PG-CAT-RTN-07::event-trigger.rename. Keep public.transition_anchor identity stable. PostgreSQL RENAME/SET SCHEMA preserves OIDs; an unhinted declarative pair must not silently drop data.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-07::event-trigger.rename"
+      ],
+      "sourceIdentifier": "public.catalogue_rename_source"
+    },
+    {
+      "id": "event-trigger-tag-filter",
+      "caseNumber": 526,
+      "expectation": "applicable-transition",
+      "description": "apply event-trigger.tag-filter with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-07::event-trigger.tag-filter. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-07::event-trigger.tag-filter"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-used-by-default",
+      "caseNumber": 527,
+      "expectation": "applicable-transition",
+      "description": "apply routine.used-by-default with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-08::routine.used-by-default. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-08::routine.used-by-default"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    },
+    {
+      "id": "routine-used-by-view",
+      "caseNumber": 528,
+      "expectation": "applicable-transition",
+      "description": "apply routine.used-by-view with a native in-place operation",
+      "comment": "Covers PG-CAT-RTN-08::routine.used-by-view. Keep public.transition_anchor identity stable.",
+      "catalogueAtoms": [
+        "PG-CAT-RTN-08::routine.used-by-view"
+      ],
+      "requiredMigrationPatterns": [
+        {
+          "description": "emits native DDL rather than recreating the anchor",
+          "pattern": "\\b(?:create|alter)\\b"
+        }
+      ],
+      "forbiddenMigrationPatterns": [
+        {
+          "description": "does not replace the transition anchor",
+          "pattern": "\\bdrop\\s+table\\s+(?:if\\s+exists\\s+)?(?:only\\s+)?public\\.transition_anchor\\b"
+        },
+        {
+          "description": "does not truncate populated data",
+          "pattern": "(?:^|;)\\s*truncate(?:\\s+table)?\\b"
+        },
+        {
+          "description": "does not panic",
+          "pattern": "\\b(?:panic|segmentation fault)\\b"
+        }
+      ]
+    }
+  ]
+}

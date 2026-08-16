@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { runCommandTask, runSupabase } from "./commands.mts";
 import { runCoverageCase } from "./coverage-case.mts";
 import { discoverCases, requirePathInside } from "./files.mts";
-import { createReportPath, writeReport } from "./reporting.mts";
+import { createReportDirectory, writeReport } from "./reporting.mts";
 import {
   caseNumberFromName,
   failedCaseNumbersFromReport,
@@ -163,7 +163,10 @@ export async function runDeclarativeSchema(
     throw new Error(`Runtime template does not exist: ${config.runtimeTemplateDirectory}`);
   }
   mkdirSync(config.reportsDirectory, { recursive: true });
-  const reportPath = createReportPath(config.reportsDirectory);
+  const reportDirectory = createReportDirectory(
+    config.reportsDirectory,
+    config.supabaseChecksum,
+  );
   const availableCases = discoverCases(config);
   if (availableCases.length === 0) {
     throw new Error("Expected at least one schema case.");
@@ -236,7 +239,7 @@ export async function runDeclarativeSchema(
         }
       }
       results.push(result);
-      writeReport(config, reportPath, results, runDirectory);
+      writeReport(config, reportDirectory, results, runDirectory);
       // Refresh the checksum matrix after every evaluated case so migrations,
       // transitions, and coverage all land in versions/ as soon as they report.
       updateVersionReportsFromReports(config);
@@ -248,7 +251,7 @@ export async function runDeclarativeSchema(
     );
     writeReport(
       config,
-      reportPath,
+      reportDirectory,
       results,
       runDirectory,
       finalCleanup.status === "ERROR" ? finalCleanup : undefined,
@@ -261,6 +264,6 @@ export async function runDeclarativeSchema(
     throw new Error("Shared runtime cleanup did not run.");
   }
   const failed = results.some(projectFailed) || finalCleanup.status !== "OK";
-  process.stdout.write(`Report written to ${reportPath}\n`);
+  process.stdout.write(`Report written to ${reportDirectory}\n`);
   return failed ? 1 : 0;
 }

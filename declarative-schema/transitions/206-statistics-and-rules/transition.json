@@ -2,6 +2,11 @@
   "expectation": "expected-unsupported",
   "declarativeFile": "statistics-and-rules.sql",
   "description": "extended-statistics evolution is rejected explicitly while rewrite-rule state remains unchanged",
+  "catalogueAtoms": [
+    "PG-CAT-CIX-08::statistics.create",
+    "PG-CAT-CIX-09::rule.create",
+    "PG-CAT-BND-05::boundary.stable-diagnostic"
+  ],
   "requiredDiagnosticPatterns": [
     {
       "description": "reports the stable unmodeled-kind capability code",

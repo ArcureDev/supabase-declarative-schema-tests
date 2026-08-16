@@ -219,6 +219,7 @@ export async function runCoverageCase(
     ],
     coverageDescription: testCase.description,
     coverageRequirements: testCase.requirements,
+    catalogueAtoms: testCase.catalogueAtoms,
     sync: finalResult,
     phaseResults,
   };

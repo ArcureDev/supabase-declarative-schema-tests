@@ -4,6 +4,9 @@
   "requirements": [
     "R4"
   ],
+  "catalogueAtoms": [
+    "PG-CAT-PUB-04::replication.runtime-state"
+  ],
   "phases": [
     {
       "id": "stop",

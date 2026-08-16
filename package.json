@@ -16,7 +16,7 @@
     "@supabase/supabase-js": "^2.112.3",
     "@types/node": "^26.2.0",
     "listr2": "^9.0.5",
-    "supabase": "https://pkg.pr.new/supabase/cli/supabase@f9bd2890b73b6084ac64753accabd34d97454eb3",
+    "supabase": "https://pkg.pr.new/supabase/cli/supabase@2c0c7906c9896cc5541ee36ffbbd6e8ea5cc4bf0",
     "typescript": "^7.0.2"
   },
   "engines": {

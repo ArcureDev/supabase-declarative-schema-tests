@@ -5,8 +5,17 @@ import {
   readdirSync,
   rmSync,
 } from "node:fs";
-import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { basename, join, relative, sep } from "node:path";
 import { discoverCoverageCases } from "./coverage-files.mts";
+import {
+  requireCatalogueAtoms,
+  requireMigrationPatterns,
+  requirePathInside,
+  requireQualifiedIdentifier,
+  requireRequirements,
+  requireSensitiveValues,
+} from "./manifest-validation.mts";
+import { discoverScenarioPackCases } from "./scenario-pack-files.mts";
 import { compareCaseNames } from "./selection.mts";
 import type {
   ApplicableTransition,
@@ -16,7 +25,6 @@ import type {
   ExpectedUnsupportedTransition,
   GeneratedFile,
   GrantsRlsPreservationTransition,
-  MigrationPatternAssertion,
   NoOpConvergenceTransition,
   PopulatedColumnTransition,
   RecoveryAfterFailureTransition,
@@ -27,69 +35,7 @@ import type {
   TransitionCase,
 } from "./types.mts";
 
-function requireMigrationPatterns(
-  value: unknown,
-  fieldName: string,
-  manifestPath: string,
-): MigrationPatternAssertion[] {
-  if (!Array.isArray(value)) {
-    throw new Error(`Invalid ${fieldName} in ${manifestPath}.`);
-  }
-  return value.map((candidate, index) => {
-    if (
-      typeof candidate !== "object" ||
-      candidate === null ||
-      Array.isArray(candidate)
-    ) {
-      throw new Error(`Invalid ${fieldName}[${index}] in ${manifestPath}.`);
-    }
-    const assertion = candidate as Record<string, unknown>;
-    if (
-      typeof assertion["description"] !== "string" ||
-      assertion["description"].trim().length === 0 ||
-      typeof assertion["pattern"] !== "string" ||
-      assertion["pattern"].length === 0 ||
-      assertion["pattern"].length > 500
-    ) {
-      throw new Error(`Invalid ${fieldName}[${index}] in ${manifestPath}.`);
-    }
-    try {
-      new RegExp(assertion["pattern"], "i");
-    } catch {
-      throw new Error(`Invalid regular expression in ${fieldName}[${index}] in ${manifestPath}.`);
-    }
-    return {
-      description: assertion["description"].trim(),
-      pattern: assertion["pattern"],
-    };
-  });
-}
-
-function requireQualifiedIdentifier(
-  value: unknown,
-  fieldName: string,
-  manifestPath: string,
-): string {
-  if (
-    typeof value !== "string" ||
-    !/^[a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*$/.test(value)
-  ) {
-    throw new Error(`Invalid ${fieldName} in ${manifestPath}.`);
-  }
-  return value;
-}
-
-export function requirePathInside(parent: string, candidate: string): void {
-  const relativePath = relative(resolve(parent), resolve(candidate));
-  if (
-    relativePath === "" ||
-    relativePath === ".." ||
-    relativePath.startsWith(`..${sep}`) ||
-    isAbsolute(relativePath)
-  ) {
-    throw new Error(`Refusing filesystem operation outside ${parent}: ${candidate}`);
-  }
-}
+export { requirePathInside } from "./manifest-validation.mts";
 
 export function removeMigrationSqlFiles(workProject: string): number {
   const migrationsDirectory = join(workProject, "supabase", "migrations");
@@ -226,6 +172,11 @@ function discoverTransitionDirectories(directory: string): string[] {
     .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink())
     .flatMap((entry) => {
       const entryDirectory = join(directory, entry.name);
+      // Scenario packs share a project template and must not be treated as a
+      // single transition.json fixture, even when the directory name is numbered.
+      if (existsSync(join(entryDirectory, "scenario-pack.json"))) {
+        return [];
+      }
       return /^\d+-/.test(entry.name) ||
         existsSync(join(entryDirectory, "transition.json"))
         ? [entryDirectory]
@@ -276,6 +227,7 @@ function discoverTransitionCases(config: RunnerConfig): TransitionCase[] {
         forbiddenDiagnosticPatterns?: unknown;
         sensitiveValues?: unknown;
         requirements?: unknown;
+        catalogueAtoms?: unknown;
       };
       if (
         typeof manifest.declarativeFile !== "string" ||
@@ -306,37 +258,15 @@ function discoverTransitionCases(config: RunnerConfig): TransitionCase[] {
         }
       }
 
-      const sensitiveValues =
-        manifest.sensitiveValues === undefined
-          ? []
-          : Array.isArray(manifest.sensitiveValues) &&
-              manifest.sensitiveValues.every(
-                (value) =>
-                  typeof value === "string" &&
-                  value.length >= 8 &&
-                  value.length <= 200,
-              ) &&
-              new Set(manifest.sensitiveValues).size === manifest.sensitiveValues.length
-            ? manifest.sensitiveValues as string[]
-            : undefined;
-      if (sensitiveValues === undefined) {
-        throw new Error(`Invalid sensitiveValues in ${manifestPath}.`);
-      }
-      const requirements =
-        manifest.requirements === undefined
-          ? []
-          : Array.isArray(manifest.requirements) &&
-              manifest.requirements.every(
-                (value) =>
-                  typeof value === "string" &&
-                  /^[A-Z][A-Z0-9]*$/.test(value),
-              ) &&
-              new Set(manifest.requirements).size === manifest.requirements.length
-            ? manifest.requirements as string[]
-            : undefined;
-      if (requirements === undefined) {
-        throw new Error(`Invalid requirements in ${manifestPath}.`);
-      }
+      const sensitiveValues = requireSensitiveValues(
+        manifest.sensitiveValues,
+        manifestPath,
+      );
+      const requirements = requireRequirements(manifest.requirements, manifestPath);
+      const catalogueAtoms = requireCatalogueAtoms(
+        manifest.catalogueAtoms,
+        manifestPath,
+      );
       const fixture = {
         name: basename(directory),
         directory,
@@ -347,6 +277,8 @@ function discoverTransitionCases(config: RunnerConfig): TransitionCase[] {
         verificationPath,
         sensitiveValues,
         requirements,
+        catalogueAtoms,
+        declarativeFile: manifest.declarativeFile,
       };
 
       if (manifest.expectation === "rename-ambiguity-warning-or-refusal") {
@@ -603,6 +535,7 @@ export function discoverCases(config: RunnerConfig): TestCase[] {
   return [
     ...snapshots,
     ...discoverTransitionCases(config),
+    ...discoverScenarioPackCases(config),
     ...discoverCoverageCases(config),
   ].sort((left, right) =>
     compareCaseNames(left.name, right.name),

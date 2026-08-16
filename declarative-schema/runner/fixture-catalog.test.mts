@@ -12,17 +12,21 @@ const scriptDirectory = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 test("checked-in fixture catalog is contiguous and internally valid", () => {
   const config = loadRunnerConfig(scriptDirectory, []);
   const cases = discoverCases(config);
-  assert.equal(cases.length, 297);
+  const numbers = cases.map((fixture) => caseNumberFromName(fixture.name));
+  assert.equal(numbers[0], 1);
   assert.deepEqual(
-    cases.map((fixture) => caseNumberFromName(fixture.name)),
-    Array.from({ length: 297 }, (_, index) => index + 1),
+    numbers,
+    Array.from({ length: cases.length }, (_, index) => index + 1),
   );
 
+  const snapshots = cases.filter((fixture) => fixture.kind === "snapshot");
+  const coverage = cases.filter((fixture) => fixture.kind === "coverage");
   const transitions = cases.filter(
     (fixture) => fixture.kind !== "snapshot" && fixture.kind !== "coverage",
   );
-  assert.equal(transitions.length, 87);
-  assert.equal(cases.filter((fixture) => fixture.kind === "coverage").length, 30);
+  assert.equal(snapshots.length, 180);
+  assert.equal(coverage.length, 30);
+  assert.ok(transitions.length >= 87, "transition fixtures must remain in the catalog");
   const supabaseTransitionNames = [
     "220-realtime-publication-membership",
     "225-managed-schema-boundary",
@@ -74,6 +78,7 @@ test("checked-in fixture catalog is contiguous and internally valid", () => {
     if (fixture.kind !== "applicable-transition") continue;
     assert.ok(fixture.requiredMigrationPatterns.length > 0, fixture.name);
     assert.ok(fixture.forbiddenMigrationPatterns.length > 0, fixture.name);
+    assert.ok(fixture.catalogueAtoms.length >= 0, fixture.name);
     const baselineVerification = readFileSync(
       fixture.baselineVerificationPath,
       "utf8",

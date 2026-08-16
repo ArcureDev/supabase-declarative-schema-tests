@@ -31,6 +31,11 @@ import {
   removeCapturedMigrationFiles,
   requirePathInside,
 } from "./files.mts";
+import {
+  materializePackDeclaration,
+  readFixtureSql,
+  workDeclarationPath,
+} from "./scenario-pack-files.mts";
 import type {
   ApplicableTransition,
   CaseRunContext,
@@ -55,6 +60,52 @@ function transitionWorkProject(
 ): string {
   const suffix = context.pgDeltaEngine === "legacy" ? "-legacy" : "";
   return join(context.runDirectory, `${basename(testCase.name)}${suffix}`);
+}
+
+function resolveWorkDeclaration(
+  testCase: TransitionFixtureBase,
+  workProject: string,
+): string {
+  return testCase.packScenarioId
+    ? workDeclarationPath(testCase, workProject)
+    : join(workProject, relative(testCase.projectDirectory, testCase.baselinePath));
+}
+
+function copyTransitionProject(
+  testCase: TransitionFixtureBase,
+  workProject: string,
+): void {
+  cpSync(testCase.projectDirectory, workProject, {
+    recursive: true,
+    errorOnExist: true,
+  });
+  if (testCase.packScenarioId) {
+    materializePackDeclaration(testCase, workProject, testCase.baselinePath);
+  }
+}
+
+function copyDesiredDeclaration(
+  testCase: TransitionFixtureBase,
+  workProject: string,
+  workDeclaration: string,
+): void {
+  if (testCase.packScenarioId) {
+    materializePackDeclaration(testCase, workProject, testCase.desiredPath);
+    return;
+  }
+  copyFileSync(testCase.desiredPath, workDeclaration);
+}
+
+function packProvenance(testCase: TransitionFixtureBase): Pick<
+  ProjectResult,
+  "catalogueAtoms" | "packDirectory" | "packScenarioId" | "packDescription"
+> {
+  return {
+    catalogueAtoms: testCase.catalogueAtoms,
+    ...(testCase.packDirectory ? { packDirectory: testCase.packDirectory } : {}),
+    ...(testCase.packScenarioId ? { packScenarioId: testCase.packScenarioId } : {}),
+    ...(testCase.packDescription ? { packDescription: testCase.packDescription } : {}),
+  };
 }
 
 function runTransitionSupabase(
@@ -84,22 +135,16 @@ export async function runPlanningSafetyTransition(
     : "Check destructive column-drop handling without applying changes";
   const workProject = transitionWorkProject(testCase, context);
   const workMigrations = join(workProject, "supabase", "migrations");
-  const workDeclaration = join(
-    workProject,
-    relative(testCase.projectDirectory, testCase.baselinePath),
-  );
+  const workDeclaration = resolveWorkDeclaration(testCase, workProject);
   requirePathInside(runDirectory, workProject);
   requirePathInside(workProject, workMigrations);
   requirePathInside(workProject, workDeclaration);
 
-  const baselineSql = readFileSync(testCase.baselinePath, "utf8").trim();
-  const desiredSql = readFileSync(testCase.desiredPath, "utf8").trim();
-  const dataSetupSql = readFileSync(testCase.dataSetupPath, "utf8").trim();
-  const verificationSql = readFileSync(testCase.verificationPath, "utf8").trim();
-  cpSync(testCase.projectDirectory, workProject, {
-    recursive: true,
-    errorOnExist: true,
-  });
+  const baselineSql = readFixtureSql(testCase, testCase.baselinePath);
+  const desiredSql = readFixtureSql(testCase, testCase.desiredPath);
+  const dataSetupSql = readFixtureSql(testCase, testCase.dataSetupPath);
+  const verificationSql = readFixtureSql(testCase, testCase.verificationPath);
+  copyTransitionProject(testCase, workProject);
   mkdirSync(workMigrations, { recursive: true });
 
   const runtimeStart = await runCommandTask(config, "Start local Supabase", () =>
@@ -199,7 +244,7 @@ export async function runPlanningSafetyTransition(
     if (baselineState?.status === "OK") {
       const declarationUpdate = await runActionTask(
         "Replace the state A declaration with desired state B",
-        () => copyFileSync(testCase.desiredPath, workDeclaration),
+        () => copyDesiredDeclaration(testCase, workProject, workDeclaration),
       );
       if (declarationUpdate.status === "ERROR") {
         throw new Error(declarationUpdate.error);
@@ -272,6 +317,7 @@ export async function runPlanningSafetyTransition(
     desiredSql,
     dataSetupSql,
     sensitiveValues: testCase.sensitiveValues,
+    ...packProvenance(testCase),
     runtimeStart,
     reset,
     baselineSync,
@@ -297,23 +343,25 @@ export async function runExpectedUnsupportedTransition(
   const { config, runDirectory } = context;
   const workProject = transitionWorkProject(testCase, context);
   const workMigrations = join(workProject, "supabase", "migrations");
-  const workDeclaration = join(
-    workProject,
-    relative(testCase.projectDirectory, testCase.baselinePath),
-  );
+  const workDeclaration = resolveWorkDeclaration(testCase, workProject);
   requirePathInside(runDirectory, workProject);
   requirePathInside(workProject, workMigrations);
   requirePathInside(workProject, workDeclaration);
 
-  const baselineSql = readFileSync(testCase.baselinePath, "utf8").trim();
-  const siblingBaselineSql = readdirSync(dirname(testCase.baselinePath), {
+  const baselineSql = readFixtureSql(testCase, testCase.baselinePath);
+  const siblingDirectory = testCase.packScenarioId
+    ? join(testCase.projectDirectory, "supabase", "database")
+    : dirname(testCase.baselinePath);
+  const siblingBaselineSql = readdirSync(siblingDirectory, {
     withFileTypes: true,
   })
     .filter(
       (entry) =>
         entry.isFile() &&
         entry.name.endsWith(".sql") &&
-        entry.name !== basename(testCase.baselinePath),
+        entry.name !== (testCase.packScenarioId
+          ? testCase.declarativeFile
+          : basename(testCase.baselinePath)),
     )
     .sort((left, right) => {
       if (left.name === "extensions.sql") return -1;
@@ -321,19 +369,16 @@ export async function runExpectedUnsupportedTransition(
       return left.name.localeCompare(right.name);
     })
     .map((entry) =>
-      readFileSync(join(dirname(testCase.baselinePath), entry.name), "utf8").trim()
+      readFileSync(join(siblingDirectory, entry.name), "utf8").trim()
     );
   const bootstrapSql = [...siblingBaselineSql, baselineSql].filter(Boolean).join("\n\n");
-  const desiredSql = readFileSync(testCase.desiredPath, "utf8").trim();
-  const dataSetupSql = readFileSync(testCase.dataSetupPath, "utf8").trim();
-  const baselineVerificationSql = readFileSync(
+  const desiredSql = readFixtureSql(testCase, testCase.desiredPath);
+  const dataSetupSql = readFixtureSql(testCase, testCase.dataSetupPath);
+  const baselineVerificationSql = readFixtureSql(
+    testCase,
     testCase.baselineVerificationPath,
-    "utf8",
-  ).trim();
-  cpSync(testCase.projectDirectory, workProject, {
-    recursive: true,
-    errorOnExist: true,
-  });
+  );
+  copyTransitionProject(testCase, workProject);
   mkdirSync(workMigrations, { recursive: true });
 
   const runtimeStart = await runCommandTask(config, "Start local Supabase", () =>
@@ -400,7 +445,7 @@ export async function runExpectedUnsupportedTransition(
     if (baselineState?.status === "OK") {
       const declarationUpdate = await runActionTask(
         "Replace the state A declaration with desired state B",
-        () => copyFileSync(testCase.desiredPath, workDeclaration),
+        () => copyDesiredDeclaration(testCase, workProject, workDeclaration),
       );
       if (declarationUpdate.status === "ERROR") throw new Error(declarationUpdate.error);
       sync = await runCommandTask(
@@ -442,6 +487,7 @@ export async function runExpectedUnsupportedTransition(
     desiredSql,
     dataSetupSql,
     sensitiveValues: testCase.sensitiveValues,
+    ...packProvenance(testCase),
     runtimeStart,
     reset,
     baselineSync,
@@ -500,26 +546,20 @@ export async function runApplicableTransition(
       : "Verify table identity, populated rows, and new defaults";
   const workProject = transitionWorkProject(testCase, context);
   const workMigrations = join(workProject, "supabase", "migrations");
-  const workDeclaration = join(
-    workProject,
-    relative(testCase.projectDirectory, testCase.baselinePath),
-  );
+  const workDeclaration = resolveWorkDeclaration(testCase, workProject);
   requirePathInside(runDirectory, workProject);
   requirePathInside(workProject, workMigrations);
   requirePathInside(workProject, workDeclaration);
 
-  const baselineSql = readFileSync(testCase.baselinePath, "utf8").trim();
-  const desiredSql = readFileSync(testCase.desiredPath, "utf8").trim();
-  const dataSetupSql = readFileSync(testCase.dataSetupPath, "utf8").trim();
-  const baselineVerificationSql = readFileSync(
+  const baselineSql = readFixtureSql(testCase, testCase.baselinePath);
+  const desiredSql = readFixtureSql(testCase, testCase.desiredPath);
+  const dataSetupSql = readFixtureSql(testCase, testCase.dataSetupPath);
+  const baselineVerificationSql = readFixtureSql(
+    testCase,
     testCase.baselineVerificationPath,
-    "utf8",
-  ).trim();
-  const verificationSql = readFileSync(testCase.verificationPath, "utf8").trim();
-  cpSync(testCase.projectDirectory, workProject, {
-    recursive: true,
-    errorOnExist: true,
-  });
+  );
+  const verificationSql = readFixtureSql(testCase, testCase.verificationPath);
+  copyTransitionProject(testCase, workProject);
   mkdirSync(workMigrations, { recursive: true });
 
   const runtimeStart = await runCommandTask(config, "Start local Supabase", () =>
@@ -628,7 +668,7 @@ export async function runApplicableTransition(
     if (baselineState?.status === "OK") {
       const declarationUpdate = await runActionTask(
         "Replace the state A declaration with desired state B",
-        () => copyFileSync(testCase.desiredPath, workDeclaration),
+        () => copyDesiredDeclaration(testCase, workProject, workDeclaration),
       );
       if (declarationUpdate.status === "ERROR") {
         throw new Error(declarationUpdate.error);
@@ -757,6 +797,7 @@ export async function runApplicableTransition(
     desiredSql,
     dataSetupSql,
     sensitiveValues: testCase.sensitiveValues,
+    ...packProvenance(testCase),
     runtimeStart,
     reset,
     baselineSync,
@@ -801,21 +842,15 @@ async function prepareTransitionBaseline(
   const { config, runDirectory } = context;
   const workProject = transitionWorkProject(testCase, context);
   const workMigrations = join(workProject, "supabase", "migrations");
-  const workDeclaration = join(
-    workProject,
-    relative(testCase.projectDirectory, testCase.baselinePath),
-  );
+  const workDeclaration = resolveWorkDeclaration(testCase, workProject);
   requirePathInside(runDirectory, workProject);
   requirePathInside(workProject, workMigrations);
   requirePathInside(workProject, workDeclaration);
-  const baselineSql = readFileSync(testCase.baselinePath, "utf8").trim();
-  const desiredSql = readFileSync(testCase.desiredPath, "utf8").trim();
-  const dataSetupSql = readFileSync(testCase.dataSetupPath, "utf8").trim();
-  const verificationSql = readFileSync(testCase.verificationPath, "utf8").trim();
-  cpSync(testCase.projectDirectory, workProject, {
-    recursive: true,
-    errorOnExist: true,
-  });
+  const baselineSql = readFixtureSql(testCase, testCase.baselinePath);
+  const desiredSql = readFixtureSql(testCase, testCase.desiredPath);
+  const dataSetupSql = readFixtureSql(testCase, testCase.dataSetupPath);
+  const verificationSql = readFixtureSql(testCase, testCase.verificationPath);
+  copyTransitionProject(testCase, workProject);
   mkdirSync(workMigrations, { recursive: true });
 
   const runtimeStart = await runCommandTask(config, "Start local Supabase", () =>
@@ -930,7 +965,7 @@ export async function runNoOpConvergenceTransition(
     if (baselineState?.status === "OK") {
       const declarationUpdate = await runActionTask(
         "Replace state A with the identical desired declaration",
-        () => copyFileSync(testCase.desiredPath, prepared.workDeclaration),
+        () => copyDesiredDeclaration(testCase, prepared.workProject, prepared.workDeclaration),
       );
       if (declarationUpdate.status === "ERROR") throw new Error(declarationUpdate.error);
       sync = await runCommandTask(
@@ -973,6 +1008,7 @@ export async function runNoOpConvergenceTransition(
     desiredSql: prepared.desiredSql,
     dataSetupSql: prepared.dataSetupSql,
     sensitiveValues: testCase.sensitiveValues,
+    ...packProvenance(testCase),
     runtimeStart: prepared.runtimeStart,
     reset: prepared.reset,
     baselineSync: prepared.baselineSync,
@@ -1035,7 +1071,7 @@ export async function runDeterministicOutputTransition(
     if (baselineState?.status === "OK") {
       const declarationUpdate = await runActionTask(
         "Replace the state A declaration with desired state B",
-        () => copyFileSync(testCase.desiredPath, prepared.workDeclaration),
+        () => copyDesiredDeclaration(testCase, prepared.workProject, prepared.workDeclaration),
       );
       if (declarationUpdate.status === "ERROR") throw new Error(declarationUpdate.error);
       sync = await runCommandTask(
@@ -1118,6 +1154,7 @@ export async function runDeterministicOutputTransition(
     desiredSql: prepared.desiredSql,
     dataSetupSql: prepared.dataSetupSql,
     sensitiveValues: testCase.sensitiveValues,
+    ...packProvenance(testCase),
     runtimeStart: prepared.runtimeStart,
     reset: prepared.reset,
     baselineSync: prepared.baselineSync,
@@ -1146,11 +1183,11 @@ export async function runRecoveryAfterFailureTransition(
     "recovery_after_failure_baseline",
   );
   const { config } = context;
-  const baselineVerificationSql = readFileSync(
+  const baselineVerificationSql = readFixtureSql(
+    testCase,
     testCase.baselineVerificationPath,
-    "utf8",
-  ).trim();
-  const repairSql = readFileSync(testCase.repairPath, "utf8").trim();
+  );
+  const repairSql = readFixtureSql(testCase, testCase.repairPath);
   const syncCommand = [
     "supabase",
     "db",
@@ -1193,7 +1230,7 @@ export async function runRecoveryAfterFailureTransition(
     if (baselineState?.status === "OK") {
       const declarationUpdate = await runActionTask(
         "Replace the state A declaration with desired state B",
-        () => copyFileSync(testCase.desiredPath, prepared.workDeclaration),
+        () => copyDesiredDeclaration(testCase, prepared.workProject, prepared.workDeclaration),
       );
       if (declarationUpdate.status === "ERROR") throw new Error(declarationUpdate.error);
       sync = await runCommandTask(
@@ -1308,6 +1345,7 @@ export async function runRecoveryAfterFailureTransition(
     desiredSql: prepared.desiredSql,
     dataSetupSql: prepared.dataSetupSql,
     sensitiveValues: testCase.sensitiveValues,
+    ...packProvenance(testCase),
     runtimeStart: prepared.runtimeStart,
     reset: prepared.reset,
     baselineSync: prepared.baselineSync,

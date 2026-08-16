@@ -21,6 +21,17 @@ export type TransitionFixtureBase = {
   verificationPath: string;
   sensitiveValues: string[];
   requirements: string[];
+  catalogueAtoms: string[];
+  /**
+   * Declared SQL file name written into the isolated work project's
+   * `supabase/database/` directory. Regular fixtures derive this from the
+   * baseline path; scenario packs supply it so many A→B cases can share one
+   * project template without loading sibling scenario files.
+   */
+  declarativeFile: string;
+  packDirectory?: string | undefined;
+  packScenarioId?: string | undefined;
+  packDescription?: string | undefined;
 };
 
 export type RenameAmbiguityTransition = TransitionFixtureBase & {
@@ -189,6 +200,7 @@ export type CoverageCase = {
   description: string;
   plane: Exclude<TestPlane, "ddl">;
   requirements: string[];
+  catalogueAtoms: string[];
   sensitiveValues: string[];
   requiredEnvironment: string[];
   phases: CoveragePhase[];
@@ -213,6 +225,10 @@ export type ProjectResult = {
   sensitiveValues?: string[] | undefined;
   coverageDescription?: string | undefined;
   coverageRequirements?: string[] | undefined;
+  catalogueAtoms?: string[] | undefined;
+  packDirectory?: string | undefined;
+  packScenarioId?: string | undefined;
+  packDescription?: string | undefined;
   runtimeStart?: CommandResult | undefined;
   reset?: CommandResult | undefined;
   baselineSync?: CommandResult | undefined;
@@ -270,8 +286,11 @@ export type ParsedVersionReport = {
   checksum: string;
   cliVersion: string;
   generated: string;
+  /** Run identity path (`checksum/timestamp/0-recap.md` or legacy `report-….md`). */
   reportName: string;
   caseResults: Map<string, Map<string, VersionResultStatus>>;
+  /** Per-case detail file when reports are split (`…/case-N.md`); else same as reportName. */
+  caseReportNames: Map<string, string>;
 };
 
 export type CaseSnapshot = {

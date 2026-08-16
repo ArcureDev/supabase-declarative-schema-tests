@@ -20,9 +20,9 @@ database from state A to state B. Rename safety, data preservation, dependency
 ordering, destructive-change warnings, idempotence, and multi-release evolution
 therefore need a separate fixture model described after the implemented panel.
 
-The complete catalog now contains 297 numbered cases: 180 snapshot round trips,
-87 state transitions, and 30 service, Functions, configuration, or remote
-coverage cases.
+The complete catalog now contains 600 numbered cases: 180 snapshot round trips,
+390 state transitions (including 303 table-driven catalogue scenarios), and 30
+service, Functions, configuration, or remote coverage cases.
 
 ## Implemented foundations
 
@@ -354,6 +354,38 @@ stable capability/scope diagnostics without applying or changing the database.
 - [x] 297 Managed database-webhook trigger dependency
   (`transitions/supabase/297-managed-database-webhook-trigger/`)
 
+### Implemented PostgreSQL transition catalogue packs
+
+Cases 298–600 expand the 72-row PostgreSQL transition catalogue into table-driven
+scenario packs under `transitions/catalogue/`. Each pack shares one project
+template; each scenario is an ordinary numbered transition. A catalogue checkbox
+below is `[x]` only when every atom in
+[`postgres-transition-catalogue.json`](./postgres-transition-catalogue.json) has
+executable evidence. Snapshot fixtures never close a catalogue row.
+
+- [x] 298–385 Schema, table, column, and sequence catalogue
+  (`transitions/catalogue/298-stc-catalogue-pack/`)
+- [x] 386–434 Constraint, index, statistics, and rule catalogue
+  (`transitions/catalogue/386-cix-catalogue-pack/`)
+- [x] 435–460 Partition and inheritance catalogue
+  (`transitions/catalogue/435-prt-catalogue-pack/`)
+- [x] 461–486 Type, domain, range, and cast catalogue
+  (`transitions/catalogue/461-typ-catalogue-pack/`)
+- [x] 487–501 View and materialized-view catalogue
+  (`transitions/catalogue/487-viw-catalogue-pack/`)
+- [x] 502–528 Routine, aggregate, and trigger catalogue
+  (`transitions/catalogue/502-rtn-catalogue-pack/`)
+- [x] 529–554 Role, grant, and RLS catalogue
+  (`transitions/catalogue/529-rol-catalogue-pack/`)
+- [x] 555–563 Publication and replication catalogue
+  (`transitions/catalogue/555-pub-catalogue-pack/`)
+- [x] 564–574 Text-search, collation, conversion, and language catalogue
+  (`transitions/catalogue/564-fts-catalogue-pack/`)
+- [x] 575–589 Extension, FDW, and security-label catalogue
+  (`transitions/catalogue/575-ext-catalogue-pack/`)
+- [x] 590–600 Explicit PostgreSQL boundary catalogue
+  (`transitions/catalogue/590-bnd-catalogue-pack/`)
+
 ### Estimated size
 
 The word “exhaustive” means practical coverage of every supported object family,
@@ -476,187 +508,271 @@ queries. Data rows must survive.
 
 ## PostgreSQL transition catalogue
 
+Stable row IDs live in [`postgres-transition-catalogue.json`](./postgres-transition-catalogue.json)
+and as HTML comments on each bullet (`PG-CAT-STC-01` through `PG-CAT-BND-05`).
+Do not check a row by hand: `catalogue-traceability.test.mts` requires every
+atom to have matching executable evidence (a pack scenario, an existing
+transition, or a runtime coverage case). Snapshot round-trips do not count.
+Unsupported or runtime-only behavior is closed by diagnostic or coverage
+fixtures, not by pretending pg-delta emits the DDL.
+
+Rebuild packs from [`catalogue/build-fixtures.mts`](./catalogue/build-fixtures.mts)
+when adding atoms. Then re-run `npm run declarative-schema:unit` so checkbox
+state and case numbers stay contiguous.
+
 ### Schemas, tables, columns, and sequences
 
-- [ ] Create, drop, rename, move, authorize, and change ownership of schemas.
-- [ ] Create, drop, rename, move, persist/unpersist, and change ownership of
+- [x] Create, drop, rename, move, authorize, and change ownership of schemas.
+  <!-- PG-CAT-STC-01 -->
+- [x] Create, drop, rename, move, persist/unpersist, and change ownership of
   tables; cover ordinary, unlogged, temporary-boundary, partitioned, inherited,
   typed, foreign, and identity-bearing tables where in scope.
-- [ ] Add, drop, rename, reorder-only, and batch columns on empty and populated
+  <!-- PG-CAT-STC-02 -->
+- [x] Add, drop, rename, reorder-only, and batch columns on empty and populated
   tables.
-- [ ] Change data type with implicit cast, assignment cast, explicit USING,
+  <!-- PG-CAT-STC-03 -->
+- [x] Change data type with implicit cast, assignment cast, explicit USING,
   lossy conversion, incompatible conversion, arrays, domains, enums, and
   collation changes.
-- [ ] Add/change/drop defaults, including volatile defaults and expression
+  <!-- PG-CAT-STC-04 -->
+- [x] Add/change/drop defaults, including volatile defaults and expression
   defaults; verify existing rows are not rewritten incorrectly.
-- [ ] Add/drop NOT NULL with and without valid data and with staged validation.
-- [ ] Add/change/drop identity and generated expressions; switch identity
+  <!-- PG-CAT-STC-05 -->
+- [x] Add/drop NOT NULL with and without valid data and with staged validation.
+  <!-- PG-CAT-STC-06 -->
+- [x] Add/change/drop identity and generated expressions; switch identity
   ALWAYS/BY DEFAULT; restart and change sequence options.
-- [ ] Change compression, storage, statistics target, column options, and
+  <!-- PG-CAT-STC-07 -->
+- [x] Change compression, storage, statistics target, column options, and
   per-column privileges.
-- [ ] Sequence create/drop/rename/move; type, increment, min/max, cache, cycle,
+  <!-- PG-CAT-STC-08 -->
+- [x] Sequence create/drop/rename/move; type, increment, min/max, cache, cycle,
   restart, owned-by, and ownership changes.
-- [ ] Table access method, tablespace, persistence, storage parameters, replica
+  <!-- PG-CAT-STC-09 -->
+- [x] Table access method, tablespace, persistence, storage parameters, replica
   identity, row-security flags, clustering, and inheritance changes.
-- [ ] Preserve rows containing NULLs, defaults, arrays, JSON, bytea, large text,
+  <!-- PG-CAT-STC-10 -->
+- [x] Preserve rows containing NULLs, defaults, arrays, JSON, bytea, large text,
   generated values, identity values, and boundary numeric/time values.
+  <!-- PG-CAT-STC-11 -->
 
 ### Constraints, indexes, statistics, and rules
 
-- [ ] Primary key, unique, foreign key, check, exclusion, and NOT NULL
+- [x] Primary key, unique, foreign key, check, exclusion, and NOT NULL
   constraint create/drop/rename and property changes.
-- [ ] Composite keys; self, cyclic, multi-column, cross-schema, partitioned, and
+  <!-- PG-CAT-CIX-01 -->
+- [x] Composite keys; self, cyclic, multi-column, cross-schema, partitioned, and
   deferrable foreign keys; action and match-mode changes.
-- [ ] NOT VALID creation followed by VALIDATE CONSTRAINT, including invalid
+  <!-- PG-CAT-CIX-02 -->
+- [x] NOT VALID creation followed by VALIDATE CONSTRAINT, including invalid
   existing data.
-- [ ] Attach an existing unique index as a constraint and detach or replace it
+  <!-- PG-CAT-CIX-03 -->
+- [x] Attach an existing unique index as a constraint and detach or replace it
   without needless rebuilds.
-- [ ] Index create/drop/rename/move and changes to uniqueness, method, columns,
+  <!-- PG-CAT-CIX-04 -->
+- [x] Index create/drop/rename/move and changes to uniqueness, method, columns,
   expressions, sort order, NULLS order, INCLUDE, predicate, collation, operator
   class, options, tablespace, and validity.
-- [ ] Partial, expression, covering, multicolumn, partitioned, hash, GiST, SP-GiST,
+  <!-- PG-CAT-CIX-05 -->
+- [x] Partial, expression, covering, multicolumn, partitioned, hash, GiST, SP-GiST,
   GIN, BRIN, and extension-provided indexes.
-- [ ] Concurrent-index policy, invalid indexes, clustered indexes, replica
+  <!-- PG-CAT-CIX-06 -->
+- [x] Concurrent-index policy, invalid indexes, clustered indexes, replica
   identity indexes, and duplicate-equivalent definitions.
-- [ ] Extended statistics create/drop/rename and changes to columns, kinds,
+  <!-- PG-CAT-CIX-07 -->
+- [x] Extended statistics create/drop/rename and changes to columns, kinds,
   target, owner, and schema.
-- [ ] Rewrite rules create/replace/drop/enable/disable and interaction with
+  <!-- PG-CAT-CIX-08 -->
+- [x] Rewrite rules create/replace/drop/enable/disable and interaction with
   views, triggers, and RLS.
+  <!-- PG-CAT-CIX-09 -->
 
 ### Partitions and inheritance
 
-- [ ] RANGE, LIST, HASH, DEFAULT, multilevel, and subpartitioned hierarchies.
-- [ ] Add, detach, finalize detach, attach, rename, move, and drop partitions.
-- [ ] Change bounds, default-partition constraints, partition keys, and strategy
+- [x] RANGE, LIST, HASH, DEFAULT, multilevel, and subpartitioned hierarchies.
+  <!-- PG-CAT-PRT-01 -->
+- [x] Add, detach, finalize detach, attach, rename, move, and drop partitions.
+  <!-- PG-CAT-PRT-02 -->
+- [x] Change bounds, default-partition constraints, partition keys, and strategy
   through safe staged operations or explicit refusal.
-- [ ] Attach populated tables with validated constraints and reject overlapping
+  <!-- PG-CAT-PRT-03 -->
+- [x] Attach populated tables with validated constraints and reject overlapping
   or invalid data.
-- [ ] Local versus partitioned indexes, attached indexes, constraints,
+  <!-- PG-CAT-PRT-04 -->
+- [x] Local versus partitioned indexes, attached indexes, constraints,
   sequences, triggers, RLS, publications, and foreign keys.
-- [ ] Traditional inheritance add/drop parent, multiple inheritance, NO INHERIT,
+  <!-- PG-CAT-PRT-05 -->
+- [x] Traditional inheritance add/drop parent, multiple inheritance, NO INHERIT,
   and inherited column/constraint behavior.
+  <!-- PG-CAT-PRT-06 -->
 
 ### Types, domains, ranges, and casts
 
-- [ ] Enum create/drop/rename/move; add value before/after, rename value,
+- [x] Enum create/drop/rename/move; add value before/after, rename value,
   reorder request, delete request, and transactional/version limitations.
-- [ ] Domain base type, default, NOT NULL, collation, and named check-constraint
+  <!-- PG-CAT-TYP-01 -->
+- [x] Domain base type, default, NOT NULL, collation, and named check-constraint
   transitions with populated dependent columns.
-- [ ] Composite type attributes add/drop/rename/type/collation changes and
+  <!-- PG-CAT-TYP-02 -->
+- [x] Composite type attributes add/drop/rename/type/collation changes and
   dependent tables/functions.
-- [ ] Range and multirange creation, rename, move, subtype/opclass/canonical/
-  diff changes, and dependencies.
-- [ ] Base and shell types, input/output/receive/send/analyze/subscript
+  <!-- PG-CAT-TYP-03 -->
+- [x] Range and multirange creation, rename, move, subtype/opclass/canonical/diff
+  changes, and dependencies.
+  <!-- PG-CAT-TYP-04 -->
+- [x] Base and shell types, input/output/receive/send/analyze/subscript
   functions, storage/alignment/category/preference/collatability changes.
-- [ ] Cast create/drop and changes to function, context, and method.
-- [ ] Operator, operator class, operator family, aggregate, and support-function
+  <!-- PG-CAT-TYP-05 -->
+- [x] Cast create/drop and changes to function, context, and method.
+  <!-- PG-CAT-TYP-06 -->
+- [x] Operator, operator class, operator family, aggregate, and support-function
   dependency transitions.
-- [ ] Positive CREATE TRANSFORM coverage plus replace/drop and language/type
+  <!-- PG-CAT-TYP-07 -->
+- [x] Positive CREATE TRANSFORM coverage plus replace/drop and language/type
   dependencies.
+  <!-- PG-CAT-TYP-08 -->
 
 ### Views and materialized views
 
-- [ ] Create/replace/drop/rename/move and ownership, comment, ACL, security
+- [x] Create/replace/drop/rename/move and ownership, comment, ACL, security
   barrier/invoker, check option, and column-name changes.
-- [ ] Compatible and incompatible output-column changes; nested, recursive,
+  <!-- PG-CAT-VIW-01 -->
+- [x] Compatible and incompatible output-column changes; nested, recursive,
   lateral, aggregate, window, set-operation, and cross-schema views.
-- [ ] Dependency-safe ordering when base objects and view chains change
+  <!-- PG-CAT-VIW-02 -->
+- [x] Dependency-safe ordering when base objects and view chains change
   together.
-- [ ] Materialized-view query, options, tablespace, access method, index, owner,
+  <!-- PG-CAT-VIW-03 -->
+- [x] Materialized-view query, options, tablespace, access method, index, owner,
   populated/unpopulated state, refresh, and concurrent-refresh eligibility.
+  <!-- PG-CAT-VIW-04 -->
 
 ### Functions, procedures, aggregates, and triggers
 
-- [ ] SQL, PL/pgSQL, and supported extension-language routines.
-- [ ] Create/replace/drop/rename/move; signature, argument name/mode/default,
+- [x] SQL, PL/pgSQL, and supported extension-language routines.
+  <!-- PG-CAT-RTN-01 -->
+- [x] Create/replace/drop/rename/move; signature, argument name/mode/default,
   return type/table, language, body, volatility, strictness, leakproofness,
   parallel safety, security mode, support function, cost, rows, configuration,
   owner, ACL, and dependency changes.
-- [ ] Overloads, variadic/polymorphic arguments, quoted bodies, dollar-tag
+  <!-- PG-CAT-RTN-02 -->
+- [x] Overloads, variadic/polymorphic arguments, quoted bodies, dollar-tag
   variants, comments, whitespace, and CRLF-versus-LF normalization.
-- [ ] Procedure transaction behavior and IN/OUT signature transitions.
-- [ ] Ordinary, ordered-set, and hypothetical-set aggregate transitions,
+  <!-- PG-CAT-RTN-03 -->
+- [x] Procedure transaction behavior and IN/OUT signature transitions.
+  <!-- PG-CAT-RTN-04 -->
+- [x] Ordinary, ordered-set, and hypothetical-set aggregate transitions,
   including state/combine/serial/deserial/final/moving functions.
-- [ ] Row, statement, constraint, INSTEAD OF, transition-table, deferred,
+  <!-- PG-CAT-RTN-05 -->
+- [x] Row, statement, constraint, INSTEAD OF, transition-table, deferred,
   partitioned-table, enabled/disabled, and replica/always triggers.
-- [ ] Event-trigger create/drop/rename/enable changes for ddl_command_start,
+  <!-- PG-CAT-RTN-06 -->
+- [x] Event-trigger create/drop/rename/enable changes for ddl_command_start,
   ddl_command_end, table_rewrite, and sql_drop, with tag filtering.
-- [ ] Safe ordering when a routine is used by a default, generated column,
+  <!-- PG-CAT-RTN-07 -->
+- [x] Safe ordering when a routine is used by a default, generated column,
   index, constraint, policy, trigger, view, operator, cast, or publication filter.
+  <!-- PG-CAT-RTN-08 -->
 
 ### Roles, ownership, grants, and row-level security
 
-- [ ] Role create/drop/rename and LOGIN, SUPERUSER, CREATEDB, CREATEROLE,
+- [x] Role create/drop/rename and LOGIN, SUPERUSER, CREATEDB, CREATEROLE,
   REPLICATION, BYPASSRLS, connection limit, validity, password-redaction, and
   membership/admin/inherit/set option transitions.
-- [ ] Object ownership changes and DROP OWNED/REASSIGN OWNED boundaries.
-- [ ] GRANT/REVOKE for schemas, tables, columns, sequences, routines, types,
+  <!-- PG-CAT-ROL-01 -->
+- [x] Object ownership changes and DROP OWNED/REASSIGN OWNED boundaries.
+  <!-- PG-CAT-ROL-02 -->
+- [x] GRANT/REVOKE for schemas, tables, columns, sequences, routines, types,
   databases, tablespaces, foreign objects, large objects, and parameters.
-- [ ] Grant option, PUBLIC, default privileges, grantor identity, duplicate
+  <!-- PG-CAT-ROL-03 -->
+- [x] Grant option, PUBLIC, default privileges, grantor identity, duplicate
   grants, and revoke cascade/restrict.
-- [ ] RLS enable/disable/force/no-force; policy create/drop/rename and changes
+  <!-- PG-CAT-ROL-04 -->
+- [x] RLS enable/disable/force/no-force; policy create/drop/rename and changes
   to command, permissive/restrictive mode, roles, USING, and WITH CHECK.
-- [ ] Policies using auth.uid(), auth.jwt(), security-definer helpers, views,
+  <!-- PG-CAT-ROL-05 -->
+- [x] Policies using auth.uid(), auth.jwt(), security-definer helpers, views,
   joins, custom claims, anonymous/authenticated/service roles, and recursive
   policy hazards.
-- [ ] Ensure routine security, search_path, ownership, privileges, and RLS are
+  <!-- PG-CAT-ROL-06 -->
+- [x] Ensure routine security, search_path, ownership, privileges, and RLS are
   changed in a non-exploitable order.
+  <!-- PG-CAT-ROL-07 -->
 
 ### Publications and logical replication
 
-- [ ] Publication create/drop/rename/owner, FOR ALL TABLES, selected tables,
+- [x] Publication create/drop/rename/owner, FOR ALL TABLES, selected tables,
   schema membership, column lists, row filters, publish operations, partition
   root, and membership add/drop.
-- [ ] Supabase Realtime publication membership and replica-identity
+  <!-- PG-CAT-PUB-01 -->
+- [x] Supabase Realtime publication membership and replica-identity
   requirements.
-- [ ] Subscription definitions, connection-string redaction, enabled state,
+  <!-- PG-CAT-PUB-02 -->
+- [x] Subscription definitions, connection-string redaction, enabled state,
   slot/publication changes, origin, streaming, binary, two-phase, failover,
   refresh, skip, and DROP cleanup when a safe test environment supports them.
-- [ ] Slot/origin/runtime replication state is asserted separately from
+  <!-- PG-CAT-PUB-03 -->
+- [x] Slot/origin/runtime replication state is asserted separately from
   declarative DDL.
+  <!-- PG-CAT-PUB-04 -->
 
 ### Text search, collations, conversions, and languages
 
-- [ ] Text-search parser, template, dictionary, and configuration lifecycle;
+- [x] Text-search parser, template, dictionary, and configuration lifecycle;
   token mappings and dependency ordering.
-- [ ] Collation create/drop/rename/move, provider, locale/rules, deterministic
+  <!-- PG-CAT-FTS-01 -->
+- [x] Collation create/drop/rename/move, provider, locale/rules, deterministic
   flag, encoding, version refresh, ICU/libc availability, and OS drift.
-- [ ] Conversion create/drop/rename/move/default and source/destination
+  <!-- PG-CAT-FTS-02 -->
+- [x] Conversion create/drop/rename/move/default and source/destination
   encoding/function changes.
-- [ ] Procedural-language create/drop/rename/owner/handler/validator/inline
+  <!-- PG-CAT-FTS-03 -->
+- [x] Procedural-language create/drop/rename/owner/handler/validator/inline
   transitions and trusted/untrusted boundaries.
+  <!-- PG-CAT-FTS-04 -->
 
 ### Extensions, FDWs, and external boundaries
 
-- [ ] Extension create/drop, version upgrade/downgrade request, schema move,
+- [x] Extension create/drop, version upgrade/downgrade request, schema move,
   cascade policy, relocatable/non-relocatable behavior, and configuration-table
   membership.
-- [ ] Extension-owned objects are neither duplicated nor accidentally dropped;
+  <!-- PG-CAT-EXT-01 -->
+- [x] Extension-owned objects are neither duplicated nor accidentally dropped;
   user modifications and upgrade conflicts produce useful diagnostics.
-- [ ] Foreign-data wrapper, server, user mapping, and foreign-table
+  <!-- PG-CAT-EXT-02 -->
+- [x] Foreign-data wrapper, server, user mapping, and foreign-table
   create/drop/rename/move plus handler/validator/options/owner/ACL changes.
-- [ ] Add/change/drop options with correct SET/ADD/DROP syntax and redact
+  <!-- PG-CAT-EXT-03 -->
+- [x] Add/change/drop options with correct SET/ADD/DROP syntax and redact
   passwords, tokens, URLs, and connection strings from reports.
-- [ ] IMPORT FOREIGN SCHEMA, unavailable endpoints, changed remote schemas,
+  <!-- PG-CAT-EXT-04 -->
+- [x] IMPORT FOREIGN SCHEMA, unavailable endpoints, changed remote schemas,
   local test servers, and failure recovery.
-- [ ] Security labels and providers, including pgsodium availability and
+  <!-- PG-CAT-EXT-05 -->
+- [x] Security labels and providers, including pgsodium availability and
   unsupported-provider diagnostics.
+  <!-- PG-CAT-EXT-06 -->
 
 ### Explicit PostgreSQL boundaries
 
 These require deliberate supported/unsupported decisions rather than accidental
 omission:
 
-- [ ] Access methods, transforms, extended statistics, rules, event triggers,
+- [x] Access methods, transforms, extended statistics, rules, event triggers,
   subscriptions, large objects, database-level settings, and parameter grants.
-- [ ] Database and tablespace creation, which may require connections,
+  <!-- PG-CAT-BND-01 -->
+- [x] Database and tablespace creation, which may require connections,
   privileges, and transaction boundaries outside a normal project migration.
-- [ ] Temporary/session objects, runtime sequence values, materialized-view
+  <!-- PG-CAT-BND-02 -->
+- [x] Temporary/session objects, runtime sequence values, materialized-view
   contents, replication slots, prepared transactions, and statistics, which are
   state rather than portable schema.
-- [ ] Cluster-level roles/settings and superuser-only features.
-- [ ] Unsupported object kinds fail with a stable, actionable diagnostic and do
+  <!-- PG-CAT-BND-03 -->
+- [x] Cluster-level roles/settings and superuser-only features.
+  <!-- PG-CAT-BND-04 -->
+- [x] Unsupported object kinds fail with a stable, actionable diagnostic and do
   not silently disappear from the declarative export.
+  <!-- PG-CAT-BND-05 -->
 
 ## Dependency and destructive-change matrix
 
